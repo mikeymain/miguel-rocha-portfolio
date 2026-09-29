@@ -10,7 +10,7 @@
   "use strict";
 
   // Chrome/Firefox cross-browser shim
-  const browser = globalThis.browser ?? chrome; // eslint-disable-line no-undef
+  const browser = globalThis.browser ?? chrome;
 
   const ROOT_ID = "travian-todo-root";
 

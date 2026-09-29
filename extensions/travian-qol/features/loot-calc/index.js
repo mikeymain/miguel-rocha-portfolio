@@ -13,12 +13,10 @@
 // appear in response to direct user actions (right-click, click, hover that
 // triggers Travian's own tippy). No automated clicks, no fetches.
 (function () {
-  const STYLE_ID = "travian-qol-loot-calc-style";
   let active = false;
   let observers = [];
   let messageHandler = null;
   let storageHandler = null;
-  let styleEl = null;
 
   // ===== TROOP DATA =====
   const BASE_TRIBES = {

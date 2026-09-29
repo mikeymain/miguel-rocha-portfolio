@@ -945,7 +945,6 @@
       // 1) Distance + travel times for the incoming attack.
       const distAtt = torusDistance(target, att, mapSize);
       const tAtt = travelSeconds(distAtt, aSpeed, serverSpeed, aArt, aBoots, aTs);
-      const depart = new Date(arrival.getTime() - tAtt * 1000);
       const returns = new Date(arrival.getTime() + tAtt * 1000);
 
       // 2) Counter — must land on the attacker's village the moment

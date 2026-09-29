@@ -24,7 +24,7 @@
 
   function parseDistance(text) {
     // Strip Travian's invisible bidi markers before number-matching.
-    const cleaned = text.replace(/[‪-‮⁦-⁩​-‏]/g, "");
+    const cleaned = text.replace(/[\u202A-\u202E\u2066-\u2069\u200B-\u200F]/g, "");
     const match = cleaned.match(/(\d+(?:\.\d+)?)/);
     return match ? parseFloat(match[1]) : Infinity;
   }

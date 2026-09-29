@@ -1,3 +1,4 @@
+/* global TSP */
 /**
  * popup.js — Travian Settlement Planner: Popup UI Controller
  *
@@ -240,7 +241,7 @@ async function refreshAllServers(serverList) {
   const indicator = dom["refreshIndicator"];
   if (indicator) indicator.classList.add("active");
 
-  const results = await Promise.allSettled(
+  await Promise.allSettled(
     serverList.map(async (srv) => {
       try {
         const resp = await api.runtime.sendMessage({
@@ -318,8 +319,8 @@ function renderVillages() {
     const row = document.createElement("div");
     row.className = "v-row";
     row.innerHTML = `
-            <div class="v-name" title="${v.name}">
-                ${v.name} ${timerHtml}
+            <div class="v-name" title="${TSP.escapeHtml(v.name)}">
+                ${TSP.escapeHtml(v.name)} ${timerHtml}
                 <br><span class="v-prod">${v.cpProduction} CP/d</span>
             </div>
             <div class="v-set">

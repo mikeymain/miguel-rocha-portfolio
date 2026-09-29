@@ -31,7 +31,7 @@
     // Strip Travian's invisible bidi markers and any non-numeric formatting
     // (commas, dots used as thousands separators) so we can compare as ints.
     const cleaned = String(text)
-      .replace(/[‪-‮⁦-⁩​-‏]/g, "")
+      .replace(/[\u202A-\u202E\u2066-\u2069\u200B-\u200F]/g, "")
       .replace(/[^\d.-]/g, "");
     return cleaned ? parseFloat(cleaned) : NaN;
   }

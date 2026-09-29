@@ -61,5 +61,9 @@ export default [
       globals: { ...globals.browser, ...globals.webextensions },
     },
   },
+  {
+    files: ["extensions/*/background.js"],
+    languageOptions: { globals: { ...globals.serviceworker, ...globals.webextensions } },
+  },
   prettier,
 ];

@@ -1,3 +1,4 @@
+/* global TSP */
 // Load shared utilities (replaces the multi-script manifest pattern)
 importScripts("shared.js");
 
@@ -66,7 +67,7 @@ api.runtime.onMessage.addListener((request, _sender, sendResponse) => {
  * Always falls back to background fetch if no tab succeeds.
  */
 async function scanServerPreferTabs(serverUrl) {
-  const { origin, hostname } = new URL(serverUrl);
+  const { hostname } = new URL(serverUrl);
 
   // Try to find an open tab for this server and ask it to rescan
   const tabs = await api.tabs.query({});

@@ -1,3 +1,4 @@
+/* global TSP */
 /**
  * content.js — Travian Settlement Planner: Content Script
  *

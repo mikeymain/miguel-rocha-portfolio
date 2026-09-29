@@ -6,7 +6,6 @@
  * (background service worker, content scripts, popup) without ES module imports.
  */
 
-/* eslint-disable no-unused-vars */
 "use strict";
 
 globalThis.TSP = (() => {
@@ -167,7 +166,7 @@ globalThis.TSP = (() => {
     const lower = str.toLowerCase();
     const hasK = lower.includes("k");
     const hasM = lower.includes("m");
-    let clean = lower.replace(/[^0-9,.\-]/g, "");
+    let clean = lower.replace(/[^0-9,.-]/g, "");
 
     if (hasK || hasM) {
       // Abbreviated: treat comma as decimal separator (European locale)
@@ -540,6 +539,14 @@ globalThis.TSP = (() => {
   //  PUBLIC API
   // =========================================================================
 
+  /** Escapes text for safe interpolation into HTML (village names come from the page). */
+  function escapeHtml(text) {
+    return String(text).replace(
+      /[&<>"']/g,
+      (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch],
+    );
+  }
+
   return {
     // Browser API
     api,
@@ -562,6 +569,7 @@ globalThis.TSP = (() => {
     formatDuration,
     formatHMS,
     getCelebrationDuration,
+    escapeHtml,
 
     // Storage
     storageKey,
