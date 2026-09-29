@@ -20,7 +20,13 @@ export default [
     },
   },
   {
-    files: ["eslint.config.js", "**/*.config.{js,mjs}", "projects/build-lab/tests/**"],
+    files: [
+      "eslint.config.js",
+      "**/*.config.{js,mjs}",
+      "projects/build-lab/tests/**",
+      "extensions/tests/**",
+      "projects/workout-tracker/tests/**",
+    ],
     languageOptions: { globals: globals.node },
   },
   {
