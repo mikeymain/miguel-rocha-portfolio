@@ -255,7 +255,7 @@ async function checkAlarmCondition() {
  *   2. /statistics — daily production, total CP, progression graph data
  *
  * Merges new data with existing stored data to preserve user settings
- * (town hall levels, celebration toggles). Updates Kalman filter state.
+ * (town hall levels, celebration toggles).
  *
  * @param {string} baseUrl - Any URL on the target server
  * @returns {boolean} True if scan succeeded

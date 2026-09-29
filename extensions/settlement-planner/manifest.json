@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Travian CP Predictor",
   "version": "2.1",
-  "description": "Predicts settlement time using a Kalman filter over scraped culture-point data, with accurate celebration simulation.",
+  "description": "Predicts when culture points reach the next settlement slot, simulating production growth and celebrations.",
   "author": "miguelrocha1511@gmail.com",
   "permissions": ["storage", "notifications", "alarms"],
   "host_permissions": [

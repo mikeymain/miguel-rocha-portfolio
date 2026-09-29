@@ -7,4 +7,4 @@ This portfolio collects personal and collaborative projects. Third-party code, d
 - **Travian extensions:** independent personal tools for Travian. Game names, imagery and any bundled third-party materials are not claimed as original portfolio assets.
 - **BMW M4 ADRO Kit:** collaborative mod made primarily with Blender. See the Nexus Mods release page for distribution details and credits. Game and vehicle brands belong to their respective owners.
 
-The repository is private initially. Review the redistribution terms for bundled third-party material before changing its visibility or adding a public open-source licence.
+Review the redistribution terms for bundled third-party material before adding an open-source licence.

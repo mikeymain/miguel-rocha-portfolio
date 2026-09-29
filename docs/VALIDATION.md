@@ -1,12 +1,21 @@
-# Portfolio snapshot validation
+# Validation
 
-Checked on 21 September 2026 while assembling this repository:
+## Automated, on every push
 
-- Build Lab: clean dependency installation, production build and all 52 included Node.js calculation tests passed.
-- Build Lab reports a bundle-size warning; the production build succeeds. Browser tests are included but were not rerun for this packaging change.
-- All four extension manifests resolve their declared local scripts, styles, icons, popup pages and web-accessible assets.
-- Main portfolio and project README relative links resolve.
-- Candidate Git files were checked for common credential patterns, local configuration files and oversized blobs. No matching credentials were found; this is not a full security audit.
-- M4 release sizes and SHA-256 hashes were calculated from the supplied upload packages. The binary packages are not committed.
+[CI](../.github/workflows/ci.yml) runs these checks:
 
-No live game sessions, extension behaviour tests or full Workout Tracker browser tests were performed during portfolio assembly.
+| Area               | Checks                                                                                                                                                   |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Whole repository   | ESLint and Prettier                                                                                                                   |
+| Build Lab          | Calculation unit tests, production build, Playwright browser tests (editing, saved builds, layout at several widths, typography)                         |
+| Workout Tracker    | Programme generation for every onboarding profile, save migration, training-block maths, 1RM estimates                                                   |
+| Browser extensions | Settlement Planner parsing and prediction model; TravAlarm duration parsing, alarm naming and HTML escaping. Scripts load as they do in the browser.     |
+
+## Manual checks
+
+These need a real environment and are not automated:
+
+- Extensions against live Travian pages. Their DOM scraping depends on the game's markup.
+- Workout Tracker's offline caching and install flow on a phone.
+
+Exercise media, third-party datasets and M4 release packages are checked by hand when they change; see [ATTRIBUTION.md](../ATTRIBUTION.md).

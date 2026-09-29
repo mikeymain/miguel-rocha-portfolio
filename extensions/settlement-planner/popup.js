@@ -8,8 +8,8 @@
  *   3. Manages village celebration settings (TH level, small/large toggles)
  *   4. Handles zoom, alarm mute, and server switching
  *
- * The simulation uses a Kalman filter for state estimation (cp, velocity,
- * acceleration), plus an event queue for periodic celebration rewards.
+ * Predictions come from TSP.predictSettlement: passive production projected
+ * from the recent rate trend, plus an event queue for celebration rewards.
  */
 
 "use strict";

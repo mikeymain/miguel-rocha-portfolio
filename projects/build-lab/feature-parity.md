@@ -40,7 +40,7 @@ Reference body:81 in /185 lb /84 in wingspan. Downloaded ratings were all 25; la
 | Rebounding tokens            |        7 |                                          6 |
 | Physical tokens              |        8 |                                          9 |
 
-The recovered client tuning supersedes the earlier sampled cap and token approximations. Dependencies now use the recovered Locker Codes client table (`research/locker-chunks/We27uoMs.js`), including the 81-inch Close Shot → Post Control delta of 45. This matches the supplied in-game 87 Mid-Range / 77 Close Shot / 42 Post Control spread. Imports preserve original ratings, surface linked-rule conflicts and offer reconciliation.
+The recovered client tuning supersedes the earlier sampled cap and token approximations. Dependencies now use the recovered Locker Codes client table (now `src/engine/linked-attributes.json`), including the 81-inch Close Shot → Post Control delta of 45. This matches the supplied in-game 87 Mid-Range / 77 Close Shot / 42 Post Control spread. Imports preserve original ratings, surface linked-rule conflicts and offer reconciliation.
 
 ## Missing source
 
