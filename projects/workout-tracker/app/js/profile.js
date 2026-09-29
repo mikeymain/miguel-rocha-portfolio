@@ -530,7 +530,9 @@ function obWireRulers() {
       drag = { x: e.clientX, v: disp() };
       try {
         win.setPointerCapture(e.pointerId);
-      } catch (x) {}
+      } catch {
+        // Capture is best-effort; dragging still works without it.
+      }
     });
     win.addEventListener("pointermove", (e) => {
       if (!drag) return;
@@ -543,7 +545,9 @@ function obWireRulers() {
       drag = null;
       try {
         win.releasePointerCapture(e.pointerId);
-      } catch (x) {}
+      } catch {
+        // The pointer may already have been released.
+      }
     };
     win.addEventListener("pointerup", end);
     win.addEventListener("pointercancel", end);

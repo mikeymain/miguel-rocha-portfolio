@@ -178,12 +178,12 @@ setInterval(() => {
   });
 }, 1200);
 
-function buildSets(day, slot, name, week, withBump, idx, dayAdj, numWarmups) {
+function buildSets(day, slot, name, week, withBump, numWarmups = 0) {
   // same-day history takes priority; fall back to most recent session for this exercise anywhere
   const last = lastExercise(day, name, slot.key) || lastAnyExercise(name, slot.key);
   const bump = withBump && progressionDue(day, name, slot.repMax, slot.key);
   const sets = [];
-  for (let i = 0; i < setsForWeek(slot, week, idx, dayAdj || 0); i++) {
+  for (let i = 0; i < setsForWeek(); i++) {
     const prev = last && last.sets[i];
     let weight = prev ? prev.weight : 0;
     let reps = prev ? prev.reps : workReps();
@@ -293,7 +293,7 @@ export function startWorkout(day) {
         return {
           key: slot.key,
           name: slot.name,
-          sets: buildSets(day, slot, slot.name, week, true, slotIdx, dayAdj, numWarmups),
+          sets: buildSets(day, slot, slot.name, week, true, numWarmups),
         };
       }),
       slotOrder: order,
@@ -892,7 +892,7 @@ function addExerciseToDay(key) {
   state.active.exercises.push({
     key: slot.key,
     name: slot.name,
-    sets: buildSets(day, slot, slot.name, state.active.week, false, slotIdx),
+    sets: buildSets(day, slot, slot.name, state.active.week, false),
   });
   if (!state.active.slotOrder) state.active.slotOrder = state.active.exercises.map((_, i) => i);
   else state.active.slotOrder[ei] = slotIdx;
@@ -915,7 +915,7 @@ function applySwap(ei, key, persist) {
   const slot = slotAt(ei);
   aex.key = key;
   aex.name = key === slot.key ? slot.name : LIB[key].name;
-  aex.sets = buildSets(day, slot, aex.name, state.active.week, false, ei);
+  aex.sets = buildSets(day, slot, aex.name, state.active.week, false);
   if (persist) setOverride(day, ei, key === slot.key ? null : key);
   saveState();
   renderWorkout();

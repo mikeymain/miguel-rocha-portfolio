@@ -136,12 +136,9 @@ export function rirLabel(week) {
   return RIR_BY_WEEK[Math.min(week, 8) - 1];
 }
 
-// Sets for a slot: base + experience-level bonus + RP-style ramp + the day's
-// auto-regulation adjustment (from last session's feedback). idx = position in
-// the day (0-based); the first two slots are the priority lifts.
-export function setsForWeek(slot, week, idx, dayAdj = 0) {
-  // Flat 2 working sets for every exercise, every week (user preference).
-  // No level/week/auto-regulation ramp — add a 3rd manually with +Add set.
+// Working sets for a slot. Deliberately flat: two sets for every exercise, every
+// week (user preference); a third can be added in the session with +Add set.
+export function setsForWeek() {
   return 2;
 }
 

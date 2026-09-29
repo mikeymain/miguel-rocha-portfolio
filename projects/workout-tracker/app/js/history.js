@@ -10,7 +10,6 @@ import {
   exerciseSessions,
   weeklyVolume,
   LANDMARKS,
-  e1rm,
   repPRs,
 } from "./stats.js";
 
