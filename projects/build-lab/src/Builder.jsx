@@ -444,14 +444,15 @@ export function Builder() {
   }, [build]);
   function showAttributeBadges(id) {
     setSelected(id);
-    setBadgeAttribute(id);
     setTab("unlocks");
     setUnlockType("badges");
     setCategory(byId[id].group);
+    // Repeated edits to the same attribute keep the user's search; a new attribute starts fresh.
+    if (badgeAttribute === id && badge?.badgeId) return;
+    setBadgeAttribute(id);
     setQuery("");
     setFilter("all");
     setListLimit(60);
-    if (badgeAttribute === id && badge?.badgeId) return;
     const items = badgeSummary(build.ratings, build.body)
       .filter((b) => b.group === byId[id].group)
       .sort((a, b) => a.name.localeCompare(b.name, "en"));

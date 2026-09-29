@@ -63,7 +63,7 @@ test("view modes, stepper preference, and reset preserve saved context", async (
     .evaluateAll((inputs) => inputs.map((i) => Number(i.value)));
   expect(ratings).toHaveLength(21);
   expect(ratings.every((n) => n === 25)).toBeTruthy();
-  await expect(page.getByRole("combobox", { name: "Position", exact: true })).toHaveValue("SF");
+  await expect(page.locator(".body-controls")).toContainText("PositionSF");
   await page.getByRole("button", { name: "Undo last change", exact: true }).click();
   await expect(
     page.getByRole("spinbutton", { name: "Driving Dunk rating", exact: true }),
@@ -82,7 +82,8 @@ test("URL updates as ratings change and the original b format imports", async ({
   const code = "SF.81.185.81." + Array(21).fill(25).join("-");
   await page.goto("/?b=" + code);
   await expect(rating).toHaveValue("25");
-  await expect(page.getByRole("combobox", { name: "Wingspan", exact: true })).toHaveValue("81");
+  const body = page.locator(".body-controls");
+  await expect(body).toContainText("Wingspan6′9″");
   await page.getByRole("button", { name: "Share build", exact: true }).click();
   await page.getByRole("button", { name: "Import a build", exact: true }).click();
   await page
@@ -92,9 +93,9 @@ test("URL updates as ratings change and the original b format imports", async ({
         code.replace(".81.185.81.", ".80.190.83."),
     );
   await page.getByRole("button", { name: "Import build", exact: true }).click();
-  await expect(page.getByRole("combobox", { name: "Height", exact: true })).toHaveValue("80");
+  await expect(body).toContainText("Height6′8″");
   await page.getByRole("button", { name: "Undo last change", exact: true }).click();
-  await expect(page.getByRole("combobox", { name: "Height", exact: true })).toHaveValue("81");
+  await expect(body).toContainText("Height6′9″");
 });
 
 test("production rules cascade up and down, and undo restores all linked ratings", async ({
@@ -121,22 +122,21 @@ test("body edits update legal ranges, caps, and dependent ratings in one undo st
   page,
 }) => {
   await page.goto("/?b=SF.81.185.84." + Array(21).fill(25).join("-"));
-  await page.getByRole("combobox", { name: "Position", exact: true }).selectOption("C");
-  await expect(page.getByRole("spinbutton", { name: "Weight", exact: true })).toHaveValue("215");
-  await expect(page.getByRole("spinbutton", { name: "Weight", exact: true })).toHaveAttribute(
-    "min",
-    "215",
-  );
-  await expect(
-    page.getByRole("combobox", { name: "Height", exact: true }).locator("option"),
-  ).toHaveCount(10);
-  await page.getByRole("combobox", { name: "Height", exact: true }).selectOption("88");
-  await expect(page.getByRole("combobox", { name: "Wingspan", exact: true })).toHaveValue("88");
+  await page.getByRole("button", { name: "Body & badge potential" }).click();
+  await page.getByRole("combobox", { name: "Preview position" }).selectOption("C");
+  const weight = page.getByRole("combobox", { name: "Preview weight" });
+  await expect(weight).toHaveValue("215");
+  await expect(weight.locator("option").first()).toHaveAttribute("value", "215");
+  const height = page.getByRole("combobox", { name: "Preview height" });
+  await expect(height.locator("option")).toHaveCount(10);
+  await height.selectOption("88");
+  await expect(page.getByRole("combobox", { name: "Preview wingspan" })).toHaveValue("88");
+  await page.getByRole("button", { name: "Apply body" }).click();
   await expect(
     page.getByRole("spinbutton", { name: "Speed rating", exact: true }),
   ).not.toHaveAttribute("max", "86");
   await page.getByRole("button", { name: "Undo last change", exact: true }).click();
-  await expect(page.getByRole("combobox", { name: "Height", exact: true })).toHaveValue("81");
+  await expect(page.locator(".body-controls")).toContainText("Height6′9″");
 });
 
 test("measured cap steps project cumulatively and removal preserves base ratings", async ({
@@ -167,7 +167,7 @@ test("all catalogs are searchable and badge tiers show their own requirements", 
 }) => {
   await page.goto("/");
   await page.getByRole("tab", { name: "Unlocks", exact: true }).click();
-  await expect(page.locator(".list-caption")).toContainText("53 total");
+  await expect(page.locator(".unlock-row")).toHaveCount(53);
   await page.getByRole("textbox", { name: "Search unlocks", exact: true }).fill("Posterizer");
   await page.locator(".unlock-row").click();
   const hof = page.locator(".badge-tier-card").filter({ hasText: "HOF" });
@@ -175,11 +175,11 @@ test("all catalogs are searchable and badge tiers show their own requirements", 
   await expect(hof).toHaveAttribute("aria-pressed", "true");
   await expect(hof).toContainText("99 Driving Dunk");
   await page.getByRole("button", { name: "animations", exact: true }).click();
-  await expect(page.locator(".list-caption")).toContainText("2914 total");
+  await expect(page.locator(".unlock-list .show-more")).toContainText("2854 remaining");
   await page.getByRole("textbox", { name: "Search unlocks", exact: true }).fill("Kareem");
-  await expect(page.locator(".unlock-row").first()).toContainText("Kareem");
+  await expect(page.locator(".animation-card").first()).toContainText("Kareem");
   await page.getByRole("button", { name: "takeovers", exact: true }).click();
-  await expect(page.locator(".list-caption")).toContainText("24 total");
+  await expect(page.locator(".unlock-row")).toHaveCount(24);
 });
 
 test("takeovers display their discipline icons", async ({ page }) => {

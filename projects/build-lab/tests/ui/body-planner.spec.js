@@ -20,6 +20,7 @@ test("body planner previews badge availability and applies a body once", async (
   await page.getByRole("combobox", { name: "Preview height" }).selectOption("75");
   await page.getByRole("button", { name: "Apply body" }).click();
   await expect(dialog).toHaveCount(0);
-  await expect(page.getByRole("combobox", { name: "Position", exact: true })).toHaveValue("PG");
-  await expect(page.getByRole("combobox", { name: "Height", exact: true })).toHaveValue("75");
+  const summary = page.locator(".body-controls");
+  await expect(summary).toContainText("PositionPG");
+  await expect(summary).toContainText("Height6′3″");
 });

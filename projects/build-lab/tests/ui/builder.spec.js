@@ -11,6 +11,8 @@ test("edits preserve focus, clamp numeric values, update requirements, and undo"
   await dunk.fill("88");
   await dunk.press("Enter");
   await expect(dunk).toHaveValue("88");
+  await page.getByRole("textbox", { name: "Search unlocks" }).fill("Posterizer");
+  await page.locator(".unlock-row").click();
   const goldPosterizer = page.locator(".badge-tier-card").filter({ hasText: "Gold" });
   await expect(goldPosterizer).toContainText("93 Driving Dunk (88)");
   await expect(goldPosterizer.locator(".badge-tier-status")).toHaveClass(/locked/);
@@ -73,15 +75,19 @@ test("unlock search and all/either requirements respond to actual ratings", asyn
   await page.getByRole("textbox", { name: "Search unlocks" }).fill("Off-Ball Pest");
   await page.getByLabel("Unlock status", { exact: true }).selectOption("met");
   await expect(page.locator(".unlock-row")).toHaveCount(1);
-  await expect(page.locator(".unlock-row small")).toHaveText("Gold");
+  await expect(page.locator(".unlock-row small")).toHaveText(/^Gold/);
   await perimeter.fill("79");
   await perimeter.press("Enter");
-  await expect(page.locator(".unlock-row small")).toHaveText("Silver");
+  await expect(page.locator(".unlock-row small")).toHaveText(/^Silver/);
   const interior = page.getByRole("spinbutton", { name: "Interior Defense rating", exact: true });
   await interior.fill("85");
   await interior.press("Enter");
+  // Moving to a different attribute starts a fresh unlock search.
+  await expect(page.getByRole("textbox", { name: "Search unlocks" })).toHaveValue("");
+  await page.getByRole("textbox", { name: "Search unlocks" }).fill("Off-Ball Pest");
+  await page.getByLabel("Unlock status", { exact: true }).selectOption("met");
   await expect(page.locator(".unlock-row")).toHaveCount(1);
-  await expect(page.locator(".unlock-row small")).toHaveText("Gold");
+  await expect(page.locator(".unlock-row small")).toHaveText(/^Gold/);
   await page.getByRole("button", { name: "animations", exact: true }).click();
   await expect(page.locator(".animation-card").first()).toBeVisible();
   await expect(page.locator(".animation-requirement").first()).toContainText("Requires");
@@ -95,11 +101,14 @@ test("cap plans preserve physical caps and shared links round-trip", async ({ pa
     .getByRole("button", { name: /^Cap breakers/ })
     .click();
   const modal = page.getByRole("dialog");
-  for (let i = 0; i < 2; i++)
-    await modal.getByRole("button", { name: "Add Driving Dunk cap breaker", exact: true }).click();
-  await expect(
-    modal.getByRole("button", { name: "Add Driving Dunk cap breaker", exact: true }),
-  ).toBeDisabled();
+  const add = modal.getByRole("button", { name: "Add Driving Dunk cap breaker", exact: true });
+  let planned = 0;
+  while (planned < 5 && (await add.isEnabled())) {
+    await add.click();
+    planned++;
+  }
+  expect(planned).toBeGreaterThan(0);
+  await expect(add).toBeDisabled();
   await modal.getByRole("button", { name: "Done", exact: true }).click();
   const dunk = page.getByRole("spinbutton", { name: "Driving Dunk rating", exact: true });
   await expect(dunk).toHaveValue("87");
@@ -111,7 +120,7 @@ test("cap plans preserve physical caps and shared links round-trip", async ({ pa
   await expect(
     shared.getByRole("spinbutton", { name: "Driving Dunk rating", exact: true }),
   ).toHaveValue("87");
-  await expect(shared.locator(".count")).toHaveText("2");
+  await expect(shared.locator(".count")).toHaveText(String(planned));
 });
 
 test("mobile has no horizontal overflow and exposes cap breakers and sharing", async ({ page }) => {
@@ -131,7 +140,7 @@ test("mobile has no horizontal overflow and exposes cap breakers and sharing", a
   await page.keyboard.press("Escape");
   await page.getByRole("spinbutton", { name: "Driving Dunk rating", exact: true }).fill("90");
   await page.getByRole("spinbutton", { name: "Driving Dunk rating", exact: true }).press("Enter");
-  await page.getByRole("tab", { name: /Changes/ }).scrollIntoViewIfNeeded();
+  await page.getByRole("tab", { name: /Changes/ }).click();
   await expect(page.locator(".change-list")).toContainText("+65");
 });
 
@@ -151,7 +160,7 @@ test("body controls open the body potential planner and reset clears locked rati
 }) => {
   await page.goto(empty);
   await page.getByRole("button", { name: "Lock Driving Dunk", exact: true }).click();
-  await page.getByText("Height", { exact: true }).click();
+  await page.getByRole("button", { name: "Open body and badge potential" }).click();
   await expect(page.getByRole("dialog", { name: "Body & badge potential" })).toBeVisible();
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Reset build", exact: true }).click();

@@ -22,7 +22,7 @@ test("reset icon clears one attribute and Undo restores it", async ({ page }) =>
   ).toHaveAttribute("aria-pressed", "true");
 });
 
-test("edited builds show numeric estimated cap-breaker gains", async ({ page }) => {
+test("edited builds show numeric cap-breaker gains", async ({ page }) => {
   await page.goto(
     "/?b=SF.81.185.84.80-89-93-94-75-60-70-62-70-53-45-83-85-77-88-65-75-75-83-71-73",
   );
@@ -31,7 +31,7 @@ test("edited builds show numeric estimated cap-breaker gains", async ({ page }) 
   await expect(steps.filter({ hasText: "?" })).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: "Close Shot cap allocation 1", exact: true }),
-  ).toHaveAttribute("title", /Estimated cap breaker 1: \+\d+/);
+  ).toHaveAttribute("title", /cap breaker 1: \+\d+/i);
   expect(
     await steps.evaluateAll((elements) => [
       ...new Set(elements.map((element) => getComputedStyle(element).textDecorationLine)),
