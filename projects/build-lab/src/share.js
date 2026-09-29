@@ -1,4 +1,4 @@
-import { attributes, baseline, normalizeBuild } from "./data.js";
+import { attributes, normalizeBuild } from "./data.js";
 
 export function parseBuildLink(text) {
   const raw = text.trim();

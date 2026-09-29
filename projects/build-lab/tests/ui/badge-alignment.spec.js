@@ -9,7 +9,6 @@ test("attribute-related badge highlights keep every badge row aligned", async ({
     .click();
 
   const rows = page.locator(".unlock-row");
-  const related = rows.filter({ has: page.locator('[data-related="true"]') });
   const positions = await rows.evaluateAll((elements) =>
     elements.map((row) =>
       Math.round(row.querySelector("img.badge-icon").getBoundingClientRect().left),

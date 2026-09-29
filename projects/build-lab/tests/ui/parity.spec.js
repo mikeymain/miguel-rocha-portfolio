@@ -192,7 +192,7 @@ test("takeovers display their discipline icons", async ({ page }) => {
 
 test("PNG export produces valid landscape and portrait images at requested dimensions", async ({
   page,
-}, testInfo) => {
+}) => {
   test.setTimeout(60000);
   await page.goto("/");
   await page.getByRole("button", { name: "Share build", exact: true }).click();

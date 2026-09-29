@@ -1,17 +1,18 @@
 import { normalizeBody } from "./engine/gameRules.js";
 import { usableCaps, changeBody } from "./engine/buildModel.js";
-// User-supplied reference ratings and saved-page caps; sourced rules are separate.
+// Attribute tuples are [id, name, reference rating, reference cap]. The reference values
+// come from a user-supplied in-game build and saved page; sourced rules are separate.
 export const groups = [
   {
     id: "fin",
     name: "Finishing",
     color: "#82c7e3",
     attributes: [
-      ["close", "Close Shot", 77, 99, "80 Float Game · Silver"],
-      ["layup", "Driving Layup", 68, 98, "70 Layup Mixmaster · Bronze"],
-      ["dunk", "Driving Dunk", 87, 93, "93 Posterizer · Gold"],
-      ["standing", "Standing Dunk", 52, 99, "60 Rise Up · Bronze"],
-      ["post", "Post Control", 40, 98, "55 Hook Specialist · Bronze"],
+      ["close", "Close Shot", 77, 99],
+      ["layup", "Driving Layup", 68, 98],
+      ["dunk", "Driving Dunk", 87, 93],
+      ["standing", "Standing Dunk", 52, 99],
+      ["post", "Post Control", 40, 98],
     ],
   },
   {
@@ -19,9 +20,9 @@ export const groups = [
     name: "Shooting",
     color: "#62e3bc",
     attributes: [
-      ["mid", "Mid-Range Shot", 87, 89, "88 Quick Trigger · Silver"],
-      ["three", "Three-Point Shot", 78, 86, "83 Limitless Range · Bronze"],
-      ["free", "Free Throw", 62, 95, ""],
+      ["mid", "Mid-Range Shot", 87, 89],
+      ["three", "Three-Point Shot", 78, 86],
+      ["free", "Free Throw", 62, 95],
     ],
   },
   {
@@ -29,9 +30,9 @@ export const groups = [
     name: "Playmaking",
     color: "#e8c678",
     attributes: [
-      ["pass", "Pass Accuracy", 70, 99, "77 Break Starter · Silver"],
-      ["handle", "Ball Handle", 70, 80, "71 Handles for Days · Bronze"],
-      ["swb", "Speed With Ball", 70, 75, "75 Lightning Launch · Silver"],
+      ["pass", "Pass Accuracy", 70, 99],
+      ["handle", "Ball Handle", 70, 80],
+      ["swb", "Speed With Ball", 70, 75],
     ],
   },
   {
@@ -39,10 +40,10 @@ export const groups = [
     name: "Defense",
     color: "#e8cf8a",
     attributes: [
-      ["interior", "Interior Defense", 84, 88, "85 Wall Up · Silver"],
-      ["perimeter", "Perimeter Defense", 85, 89, "86 Ankle Braces · Silver"],
-      ["steal", "Steal", 77, 84, "83 Glove · Silver"],
-      ["block", "Block", 88, 91, "92 High-Flying Denier · Hall of Fame"],
+      ["interior", "Interior Defense", 84, 88],
+      ["perimeter", "Perimeter Defense", 85, 89],
+      ["steal", "Steal", 77, 84],
+      ["block", "Block", 88, 91],
     ],
   },
   {
@@ -50,8 +51,8 @@ export const groups = [
     name: "Rebounding",
     color: "#bcb6dd",
     attributes: [
-      ["oreb", "Offensive Rebound", 70, 78, "80 Crasher · Silver"],
-      ["dreb", "Defensive Rebound", 75, 80, "82 Sync Snatcher · Gold"],
+      ["oreb", "Offensive Rebound", 70, 78],
+      ["dreb", "Defensive Rebound", 75, 80],
     ],
   },
   {
@@ -59,15 +60,15 @@ export const groups = [
     name: "Physicals",
     color: "#e8c678",
     attributes: [
-      ["speed", "Speed", 83, 86, "85 Slippery Off-Ball · Gold"],
-      ["agility", "Agility", 83, 86, "85 Work Horse · Gold"],
-      ["strength", "Strength", 71, 75, "74 Post Lockdown · Silver"],
-      ["vertical", "Vertical", 75, 95, "80 Pogo Stick · Gold"],
+      ["speed", "Speed", 83, 86],
+      ["agility", "Agility", 83, 86],
+      ["strength", "Strength", 71, 75],
+      ["vertical", "Vertical", 75, 95],
     ],
   },
 ];
 export const attributes = groups.flatMap((g) =>
-  g.attributes.map(([id, name, value, cap, next]) => ({ id, name, value, cap, next, group: g.id })),
+  g.attributes.map(([id, name, value, cap]) => ({ id, name, value, cap, group: g.id })),
 );
 export const byId = Object.fromEntries(attributes.map((a) => [a.id, a]));
 export const baseline = {

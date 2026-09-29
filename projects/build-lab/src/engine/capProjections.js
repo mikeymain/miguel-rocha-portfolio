@@ -37,35 +37,51 @@ function ratingVector(build) {
   return ids.map((id) => build.ratings[id]);
 }
 
+// The ladders for all 21 attributes come from one calculation, and the editor asks
+// for them attribute by attribute several times per render, so keep the last result.
+let cachedKey = null;
+let cachedLadders = null;
+function laddersFor(build, vector) {
+  const { height, weight, wingspan } = build.body;
+  const key = `${height}/${weight}/${wingspan}:${vector.join(",")}`;
+  if (key !== cachedKey) {
+    try {
+      cachedLadders = exactCapBreakerLadders(vector, build.body);
+    } catch {
+      cachedLadders = null;
+    }
+    cachedKey = key;
+  }
+  return cachedLadders;
+}
+
 export function capProjection(build, id) {
   const index = ids.indexOf(id);
   if (index < 0) return { gains: Array(5).fill(0), confidence: "exact" };
+  const vector = ratingVector(build);
   const verified = verifiedBuilds.find(
     (candidate) =>
       candidate.body.height === build.body.height &&
       candidate.body.weight === build.body.weight &&
       candidate.body.wingspan === build.body.wingspan &&
-      candidate.ratings.every((rating, ratingIndex) => ratingVector(build)[ratingIndex] === rating),
+      candidate.ratings.every((rating, ratingIndex) => vector[ratingIndex] === rating),
   );
   if (verified) return { gains: verified.gains[index], confidence: "verified" };
-  try {
-    const result = exactCapBreakerLadders(ratingVector(build), build.body);
+  const result = laddersFor(build, vector);
+  if (result)
     return {
       gains: result.ladders[index],
       confidence: "exact",
       archetype: result.archetype,
       tuningVersion: result.tuningVersion,
     };
-  } catch {
-    const cap = buildCaps(build.body)[id] ?? build.ratings[id];
-    let remaining = Math.max(0, cap - build.ratings[id]);
-    const gains = Array.from({ length: 5 }, () => {
-      if (!remaining) return 0;
-      remaining -= 1;
-      return 1;
-    });
-    return { gains, confidence: "fallback" };
-  }
+  // No ceiling table for this body: assume +1 per breaker up to the body cap.
+  const cap = buildCaps(build.body)[id] ?? build.ratings[id];
+  const room = Math.max(0, cap - build.ratings[id]);
+  return {
+    gains: Array.from({ length: 5 }, (_, i) => (i < room ? 1 : 0)),
+    confidence: "fallback",
+  };
 }
 
 export function capSequence(build, id) {
@@ -92,5 +108,5 @@ export function projectedRatings(build) {
     );
     if (projection.confidence === "fallback") estimated = true;
   }
-  return { ratings, pending: false, estimated };
+  return { ratings, estimated };
 }

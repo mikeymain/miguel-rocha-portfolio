@@ -1,10 +1,10 @@
-import { forwardRef } from "react";
-import { groups, formatHeight } from "./data";
+import { groups, formatHeight } from "../data";
 import { CategoryIcon } from "./CategoryIcon";
-import { buildCaps } from "./engine/buildModel";
-import { projectedRatings } from "./engine/capProjections";
+import { buildCaps } from "../engine/buildModel";
+import { projectedRatings } from "../engine/capProjections";
 
-export const ExportCard = forwardRef(function ExportCard({ build, format }, ref) {
+/** An offscreen card that the Share dialog renders to PNG. */
+export function ExportCard({ ref, build, format }) {
   const caps = buildCaps(build.body),
     projection = projectedRatings(build);
   return (
@@ -40,10 +40,9 @@ export const ExportCard = forwardRef(function ExportCard({ build, format }, ref)
         </div>
         <footer>
           AUG 22 RULES SNAPSHOT · Confirm in game.
-          {projection.pending ? " Some cap-breaker gains are unknown." : ""}
           <span>Planned in Build Lab</span>
         </footer>
       </div>
     </div>
   );
-});
+}

@@ -1,16 +1,11 @@
 import tuning from "./game-tuning.json" with { type: "json" };
-import { O as recoveredLinks } from "../../research/locker-chunks/We27uoMs.js";
+import linkedAttributes from "./linked-attributes.json" with { type: "json" };
 
 export const attributeIds = tuning.ids;
 export const legalBodies = tuning.legalBodies;
 export const rulesProvenance = tuning.provenance;
-export const dependencyRulesProvenance = {
-  source: "Locker Codes original builder client",
-  bundle: "research/locker-chunks/We27uoMs.js",
-  captureDate: "2026-08-22",
-  tuningVersion: "993560759169487438",
-  status: "provisional recovered client data",
-};
+export const dependencyRulesProvenance = linkedAttributes.provenance;
+const recoveredLinks = linkedAttributes.links;
 export const rulesLimitations = [
   "Overall is reproduced from the captured tuning snapshot and can change if the live game tuning changes.",
 ];

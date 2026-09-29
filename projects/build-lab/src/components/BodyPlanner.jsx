@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { LockKey, CheckCircle } from "@phosphor-icons/react";
-import { groups, byId, badges, eligible, formatHeight } from "./data";
-import { buildCaps } from "./engine/buildModel";
-import { normalizeBody, getBodyLimits } from "./engine/gameRules";
+import { groups, byId, badges, eligible, formatHeight } from "../data";
+import { buildCaps } from "../engine/buildModel";
+import { normalizeBody, getBodyLimits } from "../engine/gameRules";
 import { BadgeIcon } from "./BadgeIcon";
 import { CategoryIcon } from "./CategoryIcon";
 
@@ -20,7 +20,6 @@ export function BodyPlanner({ build, onApply, onCancel }) {
   const [body, setBody] = useState({ ...build.body });
   const [view, setView] = useState("badges");
   const [selected, setSelected] = useState(badges[0].badgeId);
-  const [error, setError] = useState("");
   const limits = getBodyLimits(body),
     caps = buildCaps(body),
     originalCaps = buildCaps(build.body);
@@ -40,7 +39,6 @@ export function BodyPlanner({ build, onApply, onCancel }) {
 
   function change(key, value) {
     setBody((old) => normalizeBody({ ...old, [key]: value }));
-    setError("");
   }
   function control(key, label, format = (n) => n) {
     const [min, max] = limits[key];
@@ -231,18 +229,7 @@ export function BodyPlanner({ build, onApply, onCancel }) {
         {control("weight", "Weight", (n) => `${n} lbs`)}
         {control("wingspan", "Wingspan", formatHeight)}
         <p>Explore freely. Apply when you are ready to update your build.</p>
-        {error && (
-          <p className="negative" role="alert">
-            {error}
-          </p>
-        )}
-        <button
-          className="primary"
-          onClick={() => {
-            const message = onApply(body);
-            if (message) setError(message);
-          }}
-        >
+        <button className="primary" onClick={() => onApply(body)}>
           Apply body
         </button>
         <button className="secondary" onClick={onCancel}>

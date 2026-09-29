@@ -18,7 +18,6 @@ test("saved HTML cap steps accumulate and keep physical ceilings intact", () => 
   };
   assert.deepEqual(capSequence(build, "free"), [13, 12, 10, 8, 6]);
   assert.equal(projectedRatings(build).ratings.free, 74);
-  assert.equal(projectedRatings(build).pending, false);
 });
 
 test("cap endpoint starts at the full five-breaker potential and follows the selected allocation", () => {
@@ -36,7 +35,6 @@ test("uncaptured builds use the deterministic cap-breaker calculation", () => {
   assert.ok(result.gains.every(Number.isInteger));
   assert.ok(result.gains.every((n) => n >= 0));
   assert.equal(projectedRatings(build).ratings.dunk, 87 + result.gains[0]);
-  assert.equal(projectedRatings(build).pending, false);
   assert.equal(projectedRatings(build).estimated, false);
 });
 test("calculated sequences stop exactly at the selected body cap", () => {

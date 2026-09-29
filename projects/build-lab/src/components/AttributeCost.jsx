@@ -1,4 +1,4 @@
-import { byId } from "./data";
+import { byId } from "../data";
 
 export function AttributeCost({ id, costs }) {
   const cost = costs[id];

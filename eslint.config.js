@@ -24,6 +24,11 @@ export default [
     languageOptions: { globals: globals.node },
   },
   {
+    // Playwright evaluates some callbacks inside the page.
+    files: ["projects/build-lab/tests/ui/**"],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
+  },
+  {
     files: ["projects/build-lab/**/*.{js,jsx}"],
     ignores: ["projects/build-lab/tests/**", "projects/build-lab/*.config.{js,mjs}"],
     ...react.configs.flat.recommended,

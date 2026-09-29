@@ -4,7 +4,9 @@ import { attributeIds, getRules } from "../src/engine/gameRules.js";
 import { applyAttributeChange } from "../src/engine/dependencies.js";
 import { editRating, overallStatus } from "../src/engine/buildModel.js";
 import { capSequence } from "../src/engine/capProjections.js";
-import { O as clientLinks } from "../research/locker-chunks/We27uoMs.js";
+import linkedAttributes from "../src/engine/linked-attributes.json" with { type: "json" };
+
+const clientLinks = linkedAttributes.links;
 
 const vector = (values) => Object.fromEntries(attributeIds.map((id, i) => [id, values[i]]));
 const blank = vector(Array(21).fill(25)),

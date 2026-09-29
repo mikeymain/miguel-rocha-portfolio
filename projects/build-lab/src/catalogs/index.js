@@ -1,10 +1,7 @@
 import data from "./compiled.json" with { type: "json" };
-import {
-  allocateBadgeSlots,
-  nextToken as exactNextToken,
-  tokenBudget,
-  tokenContribution as exactTokenContribution,
-} from "./badgeEconomy.js";
+import { allocateBadgeSlots, tokenBudget } from "./badgeEconomy.js";
+
+export { nextToken, tokenContribution } from "./badgeEconomy.js";
 export const badges = data.badges;
 export const animations = data.animations;
 export function requirementStatus(item, ratings, body) {
@@ -41,7 +38,6 @@ export function badgeSummary(ratings, body) {
     return tiers.filter((b) => eligible(b, ratings, body)).at(-1) || tiers[0];
   });
 }
-export const tokenContribution = exactTokenContribution;
 export function badgeEconomy(ratings, body) {
   const tokens = tokenBudget(ratings, body);
   const counts = ["fin", "sht", "plm", "def", "reb", "phy"].map(
@@ -52,7 +48,6 @@ export function badgeEconomy(ratings, body) {
   const slots = allocateBadgeSlots(tokens, counts);
   return { tokens, slots, totalSlots: slots.reduce((sum, value) => sum + value, 0), counts };
 }
-export const nextToken = exactNextToken;
 export function nextBadges(id, ratings, body) {
   const candidates = badges
     .flatMap((item) =>
