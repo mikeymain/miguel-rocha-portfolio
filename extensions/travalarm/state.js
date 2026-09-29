@@ -51,9 +51,7 @@ let _firedResourceAlarms = new Set();
 // SERVER TAG GENERATION
 // ==========================================
 const generateServerTag = () => {
-  const host = window.location.hostname
-    .replace(/^www\./, "")
-    .replace(/\.travian\.[a-z]+$/, "");
+  const host = window.location.hostname.replace(/^www\./, "").replace(/\.travian\.[a-z]+$/, "");
 
   const regionShorteners = {
     europe: "eur",
@@ -86,5 +84,4 @@ const DEFAULT_SHORTCUTS = [
 
 const cleanText = (str) => str.replace(/\s+/g, " ").trim();
 const cleanCoords = (str) => str.replace(/[^\d|−-]/g, "").replace("−", "-");
-const cleanNumber = (str) =>
-  parseInt(str.replace("−", "-").replace(/[^\d-]/g, ""), 10);
+const cleanNumber = (str) => parseInt(str.replace("−", "-").replace(/[^\d-]/g, ""), 10);

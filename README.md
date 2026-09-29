@@ -5,15 +5,15 @@ Based in Lisbon, Portugal. Interested in junior developer roles and technology i
 
 ## Featured work
 
-| Project | What it does | Main skills |
-| --- | --- | --- |
-| [Build Lab](projects/build-lab/) | NBA 2K27 build planning, linked attributes, saved builds and comparisons | React, JavaScript, state management, automated tests |
-| [Workout Tracker](projects/workout-tracker/) | Logs training, tracks progress and stores workout history | JavaScript, responsive UI, PWA, local storage |
-| [Travian Settlement Planner](extensions/settlement-planner/) | Estimates when culture points reach settlement thresholds | Data parsing, forecasting, event simulation |
-| [TravAlarm](extensions/travalarm/) | Tracks game events and schedules browser/audio alerts | Manifest V3, service workers, Chrome APIs |
-| [Travian QoL](extensions/travian-qol/) | Configurable interface improvements and planning tools | Modular JavaScript, DOM integration, persistent settings |
-| [Travian Night Mode](extensions/night-mode/) | Persistent dark theme for dynamically changing pages | CSS, MutationObserver, preference synchronisation |
-| [BMW M4 ADRO Kit](projects/bmw-m4-adro/) | Published Forza Horizon 6 vehicle mod with two body variants | Blender, 3D modelling, game modding |
+| Project                                                      | What it does                                                             | Main skills                                              |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------ | -------------------------------------------------------- |
+| [Build Lab](projects/build-lab/)                             | NBA 2K27 build planning, linked attributes, saved builds and comparisons | React, JavaScript, state management, automated tests     |
+| [Workout Tracker](projects/workout-tracker/)                 | Logs training, tracks progress and stores workout history                | JavaScript, responsive UI, PWA, local storage            |
+| [Travian Settlement Planner](extensions/settlement-planner/) | Estimates when culture points reach settlement thresholds                | Data parsing, forecasting, event simulation              |
+| [TravAlarm](extensions/travalarm/)                           | Tracks game events and schedules browser/audio alerts                    | Manifest V3, service workers, Chrome APIs                |
+| [Travian QoL](extensions/travian-qol/)                       | Configurable interface improvements and planning tools                   | Modular JavaScript, DOM integration, persistent settings |
+| [Travian Night Mode](extensions/night-mode/)                 | Persistent dark theme for dynamically changing pages                     | CSS, MutationObserver, preference synchronisation        |
+| [BMW M4 ADRO Kit](projects/bmw-m4-adro/)                     | Published Forza Horizon 6 vehicle mod with two body variants             | Blender, 3D modelling, game modding                      |
 
 ![Build Lab interface](assets/build-lab.png)
 

@@ -9,9 +9,7 @@ function parseSmartDuration(input) {
   let str = input.toString().trim();
 
   // Handle 12h clock: "10pm", "10:30pm", "10:30:15pm", "10am", "10:30am"
-  const ampmMatch = str.match(
-    /^(\d{1,2})(?::(\d{2})(?::(\d{2}))?)?\s*(am|pm)$/i,
-  );
+  const ampmMatch = str.match(/^(\d{1,2})(?::(\d{2})(?::(\d{2}))?)?\s*(am|pm)$/i);
   if (ampmMatch) {
     let hours = parseInt(ampmMatch[1], 10);
     const minutes = ampmMatch[2] ? parseInt(ampmMatch[2], 10) : 0;
@@ -21,8 +19,7 @@ function parseSmartDuration(input) {
     if (period === "am" && hours === 12) hours = 0;
     const targetDate = new Date();
     targetDate.setHours(hours, minutes, seconds, 0);
-    if (targetDate.getTime() <= Date.now())
-      targetDate.setDate(targetDate.getDate() + 1);
+    if (targetDate.getTime() <= Date.now()) targetDate.setDate(targetDate.getDate() + 1);
     return targetDate.getTime() - Date.now();
   }
 
@@ -31,8 +28,7 @@ function parseSmartDuration(input) {
       .replace(/\./g, ":")
       .split(":")
       .map((n) => parseInt(n, 10) || 0);
-    if (parts.length === 3)
-      return parts[0] * 3600 * 1000 + parts[1] * 60 * 1000 + parts[2] * 1000;
+    if (parts.length === 3) return parts[0] * 3600 * 1000 + parts[1] * 60 * 1000 + parts[2] * 1000;
     if (parts.length === 2) return parts[0] * 60 * 1000 + parts[1] * 1000;
   }
 
@@ -53,12 +49,7 @@ function parseSmartDuration(input) {
 function nextDailyOccurrence(anchorMs, now = Date.now()) {
   const anchor = new Date(anchorMs);
   const next = new Date(now);
-  next.setHours(
-    anchor.getHours(),
-    anchor.getMinutes(),
-    anchor.getSeconds(),
-    0,
-  );
+  next.setHours(anchor.getHours(), anchor.getMinutes(), anchor.getSeconds(), 0);
   if (next.getTime() <= now) next.setDate(next.getDate() + 1);
   return next.getTime();
 }
@@ -69,8 +60,7 @@ function formatDurationForPrompt(ms) {
   const h = Math.floor(totalSec / 3600);
   const m = Math.floor((totalSec % 3600) / 60);
   const s = totalSec % 60;
-  if (h > 0)
-    return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  if (h > 0) return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   if (s === 0) return `${m}`;
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
@@ -82,9 +72,7 @@ function generateSmartBuildingName() {
     document.querySelector("div.fluidHeading"),
     document.querySelector("h1"),
   ];
-  const headerNode = possibleHeaders.find(
-    (el) => el && el.innerText.trim().length > 0,
-  );
+  const headerNode = possibleHeaders.find((el) => el && el.innerText.trim().length > 0);
   let rawName = headerNode ? headerNode.innerText.trim() : "";
 
   rawName = rawName.replace(/[\t\n]/g, "").trim();
@@ -143,12 +131,7 @@ function calculateDelayFromSmartText(text, node = null) {
       targetDate.setFullYear(now.getFullYear(), month, day);
     }
 
-    targetDate.setHours(
-      parseInt(timeMatch[1], 10),
-      parseInt(timeMatch[2], 10),
-      0,
-      0,
-    );
+    targetDate.setHours(parseInt(timeMatch[1], 10), parseInt(timeMatch[2], 10), 0, 0);
 
     if (!dateMatch && targetDate.getTime() <= now.getTime()) {
       targetDate.setDate(targetDate.getDate() + 1);
@@ -257,9 +240,7 @@ function villageHue(name) {
     slot = 0;
     while (used.has(slot)) slot++;
     villageColorSlots.set(name, slot);
-    api.storage.local
-      .set({ _tw_vc: Object.fromEntries(villageColorSlots) })
-      .catch(() => {});
+    api.storage.local.set({ _tw_vc: Object.fromEntries(villageColorSlots) }).catch(() => {});
   }
   return Math.round(slot * 137.508) % 360;
 }

@@ -234,8 +234,7 @@ function getAlarmSvgIcon(name) {
 
   // 7. Storage alarms (📦) - warehouse/granary fill with resource icons
   if (name.includes("📦")) {
-    if (lower.includes("granary") || lower.includes("crop"))
-      return makeNativeIcon("r4");
+    if (lower.includes("granary") || lower.includes("crop")) return makeNativeIcon("r4");
     if (lower.includes("warehouse")) return makeNativeIcon("r0");
     if (lower.includes("wood")) return makeNativeIcon("r1");
     if (lower.includes("clay")) return makeNativeIcon("r2");

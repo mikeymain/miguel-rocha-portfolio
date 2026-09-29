@@ -96,8 +96,7 @@ function classifyAlarm(a) {
   if (n.includes("🎉")) return "culture";
   if (a.customType === "storage" || n.includes("📦")) return "storage";
   if (n.includes("🌾")) return "grain";
-  if (n.includes("🪵") || n.includes("🧱") || n.includes("🔩"))
-    return "resource";
+  if (n.includes("🪵") || n.includes("🧱") || n.includes("🔩")) return "resource";
   if (a.customType === "farmlist") return "farmlist";
   if (a.customType === "daily") return "daily";
   if (n.startsWith("⭐")) return a.customType === "manual" ? "custom" : "auto";
@@ -122,9 +121,7 @@ function sortSectionTypes(types, groups) {
   const customSoonest = groups.custom
     ? Math.min(...groups.custom.map((a) => a.scheduledTime))
     : Infinity;
-  const autoSoonest = groups.auto
-    ? Math.min(...groups.auto.map((a) => a.scheduledTime))
-    : Infinity;
+  const autoSoonest = groups.auto ? Math.min(...groups.auto.map((a) => a.scheduledTime)) : Infinity;
   const customFirst = customSoonest <= autoSoonest;
 
   return [...types].sort((a, b) => {
@@ -179,8 +176,7 @@ function updateSectionHeights(container) {
     if (!s.classList.contains("is-collapsed")) {
       const cards = body.querySelectorAll(".tw-alarm");
       const cardCount = cards.length || 1;
-      const cardH =
-        cards.length > 0 ? cards[0].getBoundingClientRect().height : 50;
+      const cardH = cards.length > 0 ? cards[0].getBoundingClientRect().height : 50;
       expanded.push({ body, cardCount, cardH });
     }
   });
@@ -189,10 +185,7 @@ function updateSectionHeights(container) {
 
   const maxH = parseInt(getComputedStyle(widget).maxHeight) || 670;
   const available = maxH - chromeH - headersH;
-  const totalNatural = expanded.reduce(
-    (sum, s) => sum + s.cardCount * s.cardH,
-    0,
-  );
+  const totalNatural = expanded.reduce((sum, s) => sum + s.cardCount * s.cardH, 0);
 
   if (totalNatural <= available) {
     expanded.forEach((s) => (s.body.style.maxHeight = ""));
@@ -277,9 +270,7 @@ async function syncState(force = false) {
   let alarms = res.alarms || [];
   const now = Date.now();
   currentAlarms = alarms;
-  localTracked = new Set(
-    currentAlarms.map((a) => a.name.replace(/\s#\d+$/, "")),
-  );
+  localTracked = new Set(currentAlarms.map((a) => a.name.replace(/\s#\d+$/, "")));
 
   // Populate firstSeenTimes from persistent createdAt (survives refresh)
   currentAlarms.forEach((a) => {
@@ -329,8 +320,7 @@ async function syncState(force = false) {
       if (villA !== villB) return villA.localeCompare(villB);
       return a.name.localeCompare(b.name);
     }
-    if (a.scheduledTime !== b.scheduledTime)
-      return a.scheduledTime - b.scheduledTime;
+    if (a.scheduledTime !== b.scheduledTime) return a.scheduledTime - b.scheduledTime;
     return a.name.localeCompare(b.name);
   });
 
@@ -372,9 +362,7 @@ function renderSoundCategoryToggles(root) {
     row.onclick = (e) => {
       e.stopPropagation();
       const cat = row.dataset.cat;
-      const next = currentSoundCategories
-        ? currentSoundCategories[cat] === false
-        : false;
+      const next = currentSoundCategories ? currentSoundCategories[cat] === false : false;
       if (currentSoundCategories) currentSoundCategories[cat] = next;
       applyToggleVisual(row, next);
       updateAudioButtonIcon();
@@ -497,19 +485,14 @@ function rebuildUI() {
     const doneAlarms = alarms.filter((a) => a.scheduledTime < now);
     let soonestAlarm =
       doneAlarms.length > 0
-        ? doneAlarms.reduce((a, b) =>
-            a.scheduledTime < b.scheduledTime ? a : b,
-          )
+        ? doneAlarms.reduce((a, b) => (a.scheduledTime < b.scheduledTime ? a : b))
         : alarms.reduce((a, b) => (a.scheduledTime < b.scheduledTime ? a : b));
 
     // Show village name of next-to-finish alarm in the header (not for daily — it's global)
     const villageSpan = section.querySelector(".tw-section-next-village");
     if (villageSpan) {
       const structured = getStructuredName(soonestAlarm.name, false);
-      setVillageLabel(
-        villageSpan,
-        type === "daily" ? "" : structured.village || "",
-      );
+      setVillageLabel(villageSpan, type === "daily" ? "" : structured.village || "");
     }
 
     // Done badge: show count of done alarms in collapsed header
@@ -528,10 +511,7 @@ function rebuildUI() {
     // Flash the section header when ALL alarms in this category are done
     const sectionHeader = section.querySelector(".tw-section-header");
     if (sectionHeader) {
-      sectionHeader.classList.toggle(
-        "is-all-done",
-        doneCount === alarms.length,
-      );
+      sectionHeader.classList.toggle("is-all-done", doneCount === alarms.length);
       sectionHeader.classList.toggle("has-done", doneCount > 0);
     }
 
@@ -540,9 +520,7 @@ function rebuildUI() {
     // Update alarm cards within section body
     const body = section.querySelector(".tw-section-body");
     const existingCards = new Map();
-    body
-      .querySelectorAll(".tw-alarm")
-      .forEach((el) => existingCards.set(el.dataset.uid, el));
+    body.querySelectorAll(".tw-alarm").forEach((el) => existingCards.set(el.dataset.uid, el));
 
     alarms.forEach((a, cardIdx) => {
       const uid = a.id || a.name;
@@ -583,8 +561,7 @@ function rebuildUI() {
     // Position section in list
     const currentSectionAtIdx = listContainer.children[idx];
     if (currentSectionAtIdx !== section) {
-      if (currentSectionAtIdx)
-        listContainer.insertBefore(section, currentSectionAtIdx);
+      if (currentSectionAtIdx) listContainer.insertBefore(section, currentSectionAtIdx);
       else listContainer.appendChild(section);
     }
 
@@ -661,9 +638,7 @@ function updateRingStrip(groups) {
 
   // Reconcile existing rings
   const existingRings = new Map();
-  strip
-    .querySelectorAll(".tw-ring")
-    .forEach((el) => existingRings.set(el.dataset.type, el));
+  strip.querySelectorAll(".tw-ring").forEach((el) => existingRings.set(el.dataset.type, el));
 
   sortedTypes.forEach((type, idx) => {
     const alarms = groups[type];
@@ -707,9 +682,7 @@ function updateRingStrip(groups) {
                 <text class="tw-ring-count" x="14" y="14" fill="${meta.color}">${count}</text>
             </svg>`;
       ring.onclick = () => {
-        const section = listContainer.querySelector(
-          `.tw-section[data-type="${type}"]`,
-        );
+        const section = listContainer.querySelector(`.tw-section[data-type="${type}"]`);
         if (section) {
           section.classList.remove("is-collapsed");
           collapsedSections.delete(type);
@@ -800,8 +773,7 @@ function getNameOnlyDisplay(rawName, isRecurring) {
   let html = "";
   if (s.iconHtml) html += s.iconHtml;
   html += s.name;
-  if (s.isRecurring)
-    html += ` <span class="recurring-indicator" title="Recurring Alarm">↺</span>`;
+  if (s.isRecurring) html += ` <span class="recurring-indicator" title="Recurring Alarm">↺</span>`;
   return html;
 }
 
@@ -813,9 +785,7 @@ function createAlarmNode(a, uniqueId) {
   const structured = getStructuredName(a.name, a.recurring > 0);
   const nameHtml = getNameOnlyDisplay(a.name, a.recurring > 0);
   const isCustom =
-    a.name.startsWith("⭐") ||
-    a.customType === "daily" ||
-    a.customType === "farmlist";
+    a.name.startsWith("⭐") || a.customType === "daily" || a.customType === "farmlist";
   const pinnedClass = a.isPinned ? "is-pinned" : "";
 
   const div = document.createElement("div");
@@ -854,8 +824,7 @@ function createAlarmNode(a, uniqueId) {
 
 function updateAlarmCard(card, a, uid) {
   const nameNode = card.querySelector(".n");
-  if (nameNode)
-    nameNode.innerHTML = getNameOnlyDisplay(a.name, a.recurring > 0);
+  if (nameNode) nameNode.innerHTML = getNameOnlyDisplay(a.name, a.recurring > 0);
 
   const structured = getStructuredName(a.name, a.recurring > 0);
   const villageNode = card.querySelector(".tw-alarm-village");
@@ -887,9 +856,7 @@ function setupAlarmListeners(node, a, uniqueId) {
       e.stopPropagation();
       pinBtn.classList.toggle("is-active");
       node.classList.toggle("is-pinned");
-      api.runtime
-        .sendMessage({ type: "TOGGLE_PIN", id: a.id })
-        .then(() => syncState(true));
+      api.runtime.sendMessage({ type: "TOGGLE_PIN", id: a.id }).then(() => syncState(true));
     };
   }
 
@@ -930,18 +897,12 @@ function setupAlarmListeners(node, a, uniqueId) {
       const newNameVal = prompt("Edit Name:", nameToEdit);
       if (newNameVal === null) return;
 
-      const currentDurationStr = formatDurationForPrompt(
-        a.scheduledTime - Date.now(),
-      );
-      const newTimeStr = prompt(
-        "Edit Time Remaining (e.g. 15, 1:30):",
-        currentDurationStr,
-      );
+      const currentDurationStr = formatDurationForPrompt(a.scheduledTime - Date.now());
+      const newTimeStr = prompt("Edit Time Remaining (e.g. 15, 1:30):", currentDurationStr);
       if (newTimeStr === null) return;
 
       let finalBaseName = newNameVal.trim() || nameToEdit;
-      if (villageContext)
-        finalBaseName = `${finalBaseName} | ${villageContext}`;
+      if (villageContext) finalBaseName = `${finalBaseName} | ${villageContext}`;
 
       const finalName = `${namePrefix} ${finalBaseName} ${currentTag}`;
       const newDelay = parseSmartDuration(newTimeStr);
@@ -963,8 +924,7 @@ function setupAlarmListeners(node, a, uniqueId) {
   const timerNode = node.querySelector(".t");
   if (timerNode) {
     timerNode.addEventListener("mouseenter", (e) => {
-      if (timerNode.dataset.finishTime)
-        showTooltip(e, timerNode.dataset.finishTime);
+      if (timerNode.dataset.finishTime) showTooltip(e, timerNode.dataset.finishTime);
     });
     timerNode.addEventListener("mousemove", (e) => moveTooltip(e));
     timerNode.addEventListener("mouseleave", () => hideTooltip());
@@ -976,16 +936,13 @@ function setupAlarmListeners(node, a, uniqueId) {
     const now = Date.now();
     const isDone = a.scheduledTime - now <= 0;
     const isRecurring = a.recurring && a.recurring > 0;
-    const isStickyRecurring =
-      a.customType === "farmlist" || a.customType === "daily";
+    const isStickyRecurring = a.customType === "farmlist" || a.customType === "daily";
     if (isStickyRecurring) {
       // Daily alarms must re-arm to their set clock time so they always fire at
       // that time regardless of when they're reset; farm-list keeps its rolling
       // "now + period" behaviour.
       const newDelay =
-        a.customType === "daily"
-          ? nextDailyOccurrence(a.scheduledTime) - Date.now()
-          : a.recurring;
+        a.customType === "daily" ? nextDailyOccurrence(a.scheduledTime) - Date.now() : a.recurring;
       api.runtime
         .sendMessage({
           type: "EDIT_ALARM",
@@ -1021,9 +978,7 @@ function setupAlarmListeners(node, a, uniqueId) {
               },
             ],
           });
-        api.runtime
-          .sendMessage({ type: "DELETE_ALARM", id: a.id, name: a.name })
-          .then(syncState);
+        api.runtime.sendMessage({ type: "DELETE_ALARM", id: a.id, name: a.name }).then(syncState);
       }
     }
   };
@@ -1062,9 +1017,7 @@ async function deleteAlarms(alarms) {
   });
 
   await Promise.all(
-    alarms.map((a) =>
-      api.runtime.sendMessage({ type: "DELETE_ALARM", id: a.id, name: a.name }),
-    ),
+    alarms.map((a) => api.runtime.sendMessage({ type: "DELETE_ALARM", id: a.id, name: a.name })),
   );
   syncState();
 }
@@ -1087,9 +1040,7 @@ function tick() {
       groups[type].push(a);
     });
     for (const [type, alarms] of Object.entries(groups)) {
-      const section = document.querySelector(
-        `.tw-section[data-type="${type}"]`,
-      );
+      const section = document.querySelector(`.tw-section[data-type="${type}"]`);
       if (!section) continue;
       const header = section.querySelector(".tw-section-header");
       if (!header) continue;
@@ -1116,9 +1067,7 @@ function tick() {
           // Done badge is showing — clear the timer so they don't both appear
           soonestSpan.textContent = "";
         } else {
-          const next = alarms.reduce((a, b) =>
-            a.scheduledTime < b.scheduledTime ? a : b,
-          );
+          const next = alarms.reduce((a, b) => (a.scheduledTime < b.scheduledTime ? a : b));
           const s = Math.max(0, ((next.scheduledTime - now) / 1000) | 0);
           soonestSpan.textContent = formatHMS(s);
         }
@@ -1141,8 +1090,7 @@ function tick() {
       hour12: false,
     });
     const titleText = `Finish: ${fTime}`;
-    if (ref.timeNode.dataset.finishTime !== titleText)
-      ref.timeNode.dataset.finishTime = titleText;
+    if (ref.timeNode.dataset.finishTime !== titleText) ref.timeNode.dataset.finishTime = titleText;
 
     // Always-visible finish time
     if (ref.finishNode) ref.finishNode.textContent = fTime;
@@ -1180,10 +1128,7 @@ function tick() {
     ref.lastText = newText;
 
     // Update progress bar (every ~1s worth of frames)
-    if (
-      ref.progressNode &&
-      (_tickFrame % 60 === 0 || ref.lastText !== newText)
-    ) {
+    if (ref.progressNode && (_tickFrame % 60 === 0 || ref.lastText !== newText)) {
       const firstSeen = firstSeenTimes.get(uniqueId) || now;
       const totalDuration = Math.max(1, a.scheduledTime - firstSeen);
       const elapsed = now - firstSeen;
@@ -1253,12 +1198,7 @@ function loadShortcuts() {
       opt.innerHTML = `<span>${s.label}</span><div class="shortcut-actions"><span class="recurring-toggle ${recurringActiveClass} ${recurringModeClass}" title="${recurringTitle}">${recurringLabel}</span><span class="edit-shortcut" title="Edit Shortcut">✎</span><span class="remove-shortcut" title="Delete Shortcut">✕</span></div>`;
       opt.onclick = (e) => {
         e.stopPropagation();
-        handleDropdownAction(
-          durationMs,
-          s.label,
-          s.isFarmList || false,
-          s.isDaily || false,
-        );
+        handleDropdownAction(durationMs, s.label, s.isFarmList || false, s.isDaily || false);
         closePanels();
       };
       const recBtn = opt.querySelector(".recurring-toggle");
@@ -1282,10 +1222,7 @@ function loadShortcuts() {
 
 async function editShortcut(uid, oldMs, oldLabel) {
   const currentDurationStr = formatDurationForPrompt(oldMs);
-  const newDurationStr = prompt(
-    "Edit duration (e.g. 15, 13:30, 13.30):",
-    currentDurationStr,
-  );
+  const newDurationStr = prompt("Edit duration (e.g. 15, 13:30, 13.30):", currentDurationStr);
   const newMs = parseSmartDuration(newDurationStr);
   if (newMs === null) return;
   const newLabel = prompt("Edit label:", oldLabel);
@@ -1306,8 +1243,7 @@ async function cycleShortcutMode(uid) {
     // Cycle: off → farmlist → daily → off
     if (!s.isFarmList && !s.isDaily)
       return { ...s, isRecurring: false, isFarmList: true, isDaily: false };
-    if (s.isFarmList)
-      return { ...s, isRecurring: false, isFarmList: false, isDaily: true };
+    if (s.isFarmList) return { ...s, isRecurring: false, isFarmList: false, isDaily: true };
     return { ...s, isRecurring: false, isFarmList: false, isDaily: false };
   });
   await api.storage.local.set({ _w4sc: newList });
@@ -1326,8 +1262,7 @@ async function handleDropdownAction(val, label, isFarmList, isDaily) {
         const newList = [
           ...res._w4sc,
           {
-            uid:
-              Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+            uid: Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
             label: labelStr,
             ms: ms,
             isRecurring: false,
@@ -1369,9 +1304,7 @@ async function deleteShortcut(uid) {
 // PANEL MANAGEMENT
 // ==========================================
 function closePanels() {
-  document
-    .querySelectorAll(".tw-panel")
-    .forEach((p) => p.classList.remove("is-open"));
+  document.querySelectorAll(".tw-panel").forEach((p) => p.classList.remove("is-open"));
 }
 
 function togglePanel(panelId) {
@@ -1468,8 +1401,7 @@ function createWidget() {
     e.stopPropagation();
     togglePanel("_tw-dm");
   };
-  div.querySelector("#_tw-cn").onclick = () =>
-    handleDropdownAction("CREATE_NEW", "");
+  div.querySelector("#_tw-cn").onclick = () => handleDropdownAction("CREATE_NEW", "");
 
   // Audio panel
   audioBtn.onclick = (e) => {
@@ -1503,9 +1435,7 @@ function createWidget() {
   toggleBtn.onclick = () => {
     const nameVal = prompt("Enter Alarm Name:");
     if (!nameVal) return;
-    const timeVal = prompt(
-      "Enter Duration (e.g. 15, 1:30, 0:45:00, 10pm, 10:30pm, 15:31:16pm):",
-    );
+    const timeVal = prompt("Enter Duration (e.g. 15, 1:30, 0:45:00, 10pm, 10:30pm, 15:31:16pm):");
     if (!timeVal) return;
     let delay = parseSmartDuration(timeVal);
     if (delay === null) {

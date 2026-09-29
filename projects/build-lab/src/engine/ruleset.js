@@ -1,3 +1,3 @@
-import {getRules} from './gameRules.js';
+import { getRules } from "./gameRules.js";
 export const dependencyRules = getRules;
-export const rulesetStatus = 'captured-2026-08-22';
+export const rulesetStatus = "captured-2026-08-22";

@@ -32,9 +32,7 @@ function _getAudio(file, cooldownMs) {
 
 function _playSound(type) {
   const isAttack = type === "attack";
-  const audio = isAttack
-    ? _getAudio("attack.mp3", 1000)
-    : _getAudio("alarm.mp3", 3000);
+  const audio = isAttack ? _getAudio("attack.mp3", 1000) : _getAudio("alarm.mp3", 3000);
 
   // The audio element is the real source of truth — `_playState` is only an
   // in-memory shadow whose idle reset depends on offscreen-document timers
