@@ -1,12 +1,9 @@
 /**
- * TRAVIAN WATCHMAN PRO - BACKGROUND SCRIPT
- * Version: 6.0 (MV3 Service Worker — audio via Offscreen API)
+ * TravAlarm: background script
  *
  * Audio playback is handled by offscreen.js via the Chrome Offscreen API.
  * The offscreen document receives PLAY_SOUND / STOP_SOUND / SET_VOLUME messages.
  */
-
-/* global chrome */
 
 let alarms = [];
 const DEFAULT_SOUND_CATEGORIES = {
@@ -263,8 +260,6 @@ function runAlarmTick() {
   let shouldSave = false;
   let triggerSound = false;
   let soundType = "normal";
-
-  const specialRegex = /[⭐⚔️⚠️🌾🎉🪵🧱🔩📦🎓]/;
 
   // Auto-delete expired ⚠️ attack tracker alarms (attack already landed)
   const expiredTrackers = [];

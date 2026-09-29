@@ -1,7 +1,17 @@
 /**
- * TRAVIAN WATCHMAN PRO - REMOTE FETCHERS
+ * TravAlarm: remote fetchers
  */
 
+// Content scripts share one global scope; see manifest.json for load order.
+/* global
+   acknowledgedSirens, api, cleanText, currentAlarms, fetchState, getActiveVillageName,
+   globalVillageMap, isFetchingRally:writable, jitterMs, lastRallyFetchTime:writable,
+   parseSmartDuration, scan, serverTag, suppressedAttacks
+*/
+/* exported
+   STORAGE_THRESHOLD, checkResourceVillageAttacks, fetchCelebrationsData, fetchHeroData,
+   fetchProductionData, fetchTrainingData, fetchWarehouseData, scanForSidebarAttacksAndFetch
+*/
 let _noAttackSince = 0; // timestamp when the current no-attack streak began (0 = attack present)
 const ATTACK_CLEANUP_GRACE_MS = 60000; // require 60s of confirmed no-attacks before auto-clearing
 
@@ -588,7 +598,9 @@ async function fetchWarehouseData() {
             try {
               const pm = JSON.parse(localStorage.getItem(`_wpm_${serverTag}_${vName}`) || "null");
               if (pm) grCropProd = pm.cr;
-            } catch {}
+            } catch {
+              // No cached production for this village yet.
+            }
             const grFull = grAlreadyFull && grCropProd > 0;
             if ((grFull || delay > 0) && delay < STORAGE_THRESHOLD) {
               const alarmName = `📦 Granary Full | ${vName} ${serverTag}`;

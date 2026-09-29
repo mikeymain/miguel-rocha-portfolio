@@ -1,7 +1,16 @@
 /**
- * TRAVIAN WATCHMAN PRO - HELPER FUNCTIONS
+ * TravAlarm: helper functions
  */
 
+// Content scripts share one global scope; see manifest.json for load order.
+/* global
+   api, getAlarmSvgIcon, serverTag, villageColorSlots
+*/
+/* exported
+   CROP_OVERVIEW_LABEL, calculateDelayFromSmartText, formatDurationForPrompt,
+   generateSmartBuildingName, getResourceValue, getStructuredName, nextDailyOccurrence,
+   parseSmartDuration, restoreVillageColors, villageHue
+*/
 const CROP_OVERVIEW_LABEL = "Crop full in";
 
 function parseSmartDuration(input) {
@@ -182,26 +191,6 @@ function _splitAlarmLabel(cleanName) {
     };
   }
   return { primary: cleanName, secondary: "", suffix: "" };
-}
-
-function getStyledDisplayName(rawName, isRecurring) {
-  const svgIcon = getAlarmSvgIcon(rawName);
-  const cleanName = cleanAlarmName(rawName).replace(serverTag, "").trim();
-  const { primary, secondary, suffix } = _splitAlarmLabel(cleanName);
-
-  let displayName;
-  if (secondary) {
-    const sep = cleanName.includes("|") ? "margin-left: 5px;" : "";
-    displayName = `${primary}<span style="color: #9ca3af !important; font-weight: normal; ${sep}">${secondary}${suffix}</span>`;
-  } else {
-    displayName = primary;
-  }
-
-  if (svgIcon) displayName = svgIcon + displayName;
-  if (isRecurring)
-    displayName += ` <span class="recurring-indicator" title="Recurring Alarm">↺</span>`;
-
-  return displayName;
 }
 
 /**

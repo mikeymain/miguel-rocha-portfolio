@@ -2,6 +2,7 @@
   "manifest_version": 3,
   "name": "TravAlarm",
   "version": "3.24",
+  "description": "Tracks Travian build queues, troops, resources and incoming attacks, with notifications and audio alerts.",
   "permissions": ["notifications", "alarms", "storage", "contextMenus", "offscreen"],
   "host_permissions": ["*://*.travian.com/*"],
   "background": {
@@ -13,7 +14,9 @@
       "matches": ["*://*.travian.com/*"]
     }
   ],
-  "icons": { "48": "icon.png" },
+  "icons": {
+    "48": "icon.png"
+  },
   "content_scripts": [
     {
       "matches": ["*://*.travian.com/*"],

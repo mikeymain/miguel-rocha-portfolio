@@ -1,5 +1,5 @@
 /**
- * TRAVIAN WATCHMAN PRO - OFFSCREEN AUDIO
+ * TravAlarm: offscreen audio
  * Handles all alarm sound playback via the Chrome Offscreen API.
  * Receives PLAY_SOUND / STOP_SOUND / SET_VOLUME from the background service worker.
  */

@@ -1,7 +1,17 @@
 /**
- * TRAVIAN WATCHMAN PRO - SCANNERS
+ * TravAlarm: scanners
  */
 
+// Content scripts share one global scope; see manifest.json for load order.
+/* global
+   STORAGE_THRESHOLD, api, cleanCoords, cleanText, currentAlarms, fetchCelebrationsData,
+   fetchProductionData, fetchTrainingData, fetchWarehouseData, getResourceValue,
+   globalVillageMap, isScanning:writable, parseSmartDuration, scanForSidebarAttacksAndFetch,
+   serverTag, timerWidget
+*/
+/* exported
+   getActiveVillageName, scan, scanResources
+*/
 // ==========================================
 // SCAN UTILITIES
 // ==========================================
@@ -53,7 +63,7 @@ function scan() {
   }
 
   try {
-    const villageMap = scanVillages();
+    scanVillages();
     const activeVillage = getActiveVillageName();
     const found = [];
     let matchedBuildingIds = null;
@@ -100,7 +110,9 @@ function scan() {
 
     if (matchedBuildingIds) handleQueueCleanup(matchedBuildingIds, activeVillage);
     if (found.length > 0) api.runtime.sendMessage({ type: "REFRESH_ALARMS", buildings: found });
-  } catch {}
+  } catch {
+    // Travian pages vary between servers and versions; a failed scan must never break the page.
+  }
 }
 
 // ==========================================

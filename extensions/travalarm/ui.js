@@ -1,8 +1,19 @@
 /**
- * TRAVIAN WATCHMAN PRO - UI & WIDGET
+ * TravAlarm: ui & widget
  * Grouped Dashboard with Ring Gauges
  */
 
+// Content scripts share one global scope; see manifest.json for load order.
+/* global
+   DEFAULT_SHORTCUTS, acknowledgedSirens, api, calculateDelayFromSmartText, collapsedSections,
+   currentAlarms:writable, escapeHtml, expandedSections, firstSeenTimes,
+   formatDurationForPrompt, getActiveVillageName, getStructuredName, listContainer,
+   makeUiIcon, nextDailyOccurrence, parseSmartDuration, serverTag,
+   silencedAlarms, suppressedAttacks, tooltipEl:writable, uiRefs, villageHue
+*/
+/* exported
+   createWidget, loadShortcuts, restoreSectionState, syncState, tick
+*/
 // ==========================================
 // TIME FORMATTING
 // ==========================================
@@ -270,7 +281,6 @@ async function syncState(force = false) {
   let alarms = res.alarms || [];
   const now = Date.now();
   currentAlarms = alarms;
-  localTracked = new Set(currentAlarms.map((a) => a.name.replace(/\s#\d+$/, "")));
 
   // Populate firstSeenTimes from persistent createdAt (survives refresh)
   currentAlarms.forEach((a) => {
@@ -529,7 +539,7 @@ function rebuildUI() {
 
       if (isExisting) {
         // Update existing card
-        updateAlarmCard(card, a, uid);
+        updateAlarmCard(card, a);
         existingCards.delete(uid);
       } else {
         card = createAlarmNode(a, uid);
@@ -772,7 +782,7 @@ function getNameOnlyDisplay(rawName, isRecurring) {
   const s = getStructuredName(rawName, isRecurring);
   let html = "";
   if (s.iconHtml) html += s.iconHtml;
-  html += s.name;
+  html += escapeHtml(s.name);
   if (s.isRecurring) html += ` <span class="recurring-indicator" title="Recurring Alarm">↺</span>`;
   return html;
 }
@@ -822,7 +832,7 @@ function createAlarmNode(a, uniqueId) {
   return div;
 }
 
-function updateAlarmCard(card, a, uid) {
+function updateAlarmCard(card, a) {
   const nameNode = card.querySelector(".n");
   if (nameNode) nameNode.innerHTML = getNameOnlyDisplay(a.name, a.recurring > 0);
 
@@ -1195,7 +1205,7 @@ function loadShortcuts() {
         off: "↺",
       }[mode];
 
-      opt.innerHTML = `<span>${s.label}</span><div class="shortcut-actions"><span class="recurring-toggle ${recurringActiveClass} ${recurringModeClass}" title="${recurringTitle}">${recurringLabel}</span><span class="edit-shortcut" title="Edit Shortcut">✎</span><span class="remove-shortcut" title="Delete Shortcut">✕</span></div>`;
+      opt.innerHTML = `<span>${escapeHtml(s.label)}</span><div class="shortcut-actions"><span class="recurring-toggle ${recurringActiveClass} ${recurringModeClass}" title="${recurringTitle}">${recurringLabel}</span><span class="edit-shortcut" title="Edit Shortcut">✎</span><span class="remove-shortcut" title="Delete Shortcut">✕</span></div>`;
       opt.onclick = (e) => {
         e.stopPropagation();
         handleDropdownAction(durationMs, s.label, s.isFarmList || false, s.isDaily || false);

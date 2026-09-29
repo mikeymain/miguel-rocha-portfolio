@@ -1,15 +1,25 @@
 /**
- * TRAVIAN WATCHMAN PRO - ENTRY POINT
- * Version: 5.9 (Remote Fetch, Auto-Regen, Auto-Prod Fetch & Server Isolation)
+ * TravAlarm: entry point
  *
  * Load order (manifest.json):
- *   state.js → helpers.js → fetchers.js → scanners.js → ui.js → content.js
+ *   state.js → icons.js → helpers.js → fetchers.js → scanners.js → ui.js → content.js
  */
 
+// Content scripts share one global scope; see manifest.json for load order.
+/* global
+   CROP_OVERVIEW_LABEL, _firedResourceAlarms, api, calculateDelayFromSmartText,
+   checkResourceVillageAttacks, createWidget, currentAlarms, fetchCelebrationsData,
+   fetchHeroData, fetchState, fetchTrainingData, fetchWarehouseData, generateSmartBuildingName,
+   getActiveVillageName, loadShortcuts, parseSmartDuration, restoreSectionState,
+   restoreVillageColors, scan, scanResources, serverTag, syncState, tick
+*/
+/* exported
+   audioBtn, jitterMs, listContainer, timerWidget, toggleBtn
+*/
 // ==========================================
 // MESSAGE LISTENER
 // ==========================================
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((msg) => {
   if (msg.type === "OPEN_CONTEXT_ADD") {
     let prefilled = generateSmartBuildingName();
 

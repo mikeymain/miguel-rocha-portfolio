@@ -1,8 +1,12 @@
 /**
- * TRAVIAN WATCHMAN PRO - TRAVIAN SVG ICONS
+ * TravAlarm: travian svg icons
  * Maps alarm types to Travian's native SVG building/resource icons.
  */
 
+// Content scripts share one global scope; see manifest.json for load order.
+/* exported
+   getAlarmSvgIcon, makeUiIcon
+*/
 const TRAVIAN_ICONS = {
   // ---- MILITARY BUILDINGS ----
   Barracks: {
