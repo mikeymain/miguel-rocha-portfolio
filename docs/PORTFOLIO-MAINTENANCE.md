@@ -4,7 +4,7 @@ This repository is a curated snapshot, not a replacement for the original workin
 
 ## Organisation
 
-- `projects/`: Workout Tracker, Build Lab and the M4 mod case study.
+- `projects/`: Workout Tracker and Build Lab. The M4 mod is linked to its Nexus Mods page only.
 - `extensions/`: only the four extensions selected for the CV.
 - `assets/`: a selected Build Lab screenshot.
 - `ATTRIBUTION.md`: third-party sources and ownership notes.
