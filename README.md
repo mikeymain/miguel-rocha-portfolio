@@ -8,6 +8,7 @@ Based in Lisbon, Portugal. Interested in junior developer roles and technology i
 | Project | What it does | Main skills |
 | --- | --- | --- |
 | [Build Lab](projects/build-lab/) | NBA 2K27 build planning, linked attributes, saved builds and comparisons | React, JavaScript, state management, automated tests |
+| [PC Remote](projects/pc-remote/) | Controls a Windows PC from a phone over the local network, with paired devices and hardened sign-in | Python, WebSockets, authentication, pytest, touch interfaces |
 | [Workout Tracker](projects/workout-tracker/) | Logs training, tracks progress and stores workout history | JavaScript, responsive UI, PWA, local storage |
 | [Travian Settlement Planner](extensions/settlement-planner/) | Estimates when culture points reach settlement thresholds | Data parsing, forecasting, event simulation |
 | [TravAlarm](extensions/travalarm/) | Tracks game events and schedules browser/audio alerts | Manifest V3, service workers, Chrome APIs |
@@ -23,7 +24,7 @@ Each project has its own README covering its purpose, source structure and how t
 
 These are curated snapshots of personal projects. Original working repositories remain separate. The portfolio uses the CV name **Workout Tracker**; some existing app screens retain the earlier **Leg Day** branding.
 
-Start with Build Lab for React and calculation logic, or the extension folders for browser integration.
+Start with Build Lab for React and calculation logic, PC Remote for Python, WebSockets and network security, or the extension folders for browser integration.
 
 ## Scope and attribution
 
