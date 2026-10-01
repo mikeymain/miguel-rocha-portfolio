@@ -1,18 +1,22 @@
 # Maintaining this portfolio
 
-This repository is a curated snapshot, not a replacement for the original working projects. Update project copies deliberately and review the diff before committing.
+This repository holds portfolio copies of personal projects. Each project is developed in its own working repository, then copied here deliberately and reviewed before committing.
 
 ## Organisation
 
-- `projects/`: Workout Tracker, Build Lab and PC Remote. The M4 mod is linked to its Nexus Mods page only.
-- `extensions/`: only the four extensions selected for the CV.
-- `assets/`: a selected Build Lab screenshot.
+- `projects/`: Build Lab, PC Remote and Workout Tracker. The M4 mod is linked to its Nexus Mods page only.
+- `extensions/`: the four Travian browser extensions, with shared tests in `extensions/tests/`.
+- `assets/`: screenshots used by the READMEs.
+- `docs/`: validation notes and this guide.
 - `ATTRIBUTION.md`: third-party sources and ownership notes.
 
-## Excluded material
+## Updating a project
 
-No existing Git histories, installed dependencies, browser profiles, local agent settings, personal CV documents, local PC Remote configuration and paired devices, deployment credentials or large mod archives are included.
+1. Copy the changed source in from the working repository.
+2. Run `npm run lint`, `npm run format:check` and `npm test` from the root, plus the project's own tests (Build Lab: `npm test` and `npm run test:ui`; PC Remote: `black --check` and `python -m pytest`).
+3. Update the project's README if features or commands changed.
+4. Open a pull request and let CI pass before merging.
 
-The original project locations and original Git histories remain untouched. Build Lab's build command is adapted to standalone Vite; extension application code is copied unchanged.
+## Never committed
 
-Before sharing publicly, review third-party asset permissions and project descriptions. A private GitHub link alone will not let a recruiter browse the work.
+Installed dependencies, browser profiles, local agent settings, deployment credentials, PC Remote's local configuration and paired devices, and large mod archives stay out of the repository. `.gitignore` covers the common cases; review the diff for anything else.
