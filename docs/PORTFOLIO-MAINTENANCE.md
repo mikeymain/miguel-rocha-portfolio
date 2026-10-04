@@ -5,7 +5,7 @@ This repository holds portfolio copies of personal projects. Each project is dev
 ## Organisation
 
 - `projects/`: Build Lab, PC Remote and Workout Tracker. The M4 mod is linked to its Nexus Mods page only.
-- `extensions/`: the four Travian browser extensions, with shared tests in `extensions/tests/`.
+- Travian extensions: links to [the public repository](https://github.com/mikeywikey-coding/travian-extensions); no extension copies are stored here.
 - `assets/`: screenshots used by the READMEs.
 - `docs/`: validation notes and this guide.
 - `ATTRIBUTION.md`: third-party sources and ownership notes.
@@ -16,6 +16,10 @@ This repository holds portfolio copies of personal projects. Each project is dev
 2. Run `npm run lint`, `npm run format:check` and `npm test` from the root, plus the project's own tests (Build Lab: `npm test` and `npm run test:ui`; PC Remote: `black --check` and `python -m pytest`).
 3. Update the project's README if features or commands changed.
 4. Open a pull request and let CI pass before merging.
+
+## Travian extensions
+
+**ALWAYS publish every extension change to [travian-extensions](https://github.com/mikeywikey-coding/travian-extensions).** Update the installed development source and public runtime files together, update affected guides and screenshots, and commit and push the public changes before declaring completion. Report any publishing blocker. Keep this portfolio linked to that repository; do not reintroduce extension snapshots. The user has provided standing authorization to publish requested extension changes.
 
 ## Never committed
 
