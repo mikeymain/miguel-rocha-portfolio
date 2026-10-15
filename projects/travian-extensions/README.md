@@ -2,7 +2,7 @@
 
 [Back to the portfolio](../../README.md)
 
-Eight standalone browser extensions for Travian.
+Seven standalone browser extensions for Travian.
 
 **Community beta · Discord: `luckimikey`**
 
@@ -24,7 +24,6 @@ Screenshots use sample data. Unofficial project, unaffiliated with Travian Games
 | [Rank Tracker](#rank-tracker) | 4.8.2 | Records statistics and shows rankings, deltas, and history graphs | `extensions/TravianRankTracker` |
 | [Next Settlement Calc](#next-settlement-calc) | 2.3.1 | Estimates when you will reach the next settlement's culture-point requirement | `extensions/NextSettlementCalc` |
 | [NPC AutoMerchant](#npc-automerchant) | 3.1.0 | Calculates troop resource needs and helps prepare hero resource transfers | `extensions/automerchant` |
-| [InactiveSearch Map Opener](#inactivesearch-map-opener) | 5.1 | Collects filtered inactive targets across pages and opens their Travian map tabs | `extensions/inactiveOpenerV3` |
 | [Night Mode](#night-mode) | 2.4 | Darkens Travian and adds a button-color picker with saved favorites | `extensions/travian_night_mode` |
 
 ## Install in Brave, Chrome, or Edge
@@ -34,13 +33,13 @@ Screenshots use sample data. Unofficial project, unaffiliated with Travian Games
 3. Enable **Developer mode**.
 4. Select **Load unpacked**, then choose the extracted extension folder (the one containing `manifest.json`).
 5. Repeat for each extension you want to install. Refresh Travian tabs.
-6. Pin extensions with toolbar popups. Oasis Finder, TravAlarm, NPC AutoMerchant, and InactiveSearch add controls to their matching pages.
+6. Pin extensions with toolbar popups. Oasis Finder, TravAlarm, and NPC AutoMerchant add controls to their matching pages.
 
 No build step is required. Game features requiring a paid Travian option still require that option.
 
 **Browsers:** desktop Chromium. Used in Brave; Chrome and Edge compatibility needs feedback. Firefox installation is not covered.
 
-**Domains:** Oasis Finder, TravAlarm, Next Settlement Calc, and NPC AutoMerchant target `*.travian.com`. Rank Tracker also supports `.org`, `.net`, `.us`, and `.de`. QoL and Night Mode support multiple regional domains; see their manifests. InactiveSearch Map Opener runs on `inactivesearch.com` and `inactivesearch.it`.
+**Domains:** Oasis Finder, TravAlarm, Next Settlement Calc, and NPC AutoMerchant target `*.travian.com`. Rank Tracker also supports `.org`, `.net`, `.us`, and `.de`. QoL and Night Mode support multiple regional domains; see their manifests.
 
 ### Updating and keeping your settings
 
@@ -150,21 +149,6 @@ Refreshes roughly every five minutes. Failed refreshes retain the last snapshot.
 4. **Send to Indicator** saves the resource shortfall. **Pull from Hero** normally opens the game's transfer dialog with target amounts. Check amounts and destination before confirming.
 5. If the native dialog is unavailable, **Pull from Hero** can navigate to hero inventory, fill the amounts, and submit the transfer automatically.
 
-## InactiveSearch Map Opener
-
-<a href="docs/images/inactive-opener.png"><img src="docs/images/inactive-opener.png" alt="InactiveSearch Map Opener controls" width="280" /></a>
-
-**Features:** population sorting, filtered target collection across up to 100 result pages, addition to InactiveSearch's saved farmlist, queued Travian map tabs, background/foreground preference, progress status, and Stop control.
-
-**Usage:**
-
-1. Open your world's InactiveSearch results. Set distance, inactivity, and population filters. Check the linked Travian world and log into it.
-2. **Sort by Population** reorders the current page.
-3. Select **Open in background**, then **Start All Pages** to collect filtered results, save targets to InactiveSearch's farmlist, and open map tabs.
-4. **Stop** cancels pending work; existing tabs remain open. Narrow filters limit the number of tabs.
-
-This saves targets to InactiveSearch. Native Travian farm-list setup remains manual.
-
 ## Night Mode
 
 <a href="docs/images/night-mode.png"><img src="docs/images/night-mode.png" alt="Night Mode toggle, button-color picker, and favorites" width="224" /></a>
@@ -182,7 +166,7 @@ This saves targets to InactiveSearch. Native Travian farm-list setup remains man
 
 Preferences, timers, histories, and caches use extension storage. Some helpers use page local/session storage for context and transfer state. QoL feature toggles use browser sync storage when available.
 
-Statistics tools use your existing game session. InactiveSearch accesses that site's results/farmlist. Some tools open tabs, show notifications, or prepare resource transfers. Inspect each manifest for permissions. Styles can load Google Fonts and a Travian-hosted button asset. No project-operated account or analytics service is included.
+Statistics tools use your existing game session. Some tools open tabs, show notifications, or prepare resource transfers. Inspect each manifest for permissions. Styles can load Google Fonts and a Travian-hosted button asset. No project-operated account or analytics service is included.
 
 ## Troubleshooting and feedback
 

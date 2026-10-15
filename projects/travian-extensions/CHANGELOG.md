@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-15
+
+- Removed InactiveSearch Map Opener from the published extensions.
+
 ## Next Settlement Calc 2.3.1 — 2026-10-15
 
 - Renamed from CP Predictor / CP Planner to Next Settlement Calc (extension name, toolbar title and popup header).

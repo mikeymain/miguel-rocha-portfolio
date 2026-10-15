@@ -30,7 +30,7 @@ Changing one attribute can affect the rest of a player build. Build Lab combines
 
 ### 02 / Travian Extensions
 
-**Eight browser extensions for Travian, released as a community beta.**
+**Seven browser extensions for Travian, released as a community beta.**
 
 Timers, oasis scoring, settlement forecasts, statistics history and interface improvements for the browser game Travian. Each extension installs separately and has a usage guide with screenshots.
 
@@ -62,7 +62,7 @@ This is collaborative work, not a claim of sole authorship. Downloads are availa
 | [Build Lab](projects/build-lab/)                                                  | NBA 2K27 build planning, linked attributes, saved builds and comparisons                            | React, JavaScript, state management, automated tests         |
 | [PC Remote](projects/pc-remote/)                                                  | Controls a Windows PC from a phone over the local network, with paired devices and hardened sign-in | Python, WebSockets, authentication, pytest, touch interfaces |
 | [Workout Tracker](projects/workout-tracker/)                                      | Logs training, tracks progress and stores workout history                                           | JavaScript, responsive UI, PWA, local storage                |
-| [Travian Extensions](projects/travian-extensions/)                                | Eight browser extensions for Travian: timers, oasis scoring, statistics and interface tools         | Manifest V3, service workers, Chrome APIs, DOM integration   |
+| [Travian Extensions](projects/travian-extensions/)                                | Seven browser extensions for Travian: timers, oasis scoring, statistics and interface tools         | Manifest V3, service workers, Chrome APIs, DOM integration   |
 | [Next Settlement Calc](projects/travian-extensions/extensions/NextSettlementCalc) | Estimates when culture points reach settlement thresholds                                           | Data parsing, forecasting, event simulation                  |
 | [TravAlarm](projects/travian-extensions/extensions/travAlarm)                     | Tracks game events and schedules browser/audio alerts                                               | Manifest V3, service workers, Chrome APIs                    |
 | [Travian QoL](projects/travian-extensions/extensions/TravianQoL)                  | Configurable interface improvements and planning tools                                              | Modular JavaScript, DOM integration, persistent settings     |

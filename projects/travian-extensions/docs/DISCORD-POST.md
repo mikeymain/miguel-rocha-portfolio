@@ -1,6 +1,6 @@
 # Discord invitation
 
-Eight Travian browser extensions are available here:
+Seven Travian browser extensions are available here:
 
 https://github.com/mikeywikey-coding/miguel-rocha-portfolio/tree/main/projects/travian-extensions
 
@@ -10,7 +10,6 @@ https://github.com/mikeywikey-coding/miguel-rocha-portfolio/tree/main/projects/t
 - Rank Tracker: statistics and history graphs
 - Next Settlement Calc: settlement CP forecasts with celebration plans
 - NPC AutoMerchant: troop resource calculations and hero-transfer assistance
-- InactiveSearch Opener: inactive targets opened as map tabs
 - Night Mode: dark theme and button colors
 
 Install extensions separately using Load unpacked. The README includes instructions and screenshots.

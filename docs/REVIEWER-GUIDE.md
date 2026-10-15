@@ -2,7 +2,7 @@
 
 [Back to the portfolio](../README.md)
 
-This repository contains three application projects and eight Travian browser extensions; the BMW M4 ADRO mod is published on Nexus Mods. There is no shared install step: open a project's README for its environment and setup. Start with Build Lab for React and calculation logic or PC Remote for Python and network security.
+This repository contains three application projects and seven Travian browser extensions; the BMW M4 ADRO mod is published on Nexus Mods. There is no shared install step: open a project's README for its environment and setup. Start with Build Lab for React and calculation logic or PC Remote for Python and network security.
 
 ## Where to read first
 
@@ -21,7 +21,7 @@ This repository contains three application projects and eight Travian browser ex
 - Build Lab's `research/nba2k27-builder-dataset/` groups upstream data by animations, badges, bodies, cap breakers, overall, reference and takeovers. These are attributed inputs, not original portfolio code. The linked-attribute table in `src/engine/linked-attributes.json` was extracted from a third-party builder and records its provenance.
 - `node_modules/`, `dist/`, Python caches and local environments may appear after running a project. They are ignored and are not part of the committed portfolio.
 - PC Remote creates ignored local configuration and paired-device records. They are not supplied with a clone.
-- Travian extension sources are maintained in a separate development checkout and published here. The [Travian README](../projects/travian-extensions/) covers installation and usage of all eight.
+- Travian extension sources are maintained in a separate development checkout and published here. The [Travian README](../projects/travian-extensions/) covers installation and usage of all seven.
 - See [attribution](../ATTRIBUTION.md) for third-party media and data. Original working repositories remain separate from this curated snapshot.
 
 ## Review scope and checks
