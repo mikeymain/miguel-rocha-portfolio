@@ -18,7 +18,8 @@ Community beta used in Brave. Chrome and Edge feedback is requested.
 
 **Disclaimer:** Use these extensions at your own risk. I am not liable for any bans or account penalties resulting from their use. I have tested them for several months without issues, but this does not guarantee that you will avoid a ban.
 
-Issues and suggestions: Discord **luckimikey** or GitHub issues. Include the extension version and steps to reproduce.
+Issues and suggestions: Discord **luckimikey** or GitHub issues:
+https://github.com/mikeywikey-coding/miguel-rocha-portfolio/issues Include the extension version and steps to reproduce.
 
 Unofficial project, unaffiliated with Travian Games.
 

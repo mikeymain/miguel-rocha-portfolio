@@ -6,6 +6,8 @@ Seven standalone browser extensions for Travian.
 
 **Community beta · Discord: `luckimikey`**
 
+Repository: `https://github.com/mikeywikey-coding/miguel-rocha-portfolio/tree/main/projects/travian-extensions`
+
 ## Disclaimer
 
 Use these extensions at your own risk. I am not liable for any bans or account penalties resulting from their use. I have tested them for several months without issues, but this does not guarantee that you will avoid a ban.
@@ -28,7 +30,7 @@ Screenshots use sample data. Unofficial project, unaffiliated with Travian Games
 
 ## Install in Brave, Chrome, or Edge
 
-1. Download the zip for the extension you want from [Releases](https://github.com/mikeywikey-coding/miguel-rocha-portfolio/releases) and extract it. (Or select **Code → Download ZIP** on the repository page; the extensions are under `projects/travian-extensions/extensions`.)
+1. Download the zip for the extension you want from [Releases](https://github.com/mikeywikey-coding/miguel-rocha-portfolio/releases) (`https://github.com/mikeywikey-coding/miguel-rocha-portfolio/releases`) and extract it. (Or select **Code → Download ZIP** on the repository page; the extensions are under `projects/travian-extensions/extensions`.)
 2. Open `brave://extensions`, `chrome://extensions`, or `edge://extensions`.
 3. Enable **Developer mode**.
 4. Select **Load unpacked**, then choose the extracted extension folder (the one containing `manifest.json`).
@@ -175,7 +177,7 @@ Statistics tools use your existing game session. Some tools open tabs, show noti
 - **Conflicts:** disable the overlapping extension or QoL feature, then refresh.
 - **Update errors:** reload the extension and game tabs. Copy errors from the extension manager.
 
-Discord: **`luckimikey`**, or [open a GitHub issue](https://github.com/mikeywikey-coding/miguel-rocha-portfolio/issues/new/choose). Include extension/browser versions, server domain, reproduction steps, expected/actual behavior, and screenshots or errors. Remove private details; do not share passwords, cookies, or session tokens.
+Discord: **`luckimikey`**, or [open a GitHub issue](https://github.com/mikeywikey-coding/miguel-rocha-portfolio/issues/new/choose) (`https://github.com/mikeywikey-coding/miguel-rocha-portfolio/issues/new/choose`). Include extension/browser versions, server domain, reproduction steps, expected/actual behavior, and screenshots or errors. Remove private details; do not share passwords, cookies, or session tokens.
 
 For development, edit files in the relevant extension folder, reload the extension, and refresh its game page.
 
