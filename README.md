@@ -6,7 +6,7 @@ I'm **Miguel Rocha**, based in Lisbon. My projects span web applications, Python
 
 [Start here](#start-here) · [All projects](#all-projects) · [Reviewer guide](docs/REVIEWER-GUIDE.md) · [Validation](docs/VALIDATION.md)
 
-[![CI](https://github.com/mikeywikey-coding/miguel-rocha-portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/mikeywikey-coding/miguel-rocha-portfolio/actions/workflows/ci.yml)
+[![CI](https://github.com/mikeymain/miguel-rocha-portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/mikeymain/miguel-rocha-portfolio/actions/workflows/ci.yml)
 
 ## Start here
 
