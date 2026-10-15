@@ -11,6 +11,8 @@ export default [
       "**/dist/**",
       "projects/build-lab/research/**",
       "projects/workout-tracker/app/media/**",
+      // Maintained in the Travian development checkout; its scripts share globals across files.
+      "projects/travian-extensions/**",
     ],
   },
   js.configs.recommended,
@@ -24,7 +26,6 @@ export default [
       "eslint.config.js",
       "**/*.config.{js,mjs}",
       "projects/build-lab/tests/**",
-      "extensions/tests/**",
       "projects/workout-tracker/tests/**",
     ],
     languageOptions: { globals: globals.node },
@@ -63,17 +64,6 @@ export default [
   {
     files: ["projects/pc-remote/web/**/*.js"],
     languageOptions: { sourceType: "script", globals: globals.browser },
-  },
-  {
-    files: ["extensions/**/*.js"],
-    languageOptions: {
-      sourceType: "script",
-      globals: { ...globals.browser, ...globals.webextensions },
-    },
-  },
-  {
-    files: ["extensions/*/background.js"],
-    languageOptions: { globals: { ...globals.serviceworker, ...globals.webextensions } },
   },
   prettier,
 ];

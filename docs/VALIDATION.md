@@ -11,7 +11,7 @@
 | PC Remote        | Black; pytest for host and origin checks, PIN pairing and device tokens, failed-attempt limits and command validation, with the Windows input layer stubbed |
 | Workout Tracker  | Programme generation for every onboarding profile, save migration, training-block maths, 1RM estimates                                                      |
 
-Travian extension source and usage instructions are maintained in [their public repository](https://github.com/mikeywikey-coding/travian-extensions). They are outside this portfolio's CI scope.
+[Travian Extensions](../projects/travian-extensions/) are developed in a separate checkout and are excluded from ESLint and Prettier here. CI only packages their release zips.
 
 ## Manual checks
 

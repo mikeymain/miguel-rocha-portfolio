@@ -4,9 +4,8 @@ This repository holds portfolio copies of personal projects. Each project is dev
 
 ## Organisation
 
-- `projects/`: Build Lab, PC Remote and Workout Tracker. The M4 mod is linked to its Nexus Mods page only.
-- Travian extensions: links to [the public repository](https://github.com/mikeywikey-coding/travian-extensions); no extension copies are stored here.
-- `assets/`: screenshots used by the READMEs.
+- `projects/`: Build Lab, PC Remote, Workout Tracker and Travian Extensions. The M4 mod is linked to its Nexus Mods page only.
+- `assets/`: the header and screenshots used by the READMEs.
 - `docs/`: validation notes and this guide.
 - `ATTRIBUTION.md`: third-party sources and ownership notes.
 
@@ -19,7 +18,9 @@ This repository holds portfolio copies of personal projects. Each project is dev
 
 ## Travian extensions
 
-**ALWAYS publish every extension change to [travian-extensions](https://github.com/mikeywikey-coding/travian-extensions).** Update the installed development source and public runtime files together, update affected guides and screenshots, and commit and push the public changes before declaring completion. Report any publishing blocker. Keep this portfolio linked to that repository; do not reintroduce extension snapshots. The user has provided standing authorization to publish requested extension changes.
+**ALWAYS publish every extension change to [`projects/travian-extensions`](../projects/travian-extensions/).** This folder is the public distribution. Update the installed development source and these runtime files together, update affected guides and screenshots, and commit and push before declaring completion. Report any publishing blocker. The user has provided standing authorization to publish requested extension changes.
+
+Bumping an extension's manifest version on `main` publishes a release zip for it ([release workflow](../.github/workflows/release.yml)). The extension sources are excluded from the portfolio's ESLint and Prettier checks because they are maintained in the development checkout.
 
 ## Never committed
 
