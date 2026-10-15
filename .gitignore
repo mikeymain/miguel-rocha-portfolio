@@ -27,3 +27,6 @@ Thumbs.db
 projects/pc-remote/config.json
 projects/pc-remote/hotkeys.json
 projects/pc-remote/devices.json
+
+# Local agent instructions
+AGENTS.md

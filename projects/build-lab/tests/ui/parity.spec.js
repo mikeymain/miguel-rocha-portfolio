@@ -209,7 +209,7 @@ test("PNG export produces valid landscape and portrait images at requested dimen
     expect(bytes.readUInt32BE(16)).toBe(width);
     expect(bytes.readUInt32BE(20)).toBe(height);
     expect(bytes.length).toBeGreaterThan(20000);
-    await file.saveAs(`design/export-${format}.png`);
+    await file.saveAs(`test-results/export-${format}.png`);
     await expect(page.getByRole("button", { name: "Download PNG", exact: true })).toBeEnabled();
   }
 });

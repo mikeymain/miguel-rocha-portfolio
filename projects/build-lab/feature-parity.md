@@ -46,6 +46,6 @@ The recovered client tuning supersedes the earlier sampled cap and token approxi
 
 The remaining confirmed gaps are some animation size/season gates and any future live-tuning changes. The game manifest points to packed assets, not a recovered rules table.
 
-Supplemental source: https://github.com/lightmatmul/nba2k27-builder-dataset at 18f692eaaa611e6daf9427a3d5a5f97ae0423bba. Extraction: `research/downloaded-page.json`. Readable values: `research/downloaded-build-report.md`.
+Supplemental source: https://github.com/lightmatmul/nba2k27-builder-dataset at 18f692eaaa611e6daf9427a3d5a5f97ae0423bba.
 
 Attribute locks: all 21 rows have persistent lock toggles and gold labels/ratings. Direct edits are disabled, linked edits and body changes that move a locked rating are rejected, and unlocking restores normal editing.

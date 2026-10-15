@@ -179,10 +179,6 @@ Discord: **`luckimikey`**, or [open a GitHub issue](https://github.com/mikeywike
 
 For development, edit files in the relevant extension folder, reload the extension, and refresh its game page.
 
-## Sharing
-
-[Discord invitation](docs/DISCORD-POST.md)
-
 ## Copyright
 
 Copyright © 2026 luckimikey. All rights reserved for original contributions to this repository.
