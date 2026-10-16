@@ -4,6 +4,15 @@
 
 - Removed InactiveSearch Map Opener from the published extensions.
 
+## TravAlarm 3.28 — 2026-10-16
+
+- Fixed: the rally-point check for villages with resource alarms stopped for the rest of the page's life after its first run found nothing to check.
+- Fixed: a building-queue timer without a readable value created a false "finished" alarm about 2 seconds later. The row is now skipped and its existing alarm is kept.
+- Server error pages (non-OK responses) are ignored instead of being parsed, so they can no longer clear storage, training, celebration or hero alarms.
+- One malformed saved alarm no longer stops TravAlarm from loading all the others.
+- Alarm names from game pages (such as an attacker's village name) are shown as plain text in the widget instead of being inserted as HTML.
+- `alarm.mp3` and `attack.mp3` are no longer exposed to Travian pages.
+
 ## Next Settlement Calc 2.4.0 — 2026-10-16
 
 - Fixed: the target-reached alarm made no sound unless you had clicked in the Travian tab, and none at all with no Travian tab open. The sound now plays from an offscreen document, which the browser's autoplay policy does not block. Adds the `offscreen` permission and requires Chrome/Brave 116 or later.

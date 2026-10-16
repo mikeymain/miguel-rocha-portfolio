@@ -801,11 +801,16 @@ function setVillageLabel(el, village) {
 // ==========================================
 // NAME-ONLY DISPLAY (no village, for card .n)
 // ==========================================
+// Alarm names include page text such as an attacker's village name, so they
+// are escaped; only the extension's own SVG icon is inserted as markup.
+function escapeHtml(text) {
+  return String(text).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+}
 function getNameOnlyDisplay(rawName, isRecurring) {
   const s = getStructuredName(rawName, isRecurring);
   let html = "";
   if (s.iconHtml) html += s.iconHtml;
-  html += s.name;
+  html += escapeHtml(s.name);
   if (s.isRecurring)
     html += ` <span class="recurring-indicator" title="Recurring Alarm">↺</span>`;
   return html;

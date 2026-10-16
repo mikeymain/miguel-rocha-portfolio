@@ -477,16 +477,24 @@ function scanBuildings(activeVillage) {
   const rows = buildingList.querySelectorAll("li, tr");
   const now = Date.now();
   const rawBuildings = [];
+  let unreadableTimer = false;
   rows.forEach((row) => {
     const t = row.querySelector(".timer");
     if (!t || row.classList.contains("masterBuilder")) return;
+    // A timer without a numeric value used to become a 1.7 s "finished"
+    // alarm. Skip the row, and skip cleanup below so its alarm survives.
+    const seconds = parseInt(t.getAttribute("value"), 10);
+    if (!Number.isFinite(seconds)) {
+      unreadableTimer = true;
+      return;
+    }
     const txt = row.innerText;
     const match = txt.match(/(.*?)\s+Level\s+(\d+)/i);
     const bName = match
       ? cleanText(match[1])
       : cleanText(txt.split("Level")[0]);
     const bLevel = match ? match[2].trim() : "";
-    const delayValue = (t.getAttribute("value") | 0) * 1000 + 1700;
+    const delayValue = seconds * 1000 + 1700;
     rawBuildings.push({
       bName,
       bLevel,
@@ -536,7 +544,7 @@ function scanBuildings(activeVillage) {
       newAlarms.push({ name: pb.name, delay: pb.delay });
     }
   });
-  return { newBuildings: newAlarms, matchedIds };
+  return { newBuildings: newAlarms, matchedIds: unreadableTimer ? null : matchedIds };
 }
 
 // Emojis used in non-building alarm types — skip these during building queue cleanup

@@ -226,11 +226,15 @@ chrome.storage.local
     STORAGE_KEYS.VOLUME,
   ])
   .then((res) => {
-    const savedAlarms = (res[STORAGE_KEYS.ALARMS] || []).map((a) => ({
-      ...a,
-      id: a.id || generateId(),
-      isPinned: a.isPinned || false,
-    }));
+    // One malformed stored record must not stop the whole load: until it
+    // finishes no message is answered and no alarm ever fires.
+    const savedAlarms = (res[STORAGE_KEYS.ALARMS] || [])
+      .filter((a) => a && typeof a === "object" && typeof a.name === "string")
+      .map((a) => ({
+        ...a,
+        id: a.id || generateId(),
+        isPinned: a.isPinned || false,
+      }));
 
     // Merge
     const combined = [...savedAlarms, ...alarms];
@@ -242,8 +246,15 @@ chrome.storage.local
       }
     });
 
-    alarms = Array.from(uniqueMap.values()).map(a =>
-      a.customType === "attack" ? AttackState.normalize(a, Date.now()) : a);
+    alarms = Array.from(uniqueMap.values()).flatMap((a) => {
+      if (a.customType !== "attack") return [a];
+      try {
+        return [AttackState.normalize(a, Date.now())];
+      } catch (error) {
+        console.warn("TravAlarm dropped an unreadable attack alarm", a.name, error);
+        return [];
+      }
+    });
     // Collapse legacy duplicates without replaying an already consumed phase.
     alarms = alarms.reduce((list, a) => {
       const old = a.customType === "attack" && list.find(x =>
@@ -271,7 +282,9 @@ chrome.storage.local
 
     // Now safe to run the tick — alarms array is populated from storage
     runAlarmTick();
-  });
+  })
+  // Left unresolved on purpose: saving now would overwrite the stored alarms.
+  .catch((error) => console.error("TravAlarm could not load its state", error));
 
 function saveState() {
   // Guard: don't overwrite persisted data before storage has loaded into memory.

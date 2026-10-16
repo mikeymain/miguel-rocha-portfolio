@@ -1,6 +1,6 @@
 # TravAlarm
 
-Version 3.27.
+Version 3.28.
 
 [Features and usage guide](../../README.md#travalarm) · [Installation](../../README.md#install-in-brave-chrome-or-edge)
 

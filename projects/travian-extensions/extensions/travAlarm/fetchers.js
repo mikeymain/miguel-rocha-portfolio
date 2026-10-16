@@ -487,6 +487,7 @@ async function fetchProductionData() {
 
 	try {
 		const res = await fetch("/village/statistics/resources/production");
+		if (!res.ok) return;
 		const text = await res.text();
 		const parser = new DOMParser();
 		const doc = parser.parseFromString(text, "text/html");
@@ -549,6 +550,7 @@ async function fetchTrainingData() {
 		const res = await fetch(
 			window.location.origin + "/village/statistics/troops/training",
 		);
+		if (!res.ok) return;
 		const text = await res.text();
 		const doc = new DOMParser().parseFromString(text, "text/html");
 
@@ -672,6 +674,8 @@ async function fetchWarehouseData() {
 		const res = await fetch(
 			window.location.origin + "/village/statistics/resources/warehouse",
 		);
+		// An error page must not reach the stale-alarm cleanup below.
+		if (!res.ok) return;
 		const text = await res.text();
 		const doc = new DOMParser().parseFromString(text, "text/html");
 
@@ -851,6 +855,7 @@ async function fetchCelebrationsData() {
 		const res = await fetch(
 			window.location.origin + "/village/statistics/culturepoints",
 		);
+		if (!res.ok) return;
 		const text = await res.text();
 		const doc = new DOMParser().parseFromString(text, "text/html");
 
@@ -931,7 +936,11 @@ async function checkResourceVillageAttacks() {
 			if (match) resourceVillages.add(match[1].trim());
 		}
 	});
-	if (resourceVillages.size === 0) return;
+	// Early exits must release the busy flag, or this check never runs again.
+	if (resourceVillages.size === 0) {
+		fetchState.attackCheck.isFetching = false;
+		return;
+	}
 
 	// Find villages under attack (from sidebar)
 	const attackedVillages = new Set();
@@ -961,7 +970,10 @@ async function checkResourceVillageAttacks() {
 			if (entry) villagesToCheck.push(entry[0]);
 		}
 	});
-	if (villagesToCheck.length === 0) return;
+	if (villagesToCheck.length === 0) {
+		fetchState.attackCheck.isFetching = false;
+		return;
+	}
 
 	// Fetch rally point for each attacked village
 	try {
@@ -1216,6 +1228,7 @@ async function fetchHeroData() {
 
 	try {
 		const res = await fetch(window.location.origin + "/hero/adventures");
+		if (!res.ok) return;
 		const html = await res.text();
 
 		// Extract the viewData JSON using brace-depth counting
