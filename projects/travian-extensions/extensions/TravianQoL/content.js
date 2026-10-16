@@ -64,7 +64,12 @@
 				}
 			}
 			if (x == null || y == null) {
-				const m = (item.innerText || '').match(/\(?\s*(-?\d+)\s*[|/]\s*(-?\d+)\s*\)?/);
+				// Normalise Travian's curly minus and drop bidi marks, or
+				// "(−5|3)" would be read as (5|3).
+				const text = (item.innerText || '')
+					.replace(/[‪-‮‎‏]/g, '')
+					.replace(/[−‒–]/g, '-');
+				const m = text.match(/\(?\s*(-?\d+)\s*[|/]\s*(-?\d+)\s*\)?/);
 				if (m) { x = parseInt(m[1], 10); y = parseInt(m[2], 10); }
 			}
 			if (x == null || y == null) continue;

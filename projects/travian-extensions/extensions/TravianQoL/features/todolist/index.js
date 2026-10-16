@@ -55,26 +55,54 @@
 	 * ===================================================================== */
 	class StorageManager {
 		_timer = null;
+		_pending = null; // { villageId, tasks } waiting for the debounce
+		_loadFailed = false;
 
+		// Returns null when storage could not be read, so the caller never
+		// mistakes a failed read for "no tasks" and overwrites real data.
 		async loadTasks() {
 			try {
 				const result = await browser.storage.local.get(STORAGE_KEY);
+				this._loadFailed = false;
+				this._lastAll = result[STORAGE_KEY] ?? {};
 				return result[STORAGE_KEY] ?? {};
 			} catch (err) {
 				console.error('[TodoList] Failed to load tasks:', err);
-				return {};
+				this._loadFailed = true;
+				return null;
 			}
 		}
 
-		saveTasks(tasks) {
+		// Saves one village's list. Re-reading before the write keeps edits that
+		// another tab made to other villages instead of overwriting them.
+		saveTasks(villageId, tasks) {
+			this._pending = { villageId, tasks: [...tasks] };
 			clearTimeout(this._timer);
-			this._timer = setTimeout(async () => {
-				try {
-					await browser.storage.local.set({ [STORAGE_KEY]: tasks });
-				} catch (err) {
-					console.error('[TodoList] Failed to save tasks:', err);
-				}
-			}, SAVE_DELAY_MS);
+			this._timer = setTimeout(() => this.flush(), SAVE_DELAY_MS);
+		}
+
+		// `unloading`: the page is going away and a read-then-write would never
+		// finish, so write at once on top of the last stored copy this tab saw.
+		async flush({ unloading = false } = {}) {
+			clearTimeout(this._timer);
+			this._timer = null;
+			const pending = this._pending;
+			this._pending = null;
+			if (!pending) return;
+			if (this._loadFailed) {
+				console.error('[TodoList] Not saving: stored tasks could not be loaded.');
+				return;
+			}
+			try {
+				const all = unloading
+					? this._lastAll ?? {}
+					: (await browser.storage.local.get(STORAGE_KEY))[STORAGE_KEY] ?? {};
+				const next = { ...all, [pending.villageId]: pending.tasks };
+				this._lastAll = next;
+				await browser.storage.local.set({ [STORAGE_KEY]: next });
+			} catch (err) {
+				console.error('[TodoList] Failed to save tasks:', err);
+			}
 		}
 
 		async loadUIState() {
@@ -94,10 +122,9 @@
 			}
 		}
 
-		// Cancel any pending debounced write (used on feature teardown).
+		// Write any pending edit now instead of dropping it (feature teardown).
 		dispose() {
-			clearTimeout(this._timer);
-			this._timer = null;
+			this.flush();
 		}
 	}
 
@@ -727,7 +754,7 @@
 			const shadow = host.attachShadow({ mode: 'open' });
 
 			// 2. Load data
-			this._allTasks = await this._storage.loadTasks();
+			this._allTasks = (await this._storage.loadTasks()) ?? {};
 
 			// 3. Create task manager
 			this._tasks = new TaskManager(this._village.id, this._allTasks, () =>
@@ -764,13 +791,16 @@
 
 			// 7. Watch for village switches (Travian uses soft navigation)
 			this._watchVillageChanges();
+			// Leaving the page within the save debounce must not drop the edit.
+			this._pagehideHandler = () => this._storage.flush({ unloading: true });
+			window.addEventListener('pagehide', this._pagehideHandler);
 
 			// 8. Initial render
 			this._render();
 		}
 
 		_onDataChanged() {
-			this._storage.saveTasks(this._allTasks);
+			this._storage.saveTasks(this._village.id, this._tasks.tasks);
 			this._render();
 		}
 
@@ -815,6 +845,13 @@
 		}
 
 		async _onVillageChanged(village) {
+			// Overlapping switches: only the latest one may apply its result.
+			const token = (this._switchToken = (this._switchToken || 0) + 1);
+			// Save the previous village, then pick up edits made in other tabs.
+			await this._storage.flush();
+			const loaded = await this._storage.loadTasks();
+			if (token !== this._switchToken) return;
+			this._allTasks = loaded ?? this._allTasks;
 			this._village = village;
 			this._tasks = new TaskManager(village.id, this._allTasks, () =>
 				this._onDataChanged(),
@@ -822,6 +859,7 @@
 			this._renderer.setVillage(village);
 
 			const uiState = await this._storage.loadUIState();
+			if (token !== this._switchToken) return;
 			const collapsed = uiState.collapsedByVillage?.[village.id] ?? false;
 			this._renderer.setCollapsed(collapsed);
 
@@ -840,6 +878,10 @@
 			}
 			clearTimeout(this._villageDebounce);
 			this._villageDebounce = null;
+			if (this._pagehideHandler) {
+				window.removeEventListener('pagehide', this._pagehideHandler);
+				this._pagehideHandler = null;
+			}
 			this._storage.dispose();
 			if (this._host && this._host.parentNode) this._host.remove();
 			this._host = null;

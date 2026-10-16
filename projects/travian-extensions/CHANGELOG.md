@@ -4,6 +4,15 @@
 
 - Removed InactiveSearch Map Opener from the published extensions.
 
+## TravianQoL 1.1.4 — 2026-10-16
+
+- To-do list: saving now updates only the current village, so a second Travian tab can no longer wipe tasks you added in other villages. If saved tasks can't be read, nothing is written (previously the next add replaced every village's list). A task added right before leaving the page is no longer lost.
+- Village resource totals subtract negative crop production instead of adding it.
+- Village coordinates and counter-attack coordinates keep Travian's minus sign (−5 was read as 5).
+- Loot calculator: one failed settings load no longer disables it until the page is reloaded.
+- Skip Ads: turning the feature off now stops it from intercepting video-ad clicks and removes its "+ Queue" buttons.
+- Bulk tab opening only opens Travian pages, and only for the extension's own features.
+
 ## TravAlarm 3.29 — 2026-10-16
 
 - Background refresh cooldowns (training, warehouse, celebrations, hero, production, attack check) now persist across page loads and are shared by all tabs of a server. Moving between pages no longer fires a fresh burst of requests each time.

@@ -74,7 +74,12 @@
 					break;
 				}
 
-				const numericText = text.replace(/[^\d]/g, '');
+				// Keep a leading minus (Travian uses U+2212) so negative crop
+				// production is subtracted, not added. Bidi marks are dropped.
+				const numericText = text
+					.replace(/[‪-‮‎‏]/g, '')
+					.replace(/^[−‒–]/, '-')
+					.replace(/(?!^-\d)[^\d]/g, ''); // a lone dash placeholder still reads as empty
 
 				// A non-empty cell with no digits means we're looking at a header
 				// row that snuck past the column-count check. Skip it.

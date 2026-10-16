@@ -60,6 +60,9 @@
 	const DONE_SESSION_KEY = 'travianQoL.skipAds.done';
 
 	let observer = null;
+	// The capture-phase click listener stays on decorated documents; this flag
+	// makes it inert while the feature is toggled off.
+	let featureOn = false;
 	let skipTimer = null;
 	let settings = { ...DEFAULTS };
 
@@ -582,6 +585,7 @@
 	// builder is busy) is queued too: the game would ignore that click, and
 	// the queue waits until the button is ready.
 	function onAdButtonClick(e, doc) {
+		if (!featureOn) return;
 		if (e.target.closest('.' + QUEUE_BTN_CLASS)) return;
 		const el = e.target.closest(AD_SOURCE_SELECTOR);
 		const src = el && sourceOf(el);
@@ -884,12 +888,25 @@
 		description:
 			'Mutes Travian video-feature ads (adventure bonus, builder bonus, daily quest), moves them to a corner so you can keep playing, and tells you when they finish. Originally by DUDSS. Settings live in the "Skip Ads" tab.',
 		init() {
+			featureOn = true;
 			chrome.storage.local.get(STORAGE_KEYS, (data) => {
+				if (!featureOn) return; // toggled off before settings arrived
 				settings = { ...DEFAULTS, ...data };
 				startWatching();
 			});
 		},
 		destroy() {
+			featureOn = false;
+			// Remove the "+ Queue" buttons so a later re-enable decorates afresh.
+			const docs = [document];
+			try {
+				const frameDoc = gameFrame()?.contentDocument;
+				if (frameDoc) docs.push(frameDoc);
+			} catch (e) {}
+			for (const doc of docs) {
+				doc.querySelectorAll('.' + QUEUE_BTN_CLASS).forEach((b) => b.remove());
+				doc.querySelectorAll('[data-tqol-queue]').forEach((el) => delete el.dataset.tqolQueue);
+			}
 			if (observer) {
 				observer.disconnect();
 				observer = null;

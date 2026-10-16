@@ -653,7 +653,12 @@
 		// --- math ---
 		function parseCoords(str) {
 			if (!str) return null;
-			const m = String(str).match(/-?\d+/g);
+			// Pasted Travian coordinates use U+2212 and bidi marks; without this
+			// "(−5|3)" parses as (5|3) and the launch time is wrong.
+			const m = String(str)
+				.replace(/[‪-‮‎‏]/g, '')
+				.replace(/[−‒–]/g, '-')
+				.match(/-?\d+/g);
 			if (!m || m.length < 2) return null;
 			return { x: parseInt(m[0], 10), y: parseInt(m[1], 10) };
 		}

@@ -185,7 +185,13 @@
 	// first use — a report page, a loot tooltip or the calculator — not on
 	// every page load.
 	let settingsReady = null;
-	const ensureSettings = () => (settingsReady ||= loadSettings());
+	// A failed load is not cached: the next use retries instead of the
+	// calculator staying dead until the page is reloaded.
+	const ensureSettings = () =>
+		(settingsReady ||= loadSettings().catch((error) => {
+			settingsReady = null;
+			throw error;
+		}));
 
 	async function loadSettings() {
 		const keys = Object.values(StorageKeys).map((fn) => fn());

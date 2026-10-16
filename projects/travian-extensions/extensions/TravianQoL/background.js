@@ -26,10 +26,19 @@ function isFeatureEnabled(id) {
 
 // --- report-opener: open a list of URLs as background tabs ---
 // --- loot-calc: forward OPEN_CALCULATOR with the selection text ---
-chrome.runtime.onMessage.addListener((request) => {
-	if (!request) return;
+// Only Travian pages are opened, and only for this extension's own scripts.
+const isTravianUrl = (url) => {
+	try {
+		const { protocol, hostname } = new URL(url);
+		return /^https?:$/.test(protocol) && /(^|\.)travian\.[a-z.]+$/i.test(hostname);
+	} catch {
+		return false;
+	}
+};
+chrome.runtime.onMessage.addListener((request, sender) => {
+	if (!request || sender.id !== chrome.runtime.id) return;
 	if (request.action === 'qol_open_tabs' && Array.isArray(request.urls)) {
-		request.urls.forEach((url) => {
+		request.urls.filter(isTravianUrl).forEach((url) => {
 			chrome.tabs.create({ url, active: false });
 		});
 	}
