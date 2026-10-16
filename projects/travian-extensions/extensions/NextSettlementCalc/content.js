@@ -1,4 +1,4 @@
-/** Read the page the player opened; relay measurements and alarm audio. */
+/** Read the page the player opened and relay its CP measurements. */
 "use strict";
 (() => {
 	const { api, parsePage, serverOrigin } = TSP;
@@ -6,8 +6,6 @@
 	if (!origin) return;
 	let observedAt = Math.min(Date.now(), performance.timeOrigin || Date.now());
 	let measurementSignature = null;
-	let alarmAudio = null,
-		alarmRequested = false;
 
 	// CP data only lives in the #culture_points table and in inline scripts that
 	// embed culturalPointsOverview / culturePointsRank. Hand parsePage just those
@@ -55,21 +53,6 @@
 				Number.isFinite(scan.totalCp) && Date.now() - observedAt < 300000,
 		};
 	}
-	function playAudio() {
-		if (!alarmRequested) return;
-		if (!alarmAudio) {
-			alarmAudio = new Audio(api.runtime.getURL("alarm.mp3"));
-			alarmAudio.loop = true;
-		}
-		alarmAudio.play().catch(() => {});
-	}
-	function stopAudio() {
-		alarmRequested = false;
-		if (alarmAudio) {
-			alarmAudio.pause();
-			alarmAudio.currentTime = 0;
-		}
-	}
 	api.runtime.onMessage.addListener((request, _sender, respond) => {
 		if (request?.action === "RESCAN") {
 			scanPage().then(respond, () =>
@@ -77,26 +60,10 @@
 			);
 			return true;
 		}
-		if (request?.action === "PLAY_ALARM") {
-			alarmRequested = true;
-			playAudio();
-		}
-		if (request?.action === "STOP_ALARM") stopAudio();
 	});
-	// Retry a blocked audio play after a real user gesture, only while requested.
-	document.addEventListener("pointerdown", playAudio, { passive: true });
-	document.addEventListener("keydown", playAudio);
 	async function initialize() {
 		try {
 			await scanPage();
-			const state = await api.runtime.sendMessage({
-				action: "SYNC_ALARM",
-				url: origin,
-			});
-			if (state?.play) {
-				alarmRequested = true;
-				playAudio();
-			}
 		} catch (error) {
 			warnUnexpected(error);
 		}
@@ -123,8 +90,5 @@
 			rescanTimer = setTimeout(() => scanPage().catch(warnUnexpected), RESCAN_DELAY_MS);
 		}
 	});
-	window.addEventListener("pagehide", () => {
-		clearTimeout(rescanTimer);
-		stopAudio();
-	});
+	window.addEventListener("pagehide", () => clearTimeout(rescanTimer));
 })();

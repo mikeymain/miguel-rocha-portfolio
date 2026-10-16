@@ -90,17 +90,37 @@ async function gameTabs(origin) {
 		(tab) => tab.id != null && serverOrigin(tab.url) === origin,
 	);
 }
-async function stopAudio(origin) {
-	if (!origin) return;
-	await Promise.allSettled(
-		(await gameTabs(origin)).map((tab) =>
-			api.tabs.sendMessage(tab.id, { action: "STOP_ALARM" }),
-		),
-	);
+// The alarm sound plays in an offscreen document: game tabs are subject to the
+// autoplay policy and stay silent until clicked, and may not be open at all.
+async function hasOffscreen() {
+	const contexts = await api.runtime.getContexts({
+		contextTypes: ["OFFSCREEN_DOCUMENT"],
+	});
+	return contexts.length > 0;
 }
+// Idempotent: also resumes the sound after a browser or worker restart.
+async function playAlarmSound() {
+	if (!(await hasOffscreen()))
+		await api.offscreen.createDocument({
+			url: "offscreen.html",
+			reasons: ["AUDIO_PLAYBACK"],
+			justification: "Play the settlement CP target alarm",
+		});
+	const result = await api.runtime.sendMessage({
+		target: "nsc-offscreen",
+		action: "PLAY_ALARM",
+	});
+	if (!result?.played)
+		console.warn("Next Settlement Calc could not play the alarm:", result?.error);
+}
+async function stopAlarmSound() {
+	if (await hasOffscreen()) await api.offscreen.closeDocument();
+}
+const warnSound = (error) =>
+	console.warn("Next Settlement Calc alarm sound:", error.message);
 async function clearActive(state) {
 	if (!state.active) return;
-	await stopAudio(state.active.origin);
+	await stopAlarmSound().catch(warnSound);
 	await api.notifications.clear(NOTIFICATION_ID);
 	state.active = null;
 	await api.storage.local.set({ [ALARM_KEY]: state });
@@ -147,22 +167,23 @@ async function checkAlarmCondition() {
 		(!ready || state.active.origin !== origin || state.active.target !== target)
 	)
 		await clearActive(state);
-	if (!ready || state.active) return;
-	const tabs = await gameTabs(origin);
-	const audioTab = tabs.find((tab) => tab.active) || tabs[0];
-	await api.notifications.create(NOTIFICATION_ID, {
-		type: "basic",
-		iconUrl: "icon128.png",
-		title: "Settlement CP target reached",
-		message: "Your estimated CP has reached the target. Click to dismiss.",
-		priority: 2,
-	});
-	state.active = { origin, target, audioTabId: audioTab?.id ?? null };
-	await api.storage.local.set({ [ALARM_KEY]: state });
-	if (audioTab)
-		await api.tabs
-			.sendMessage(audioTab.id, { action: "PLAY_ALARM" })
-			.catch(() => {});
+	if (!ready) {
+		// Also catches a sound left playing if an earlier close failed.
+		await stopAlarmSound().catch(warnSound);
+		return;
+	}
+	if (!state.active) {
+		await api.notifications.create(NOTIFICATION_ID, {
+			type: "basic",
+			iconUrl: "icon128.png",
+			title: "Settlement CP target reached",
+			message: "Your estimated CP has reached the target. Click to dismiss.",
+			priority: 2,
+		});
+		state.active = { origin, target };
+		await api.storage.local.set({ [ALARM_KEY]: state });
+	}
+	await playAlarmSound().catch(warnSound);
 }
 async function dismissAlarm() {
 	const stored = await api.storage.local.get(ALARM_KEY);
@@ -261,7 +282,6 @@ const actions = new Set([
 	"SELECT_SERVER",
 	"SET_TARGET",
 	"SET_MUTED",
-	"SYNC_ALARM",
 ]);
 api.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (!request || !actions.has(request.action)) return;
@@ -282,15 +302,6 @@ api.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				return { success: await fetchServerData(origin) };
 			case "SCAN_SERVER":
 				return { success: await scanServerPreferTabs(origin) };
-			case "SYNC_ALARM": {
-				const stored = await api.storage.local.get(ALARM_KEY);
-				const active = stored[ALARM_KEY]?.active;
-				return {
-					success: true,
-					play:
-						active?.origin === origin && active.audioTabId === sender.tab?.id,
-				};
-			}
 			default:
 				return serialize(async () => {
 					if (request.action === "SET_MUTED")

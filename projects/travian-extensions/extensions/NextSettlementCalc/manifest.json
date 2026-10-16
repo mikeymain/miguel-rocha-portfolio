@@ -1,10 +1,11 @@
 {
 	"manifest_version": 3,
 	"name": "Travian Next Settlement Calc",
-	"version": "2.3.3",
+	"version": "2.4.0",
 	"description": "Forecasts settlement culture-point targets from observed production and planned celebrations.",
 	"author": "miguelrocha1511@gmail.com",
-	"permissions": ["storage", "notifications", "alarms"],
+	"minimum_chrome_version": "116",
+	"permissions": ["storage", "notifications", "alarms", "offscreen"],
 	"host_permissions": [
 		"*://*.travian.com/*",
 		"*://*.travian.de/*",
@@ -56,25 +57,6 @@
 			],
 			"js": ["shared.js", "data.js", "content.js"],
 			"run_at": "document_idle"
-		}
-	],
-	"web_accessible_resources": [
-		{
-			"resources": ["alarm.mp3"],
-			"matches": [
-				"*://*.travian.com/*",
-				"*://*.travian.de/*",
-				"*://*.travian.us/*",
-				"*://*.travian.fr/*",
-				"*://*.travian.it/*",
-				"*://*.travian.cz/*",
-				"*://*.travian.pl/*",
-				"*://*.travian.ru/*",
-				"*://*.travian.tr/*",
-				"*://*.travian.ae/*",
-				"*://*.travian.net/*",
-				"*://*.travian.co.uk/*"
-			]
 		}
 	]
 }

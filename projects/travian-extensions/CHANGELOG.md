@@ -4,6 +4,12 @@
 
 - Removed InactiveSearch Map Opener from the published extensions.
 
+## Next Settlement Calc 2.4.0 — 2026-10-16
+
+- Fixed: the target-reached alarm made no sound unless you had clicked in the Travian tab, and none at all with no Travian tab open. The sound now plays from an offscreen document, which the browser's autoplay policy does not block. Adds the `offscreen` permission and requires Chrome/Brave 116 or later.
+- The alarm sound resumes after a browser restart until you dismiss the notification.
+- `alarm.mp3` is no longer exposed to Travian pages.
+
 ## Next Settlement Calc 2.3.3 — 2026-10-16
 
 - Removed the five-minute background refresh. CP data now refreshes only when you open the popup or click **Refresh**, plus from game pages you open yourself, so the extension makes no requests on its own.
