@@ -22,7 +22,7 @@ Screenshots use sample data. Unofficial project, unaffiliated with Travian Games
 | [TravAlarm](#travalarm) | 3.27 | Groups game timers and custom reminders in a floating dashboard | `extensions/travAlarm` |
 | [Travian QoL](#travian-qol) | 1.0 | Farm-list selection, bulk tab opening, report tools, loot calculator, to-do list, and more | `extensions/TravianQoL` |
 | [Rank Tracker](#rank-tracker) | 4.8.2 | Records statistics and shows rankings, deltas, and history graphs | `extensions/TravianRankTracker` |
-| [Next Settlement Calc](#next-settlement-calc) | 2.3.2 | Estimates when you will reach the next settlement's culture-point requirement | `extensions/NextSettlementCalc` |
+| [Next Settlement Calc](#next-settlement-calc) | 2.3.3 | Estimates when you will reach the next settlement's culture-point requirement | `extensions/NextSettlementCalc` |
 | [NPC AutoMerchant](#npc-automerchant) | 3.1.0 | Calculates troop resource needs and helps prepare hero resource transfers | `extensions/automerchant` |
 | [Night Mode](#night-mode) | 2.4 | Darkens Travian and adds a button-color picker with saved favorites | `extensions/travian_night_mode` |
 
@@ -133,7 +133,7 @@ For expired sessions, log in and reopen the popup. Missing observations cannot b
 3. Compare the planned ETA with the baseline. You must supply resources and start the planned parties yourself. A running celebration's CP was paid at its start and is not counted again at completion.
 4. Passive-growth estimates require observations spanning at least 12 hours. The readiness alarm uses observed/passive CP. Settling also requires settlers and a free expansion slot.
 
-Refreshes roughly every five minutes. Failed refreshes retain the last snapshot. Export the forecast log when reporting an incorrect ETA.
+Refreshes when you open the popup or click **Refresh**; there are no background requests. Failed refreshes retain the last snapshot. Export the forecast log when reporting an incorrect ETA.
 
 ## NPC AutoMerchant
 

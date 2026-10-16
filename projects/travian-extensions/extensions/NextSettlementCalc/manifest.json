@@ -1,7 +1,7 @@
 {
 	"manifest_version": 3,
 	"name": "Travian Next Settlement Calc",
-	"version": "2.3.2",
+	"version": "2.3.3",
 	"description": "Forecasts settlement culture-point targets from observed production and planned celebrations.",
 	"author": "miguelrocha1511@gmail.com",
 	"permissions": ["storage", "notifications", "alarms"],

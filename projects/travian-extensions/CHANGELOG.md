@@ -4,6 +4,10 @@
 
 - Removed InactiveSearch Map Opener from the published extensions.
 
+## Next Settlement Calc 2.3.3 — 2026-10-16
+
+- Removed the five-minute background refresh. CP data now refreshes only when you open the popup or click **Refresh**, plus from game pages you open yourself, so the extension makes no requests on its own.
+
 ## Next Settlement Calc 2.3.2 — 2026-10-16
 
 - A failed forecast-log write (for example full storage) no longer fails the CP save it records.

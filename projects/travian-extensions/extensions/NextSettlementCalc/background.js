@@ -173,20 +173,17 @@ async function dismissAlarm() {
 	await clearActive(state);
 }
 
-// Fetch only on the scheduled refresh or an explicit popup request. A worker
-// wake must not reset the five-minute schedule or initiate another scan.
+// The server is fetched only when the popup opens or its refresh button is
+// used; there is no background schedule. checkCP is local computation only.
 // onInstalled, onStartup and the top level can all run on a cold start; share
-// one check so concurrent runs can't both create (and restart) an alarm.
+// one check so concurrent runs can't both create (and restart) the alarm.
 let alarmsReady = null;
 function ensureAlarms() {
 	alarmsReady ||= (async () => {
-		for (const [name, periodInMinutes] of [
-			["checkCP", 1],
-			["autoFetchCP", 5],
-		]) {
-			if (!(await api.alarms.get(name)))
-				await api.alarms.create(name, { periodInMinutes });
-		}
+		// Versions before 2.3.3 fetched every five minutes; drop that alarm.
+		await api.alarms.clear("autoFetchCP");
+		if (!(await api.alarms.get("checkCP")))
+			await api.alarms.create("checkCP", { periodInMinutes: 1 });
 	})().catch((error) => {
 		alarmsReady = null;
 		throw error;
@@ -254,11 +251,6 @@ async function scanServerPreferTabs(origin) {
 		}
 	}
 	return fetchServerData(origin);
-}
-async function refreshServers() {
-	const stored = await api.storage.local.get("tsp_servers");
-	for (const origin of (stored.tsp_servers || []).filter(serverOrigin))
-		await scanServerPreferTabs(origin);
 }
 
 const actions = new Set([
@@ -373,10 +365,6 @@ api.storage.onChanged.addListener((changes, area) => {
 });
 api.alarms.onAlarm.addListener((alarm) => {
 	if (alarm.name === "checkCP") serialize(checkAlarmCondition);
-	if (alarm.name === "autoFetchCP")
-		refreshServers().catch((error) =>
-			console.warn("Next Settlement Calc refresh:", error.message),
-		);
 });
 api.runtime.onInstalled.addListener(() => ensureAlarms().catch(console.warn));
 api.runtime.onStartup.addListener(() => ensureAlarms().catch(console.warn));
