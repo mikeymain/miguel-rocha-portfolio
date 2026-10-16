@@ -384,8 +384,6 @@
 	// ---- Skip Ads tab ----
 	const SA_DEFAULTS = {
 		'skipAds.debug': false,
-		'skipAds.minPlaytime': 0.4,
-		'skipAds.videoLookupPollRate': 50,
 		'skipAds.videoSkipPollRate': 300,
 	};
 	const saRoot = document.getElementById('sa-settings');
@@ -423,9 +421,7 @@
 		debugRow.append(debugChk, document.createTextNode(' Enable debug logging'));
 		saRoot.appendChild(debugRow);
 
-		addNumberRow('skipAds.minPlaytime', 'Min playtime (s)', '0.1');
-		addNumberRow('skipAds.videoLookupPollRate', 'Video lookup poll (ms)', '5');
-		addNumberRow('skipAds.videoSkipPollRate', 'Video skip poll (ms)', '5');
+		addNumberRow('skipAds.videoSkipPollRate', 'Ad check interval (ms, min 100)', '50');
 
 		const reset = document.createElement('button');
 		reset.textContent = 'Reset to defaults';

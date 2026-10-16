@@ -1,7 +1,7 @@
 {
 	"manifest_version": 3,
 	"name": "Travian QoL",
-	"version": "1.1.4",
+	"version": "1.2.0",
 	"description": "Collection of small quality-of-life tweaks for Travian. Each feature is independently toggleable.",
 	"permissions": ["storage", "contextMenus"],
 	"host_permissions": [
@@ -16,8 +16,7 @@
 		"*://*.travian.pl/*",
 		"*://*.travian.ru/*",
 		"*://*.travian.tr/*",
-		"*://*.travian.ae/*",
-		"*://media.oadts.com/*"
+		"*://*.travian.ae/*"
 	],
 	"background": {
 		"service_worker": "background.js"
@@ -66,16 +65,6 @@
 			],
 			"css": ["features/loot-calc/styles.css"],
 			"run_at": "document_idle"
-		},
-		{
-			"matches": ["*://media.oadts.com/*"],
-			"all_frames": true,
-			"js": [
-				"lib/registry.js",
-				"features/skip-ads/index.js",
-				"content.js"
-			],
-			"run_at": "document_start"
 		}
 	]
 }

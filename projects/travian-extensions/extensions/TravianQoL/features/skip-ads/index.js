@@ -22,27 +22,25 @@
 //     tab would hide (and so pause) the ad, so links and forms open in a
 //     same-origin "game frame" laid over the page instead;
 //   - announce when the ad has finished, with a button back to the game.
-// The legacy media.oadts.com iframe path still seeks, as before.
+// The ad always plays at normal speed: nothing seeks or skips it. 1.2.0
+// removed the legacy media.oadts.com path, which seeked to the end, and the
+// ad queue, which started queued ads later without a click.
 //
 // Settings are stored in chrome.storage.local under namespaced `skipAds.*`
 // keys (not the legacy unprefixed `enabled`/`debug`/etc. names, which
 // were too generic to share with other features).
 //
-// Compliance note: we only mute, move and fast-forward (legacy iframe only)
-// the ad video element that the game itself opened after the user clicked
-// "Watch video". No game endpoint is called by this feature — the reward
-// request is still made by Travian's own player code.
+// Compliance note: we only mute and move the ad video element that the game
+// itself opened after the user clicked "Watch video". No game endpoint is
+// called by this feature — the reward request is still made by Travian's
+// own player code.
 (function () {
 	const STORAGE_KEYS = [
 		'skipAds.debug',
-		'skipAds.minPlaytime',
-		'skipAds.videoLookupPollRate',
 		'skipAds.videoSkipPollRate',
 	];
 	const DEFAULTS = {
 		'skipAds.debug': false,
-		'skipAds.minPlaytime': 0.4,
-		'skipAds.videoLookupPollRate': 50,
 		'skipAds.videoSkipPollRate': 300,
 	};
 
@@ -74,16 +72,8 @@
 		if (debug()) console.log('TravianQoL/skip-ads:', ...args);
 	}
 
-	const url = window.location.href;
-	const IN_AD_IFRAME =
-		window.top !== window.self &&
-		url.includes('media.oadts.com') &&
-		url.includes('delivery') &&
-		url.includes('afv.php');
-
 	// Is there an ad to handle right now? Two O(1) id lookups on game pages.
 	function adOpen() {
-		if (IN_AD_IFRAME) return !!document.querySelector('video');
 		return !!adElement();
 	}
 
@@ -97,10 +87,8 @@
 		v.volume = 0;
 	}
 
-	// Videos we care about: inside the ad container (main page), or any video
-	// at all when we're running inside the legacy ad iframe.
+	// Videos inside the ad container.
 	function adVideos() {
-		if (IN_AD_IFRAME) return Array.from(document.querySelectorAll('video'));
 		const containers = document.querySelectorAll(AD_CONTAINER_SELECTOR);
 		const out = [];
 		containers.forEach((c) => c.querySelectorAll('video').forEach((v) => out.push(v)));
@@ -200,8 +188,6 @@
 			frame = document.createElement('iframe');
 			frame.id = FRAME_ID;
 			frame.name = FRAME_ID;
-			// Offer "+ Queue" on the pages the player opens in the frame too.
-			frame.addEventListener('load', scheduleDecorate);
 			document.body.appendChild(frame);
 		}
 		return frame;
@@ -266,7 +252,7 @@
 	}
 
 	function guardNavigation(on) {
-		if (IN_AD_IFRAME || on === navGuarded) return;
+		if (on === navGuarded) return;
 		navGuarded = on;
 		const method = on ? 'addEventListener' : 'removeEventListener';
 		window[method]('click', onGuardedClick);
@@ -348,8 +334,7 @@
 		finishedAdEl = adElement();
 		if (settleTimer) clearTimeout(settleTimer);
 		settleTimer = null;
-		guardNavigation(!!runner);
-		renderPill();
+		guardNavigation(false);
 		trace('ad', kind);
 		if (kind === 'done') {
 			try {
@@ -390,7 +375,6 @@
 		} catch (e) {}
 		ensureStyle();
 		guardNavigation(true);
-		renderPill();
 	}
 
 	function onAdClosed() {
@@ -411,465 +395,29 @@
 		showBanner('done', target);
 	}
 
-	// --- Ad queue -------------------------------------------------------------
-	// Queue video ads to run one after another, e.g. "construct 25% faster"
-	// on the same field twice. A "+ Queue" button sits next to bonus-box ad
-	// buttons; while an ad is already playing, clicking a video-ad button queues
-	// it instead of starting a second ad. Ad buttons clicked inside the game
-	// frame are always queued (their ad would otherwise play full-screen there).
-	//
-	// Queued ads run in a small "runner" iframe in the bottom-right corner, so
-	// the page the player is on is never touched. Before starting an item we
-	// fetch its page and check the button is ready (a build's button stays
-	// disabled while the build slots are busy, a bonus box until its bonus is
-	// used); not-ready items are re-checked every QUEUE_POLL_MS. One Travian
-	// tab runs the queue at a time, via a heartbeat lease in storage, and only
-	// while it is visible (the player pauses in hidden tabs).
-	const QUEUE_KEY = 'skipAds.queue.' + location.host;
-	const LEASE_KEY = 'skipAds.queueLease.' + location.host;
-	const LEASE_MS = 15000;
-	const QUEUE_POLL_MS = 30000;
-	const RUNNER_TICK_MS = 500;
-	const RUNNER_START_TIMEOUT_MS = 30000;
-	// How long the runner waits for a JS-rendered ad button to appear.
-	const RUNNER_FIND_MS = 10000;
-	const RUNNER_MAX_MS = 10 * 60 * 1000;
-	const MAX_FAILS = 3;
-	const RUNNER_ID = 'travianqol-skip-ads-runner';
-	const PILL_ID = 'travianqol-skip-ads-queue';
-	const QUEUE_BTN_CLASS = 'travianqol-skip-ads-queue-btn';
-	const TAB_ID = Math.random().toString(36).slice(2);
-
-	function firstLine(el) {
-		return ((el.innerText || el.textContent || '').trim().split('\n')[0] || '').replace(/\s+/g, ' ').slice(0, 60);
-	}
-
-	// The kinds of video-ad buttons we know how to queue. `key` tells apart
-	// several ads on one page (the adventure page has two bonus boxes).
-	const AD_SOURCES = [
-		{
-			kind: 'build',
-			sel: '.videoFeatureButton',
-			// No "+ Queue" here: it crowds the upgrade buttons. Clicking the
-			// button while an ad plays still queues it.
-			queueButton: false,
-			key: () => '',
-			ready: (el) => !el.disabled && !el.classList.contains('disabled'),
-			trigger: (el) => el,
-			label: (el, doc) => {
-				const title = doc.querySelector('h1.titleInHeader');
-				return (title ? firstLine(title) + ': ' : '') + firstLine(el);
-			},
-		},
-		{
-			kind: 'bonus',
-			sel: '.videoFeatureBonusBox',
-			key: (el) => [...el.classList].find((c) => !/^(videoFeatureBonusBox|watchReady|bonusReady)$/.test(c)) || '',
-			ready: (el) => el.classList.contains('watchReady'),
-			trigger: (el) => el.querySelector('button'),
-			label: (el) => firstLine(el),
-		},
-	];
-	const AD_SOURCE_SELECTOR = AD_SOURCES.map((s) => s.sel).join(', ');
-
-	function sourceOf(el) {
-		return AD_SOURCES.find((s) => el.matches(s.sel));
-	}
-
-	function findSource(doc, item) {
-		const src = AD_SOURCES.find((s) => s.kind === item.kind);
-		if (!src) return null;
-		const el = [...doc.querySelectorAll(src.sel)].find((e) => src.key(e) === item.key);
-		return el ? { src, el } : null;
-	}
-
-	let queue = [];
-	let runner = null;
-	let pumpTimer = null;
-	const decoratedDocs = new WeakSet();
-
-	function saveQueue() {
-		chrome.storage.local.set({ [QUEUE_KEY]: queue });
-		renderPill();
-	}
-
-	function enqueue(doc, el) {
-		const src = sourceOf(el);
-		if (!src) return;
-		const loc = doc.defaultView.location;
-		const item = {
-			id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-			path: loc.pathname + loc.search,
-			kind: src.kind,
-			key: src.key(el),
-			label: src.label(el, doc) || 'Video ad',
-			fails: 0,
-		};
-		queue.push(item);
-		saveQueue();
-		trace('queued', item);
-		showBanner('done', null, `Queued: ${item.label} (${queue.length} in queue)`);
-		kickQueue(1000);
-	}
-
-	function dropItem(item, why) {
-		queue = queue.filter((q) => q.id !== item.id);
-		saveQueue();
-		showBanner('closed', null, `Removed from ad queue: ${item.label} (${why})`);
-	}
-
-	// Floating "Ad queue (n)" pill with a Clear button.
-	function renderPill() {
-		let pill = document.getElementById(PILL_ID);
-		if (!queue.length) {
-			if (pill) pill.remove();
-			return;
-		}
-		if (!pill) {
-			pill = document.createElement('div');
-			pill.id = PILL_ID;
-			pill.style.cssText =
-				'position:fixed;right:12px;bottom:12px;z-index:2147482000;display:flex;gap:8px;align-items:center;' +
-				'padding:6px 10px;border-radius:6px;background:#4a148c;color:#fff;font:600 12px/1.3 Verdana,Arial,sans-serif;' +
-				'box-shadow:0 2px 10px rgba(0,0,0,.4)';
-			const text = document.createElement('span');
-			const clear = document.createElement('button');
-			clear.type = 'button';
-			clear.textContent = 'Clear';
-			clear.style.cssText = 'font:inherit;border:0;border-radius:4px;padding:2px 8px;cursor:pointer';
-			clear.addEventListener('click', () => {
-				queue = [];
-				saveQueue();
-			});
-			pill.append(text, clear);
-			document.body.appendChild(pill);
-		}
-		const text = pill.firstChild;
-		text.textContent = `Ad queue (${queue.length})${runner ? ' — playing' : ''}`;
-		text.title = queue.map((q, i) => `${i + 1}. ${q.label}`).join('\n');
-		// Sit above the ad panel (runner frame or parked dialog) while one plays.
-		pill.style.bottom = runner || adActive ? '240px' : '12px';
-	}
-
-	// "+ Queue" next to video-ad buttons in `doc` (the page itself, or
-	// the game frame's page). Inline styles: the frame has no stylesheet of ours.
-	function decorate(doc) {
-		doc.querySelectorAll(AD_SOURCE_SELECTOR).forEach((el) => {
-			const src = sourceOf(el);
-			const trigger = src && src.trigger(el);
-			if (!trigger || src.queueButton === false || el.dataset.tqolQueue) return;
-			el.dataset.tqolQueue = '1';
-			const btn = doc.createElement('button');
-			btn.type = 'button';
-			btn.className = QUEUE_BTN_CLASS;
-			btn.textContent = '+ Queue';
-			btn.title = 'Run this video ad after the current one (or as soon as it is available)';
-			btn.style.cssText =
-				'margin:4px;padding:3px 8px;border:0;border-radius:4px;background:#6a1b9a;color:#fff;' +
-				'font:600 12px Verdana,Arial,sans-serif;cursor:pointer;vertical-align:middle';
-			btn.addEventListener('click', (e) => {
-				e.preventDefault();
-				e.stopPropagation();
-				enqueue(doc, el);
-			});
-			trigger.insertAdjacentElement('afterend', btn);
-		});
-		if (!decoratedDocs.has(doc)) {
-			decoratedDocs.add(doc);
-			doc.addEventListener('click', (e) => onAdButtonClick(e, doc), true);
-		}
-	}
-
-	// Capture phase, so this runs before the game's own handlers on the button.
-	// A build button that is not ready yet (its class is `disabled` while the
-	// builder is busy) is queued too: the game would ignore that click, and
-	// the queue waits until the button is ready.
-	function onAdButtonClick(e, doc) {
-		if (!featureOn) return;
-		if (e.target.closest('.' + QUEUE_BTN_CLASS)) return;
-		const el = e.target.closest(AD_SOURCE_SELECTOR);
-		const src = el && sourceOf(el);
-		const trigger = src && src.trigger(el);
-		if (!trigger || !trigger.contains(e.target)) return;
-		const ready = src.ready(el);
-		if (!ready && src.kind !== 'build') return;
-		const inGameFrame = doc !== document;
-		if (ready && !inGameFrame && !adActive && !runner) return;
-		e.preventDefault();
-		e.stopImmediatePropagation();
-		enqueue(doc, el);
-	}
-
-	let decorateTimer = null;
-	function scheduleDecorate() {
-		if (IN_AD_IFRAME || decorateTimer) return;
-		decorateTimer = setTimeout(() => {
-			decorateTimer = null;
-			decorate(document);
-			const frame = gameFrame();
-			try {
-				if (frame && frame.contentDocument) decorate(frame.contentDocument);
-			} catch (e) {}
-		}, 200);
-	}
-
-	function kickQueue(ms) {
-		if (IN_AD_IFRAME) return;
-		if (pumpTimer) clearTimeout(pumpTimer);
-		pumpTimer = setTimeout(pumpQueue, ms);
-	}
-
-	function takeLease(cb) {
-		chrome.storage.local.get(LEASE_KEY, (data) => {
-			const lease = data[LEASE_KEY];
-			const now = Date.now();
-			if (lease && lease.owner !== TAB_ID && now - lease.at < LEASE_MS) return cb(false);
-			chrome.storage.local.set({ [LEASE_KEY]: { owner: TAB_ID, at: now } });
-			cb(true);
-		});
-	}
-
-	function pumpQueue() {
-		pumpTimer = null;
-		if (!queue.length) return;
-		if (runner || adActive || document.visibilityState !== 'visible') return kickQueue(5000);
-		takeLease(async (mine) => {
-			if (!mine) return kickQueue(LEASE_MS);
-			const item = queue[0];
-			let found;
-			try {
-				const html = await (await fetch(item.path, { credentials: 'include' })).text();
-				found = findSource(new DOMParser().parseFromString(html, 'text/html'), item);
-			} catch (e) {
-				trace('queue check failed', e);
-				return kickQueue(QUEUE_POLL_MS);
-			}
-			// Some pages (the adventure list) render their bonus boxes with
-			// JavaScript, so they are missing from the fetched HTML. The runner
-			// loads the page for real and checks again once it has rendered.
-			if (found && !found.src.ready(found.el)) {
-				trace('queued ad not ready yet', item.label);
-				return kickQueue(QUEUE_POLL_MS);
-			}
-			if (runner || adActive) return kickQueue(5000);
-			startRunner(item);
-		});
-	}
-
-	// The runner frame lays the item's page out at 720x480 and shows it at
-	// 40%, keeping the ad on screen (the player needs a visible page).
-	function startRunner(item) {
-		const frame = document.createElement('iframe');
-		frame.id = RUNNER_ID;
-		frame.title = 'Queued video ad';
-		frame.setAttribute('scrolling', 'no');
-		frame.style.cssText =
-			'position:fixed;right:12px;bottom:12px;width:720px;height:480px;transform:scale(.4);' +
-			'transform-origin:bottom right;border:3px solid #6a1b9a;border-radius:6px;z-index:2147481000;background:#000';
-		runner = { item, frame, phase: 'loading', startedAt: Date.now(), endedAt: null, leaseAt: Date.now(), timer: null };
-		frame.addEventListener('load', onRunnerLoad);
-		frame.src = item.path;
-		document.body.appendChild(frame);
-		guardNavigation(true);
-		renderPill();
-		runner.timer = setInterval(runnerTick, RUNNER_TICK_MS);
-		trace('running queued ad', item.label);
-	}
-
-	// The preview is small; hide the page's scrollbars (layout is unchanged).
-	const RUNNER_CSS =
-		'html, body, * { scrollbar-width: none !important; } ::-webkit-scrollbar { display: none !important; }';
-
-	function onRunnerLoad() {
-		try {
-			const doc = runner && runner.frame.contentDocument;
-			if (doc) {
-				const style = doc.createElement('style');
-				style.textContent = RUNNER_CSS;
-				(doc.head || doc.documentElement).appendChild(style);
-			}
-		} catch (e) {}
-		if (runner && runner.phase === 'loading') {
-			runner.phase = 'finding';
-			runner.startedAt = Date.now();
-		}
-		runnerFind();
-	}
-
-	// Wait for the item's button to render in the runner, then start the ad.
-	function runnerFind() {
-		if (!runner || runner.phase !== 'finding') return;
-		let found = null;
-		try {
-			found = findSource(runner.frame.contentDocument, runner.item);
-		} catch (e) {}
-		if (!found) {
-			if (Date.now() - runner.startedAt > RUNNER_FIND_MS) endRunner('missing');
-			return;
-		}
-		if (!found.src.ready(found.el)) return endRunner('notready');
-		runner.phase = 'starting';
-		runner.startedAt = Date.now();
-		found.src.trigger(found.el).click();
-	}
-
-	function runnerTick() {
-		if (!runner) return;
-		const now = Date.now();
-		if (now - runner.leaseAt > LEASE_MS / 3) {
-			runner.leaseAt = now;
-			chrome.storage.local.set({ [LEASE_KEY]: { owner: TAB_ID, at: now } });
-		}
-		if (runner.phase === 'loading') {
-			if (now - runner.startedAt > RUNNER_START_TIMEOUT_MS) endRunner('failed');
-			return;
-		}
-		if (runner.phase === 'finding') return runnerFind();
-		let doc = null;
-		try {
-			doc = runner.frame.contentDocument;
-		} catch (e) {}
-		const video = doc && doc.querySelector('#videoFeature video, #videoArea video');
-		if (video) muteEl(video);
-		if (runner.phase === 'starting') {
-			if (video) runner.phase = 'playing';
-			else if (now - runner.startedAt > RUNNER_START_TIMEOUT_MS) endRunner('failed');
-			return;
-		}
-		// Playing. Done once the video sits at its end for DONE_SETTLE_MS (a
-		// rejected watch replays), or disappears after reaching the end.
-		if (video && (video.ended || atEnd(video))) {
-			if (!runner.endedAt) runner.endedAt = now;
-			else if (now - runner.endedAt >= DONE_SETTLE_MS) endRunner('done');
-		} else if (video) {
-			runner.endedAt = null;
-		} else {
-			endRunner(runner.endedAt ? 'done' : 'closed');
-			return;
-		}
-		if (runner && now - runner.startedAt > RUNNER_MAX_MS) endRunner('failed');
-	}
-
-	function endRunner(result) {
-		if (!runner) return;
-		const { item, frame, timer } = runner;
-		clearInterval(timer);
-		frame.remove();
-		runner = null;
-		guardNavigation(adActive);
-		trace('queued ad', result, item.label);
-		if (result === 'done') {
-			queue = queue.filter((q) => q.id !== item.id);
-			saveQueue();
-			showBanner('done', null, `✓ Queued ad finished: ${item.label}` + (queue.length ? ` — ${queue.length} left` : ''));
-		} else if (result === 'missing') {
-			dropItem(item, 'no longer offered');
-		} else if (result === 'notready') {
-			return kickQueue(QUEUE_POLL_MS);
-		} else {
-			const current = queue.find((q) => q.id === item.id);
-			if (current) {
-				current.fails = (current.fails || 0) + 1;
-				if (current.fails >= MAX_FAILS) dropItem(current, 'failed ' + MAX_FAILS + ' times');
-				else saveQueue();
-			}
-			if (result === 'closed') showBanner('closed', null, `Queued ad closed early: ${item.label}`);
-		}
-		kickQueue(3000);
-	}
-
-	function startQueue() {
-		if (IN_AD_IFRAME) return;
-		chrome.storage.local.get(QUEUE_KEY, (data) => {
-			queue = Array.isArray(data[QUEUE_KEY]) ? data[QUEUE_KEY] : [];
-			renderPill();
-			kickQueue(1000);
-		});
-		chrome.storage.onChanged.addListener(onStorageChanged);
-		document.addEventListener('visibilitychange', onVisibilityChange);
-		scheduleDecorate();
-	}
-
-	// Another tab added to or cleared the queue.
-	function onStorageChanged(changes, area) {
-		if (area !== 'local' || !changes[QUEUE_KEY]) return;
-		queue = changes[QUEUE_KEY].newValue || [];
-		renderPill();
-		kickQueue(1000);
-	}
-
-	function onVisibilityChange() {
-		if (document.visibilityState === 'visible') kickQueue(1000);
-	}
-
-	function stopQueue() {
-		if (pumpTimer) clearTimeout(pumpTimer);
-		pumpTimer = null;
-		if (decorateTimer) clearTimeout(decorateTimer);
-		decorateTimer = null;
-		if (runner) {
-			clearInterval(runner.timer);
-			runner.frame.remove();
-			runner = null;
-		}
-		chrome.storage.onChanged.removeListener && chrome.storage.onChanged.removeListener(onStorageChanged);
-		document.removeEventListener('visibilitychange', onVisibilityChange);
-		const pill = document.getElementById(PILL_ID);
-		if (pill) pill.remove();
-	}
-
+	// The in-page player punishes seeking (see header), so the ad is kept
+	// muted and plays out at normal speed. Polls only while the ad is up.
 	function skipCycle() {
-		const videos = adVideos();
 		const open = adOpen();
-		if (!IN_AD_IFRAME) {
-			// The in-page fallback player punishes seeking (see header), so
-			// just keep it muted and let it play out.
-			videos.forEach((v) => {
-				muteEl(v);
-				watchVideo(v);
-			});
-			if (!open) onAdClosed();
-			skipTimer = open ? setTimeout(skipCycle, settings['skipAds.videoSkipPollRate']) : null;
-			return;
-		}
-		for (const video of videos) {
-			muteEl(video);
-			const src = video.currentSrc || video.src || '';
-			if (src.includes('blank.mp4')) {
-				trace('blank video, not skipping');
-				continue;
-			}
-			if (!isNumber(video.duration) || !isNumber(video.currentTime)) {
-				trace('duration/currentTime not ready', video.duration, video.currentTime);
-				continue;
-			}
-			if (video.currentTime >= video.duration) {
-				trace('already at end');
-				continue;
-			}
-			if (video.currentTime <= settings['skipAds.minPlaytime']) {
-				trace('too soon to skip', video.currentTime);
-				continue;
-			}
-			trace('skipping to end', video.duration);
-			// Seeking past the end makes the player emit `ended`, which is what
-			// its reward handler is waiting for.
-			video.currentTime = video.duration + 1;
-		}
-		// Keep polling only while the ad is up; the observer restarts it.
-		skipTimer = open ? setTimeout(skipCycle, settings['skipAds.videoSkipPollRate']) : null;
+		adVideos().forEach((v) => {
+			muteEl(v);
+			watchVideo(v);
+		});
+		if (!open) onAdClosed();
+		// Clamped: a 0 or negative setting would otherwise spin a tight loop.
+		const pollMs = Math.max(100, Number(settings['skipAds.videoSkipPollRate']) || DEFAULTS['skipAds.videoSkipPollRate']);
+		skipTimer = open ? setTimeout(skipCycle, pollMs) : null;
 	}
 
 	// On every DOM change: if the ad is open, mute its videos at once (before
 	// they can play a frame of audio — the poll is too slow for that alone)
-	// and make sure the skip poll is running. Otherwise nothing runs.
+	// and make sure the poll is running. Otherwise nothing runs.
 	function check() {
-		scheduleDecorate();
 		if (!adOpen()) return;
-		if (!IN_AD_IFRAME && !adActive && adElement() !== finishedAdEl) onAdOpened();
+		if (!adActive && adElement() !== finishedAdEl) onAdOpened();
 		adVideos().forEach((v) => {
 			muteEl(v);
-			if (!IN_AD_IFRAME) watchVideo(v);
+			watchVideo(v);
 		});
 		if (!skipTimer) skipCycle();
 	}
@@ -877,8 +425,7 @@
 	function startWatching() {
 		observer = new MutationObserver(check);
 		observer.observe(document.documentElement, { childList: true, subtree: true });
-		if (!IN_AD_IFRAME && !adOpen()) showCarriedDone();
-		startQueue();
+		if (!adOpen()) showCarriedDone();
 		check();
 	}
 
@@ -889,6 +436,8 @@
 			'Mutes Travian video-feature ads (adventure bonus, builder bonus, daily quest), moves them to a corner so you can keep playing, and tells you when they finish. Originally by DUDSS. Settings live in the "Skip Ads" tab.',
 		init() {
 			featureOn = true;
+			// The ad queue was removed in 1.2.0; drop anything it left behind.
+			chrome.storage.local.remove?.(['skipAds.queue.' + location.host, 'skipAds.queueLease.' + location.host]);
 			chrome.storage.local.get(STORAGE_KEYS, (data) => {
 				if (!featureOn) return; // toggled off before settings arrived
 				settings = { ...DEFAULTS, ...data };
@@ -897,16 +446,6 @@
 		},
 		destroy() {
 			featureOn = false;
-			// Remove the "+ Queue" buttons so a later re-enable decorates afresh.
-			const docs = [document];
-			try {
-				const frameDoc = gameFrame()?.contentDocument;
-				if (frameDoc) docs.push(frameDoc);
-			} catch (e) {}
-			for (const doc of docs) {
-				doc.querySelectorAll('.' + QUEUE_BTN_CLASS).forEach((b) => b.remove());
-				doc.querySelectorAll('[data-tqol-queue]').forEach((el) => delete el.dataset.tqolQueue);
-			}
 			if (observer) {
 				observer.disconnect();
 				observer = null;
@@ -920,7 +459,6 @@
 				settleTimer = null;
 			}
 			adActive = false;
-			stopQueue();
 			guardNavigation(false);
 			removeBanner();
 			const style = document.getElementById(STYLE_ID);

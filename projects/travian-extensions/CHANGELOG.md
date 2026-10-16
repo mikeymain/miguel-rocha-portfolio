@@ -4,6 +4,12 @@
 
 - Removed InactiveSearch Map Opener from the published extensions.
 
+## TravianQoL 1.2.0 — 2026-10-16
+
+- Skip Ads: removed the ad queue. Queued ads used to be fetched, checked every 30 s and started later in a hidden frame without a click. Clicking a video-ad button while another ad plays now goes straight to the game, and any queue saved by an older version is deleted.
+- Skip Ads: removed the legacy `media.oadts.com` path, which skipped the ad video to its end. The extension no longer has access to that site. Ads always play at normal speed.
+- Skip Ads settings: removed the unused "Min playtime" and "Video lookup poll" options. The remaining ad check interval has a minimum of 100 ms.
+
 ## TravianQoL 1.1.4 — 2026-10-16
 
 - To-do list: saving now updates only the current village, so a second Travian tab can no longer wipe tasks you added in other villages. If saved tasks can't be read, nothing is written (previously the next add replaced every village's list). A task added right before leaving the page is no longer lost.

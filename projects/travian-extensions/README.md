@@ -20,7 +20,7 @@ Screenshots use sample data. Unofficial project, unaffiliated with Travian Games
 | --- | --- | --- | --- |
 | [Oasis Finder](#oasis-finder) | 69.4 | Scores nearby oases for hero and troop raids; improves oasis farm-list sorting | `extensions/OasisCalc` |
 | [TravAlarm](#travalarm) | 3.29 | Groups game timers and custom reminders in a floating dashboard | `extensions/travAlarm` |
-| [Travian QoL](#travian-qol) | 1.1.4 | Farm-list selection, bulk tab opening, report tools, loot calculator, to-do list, and more | `extensions/TravianQoL` |
+| [Travian QoL](#travian-qol) | 1.2.0 | Farm-list selection, bulk tab opening, report tools, loot calculator, to-do list, and more | `extensions/TravianQoL` |
 | [Rank Tracker](#rank-tracker) | 4.8.2 | Records statistics and shows rankings, deltas, and history graphs | `extensions/TravianRankTracker` |
 | [Next Settlement Calc](#next-settlement-calc) | 2.4.0 | Estimates when you will reach the next settlement's culture-point requirement | `extensions/NextSettlementCalc` |
 | [NPC AutoMerchant](#npc-automerchant) | 3.1.0 | Calculates troop resource needs and helps prepare hero resource transfers | `extensions/automerchant` |
@@ -96,7 +96,7 @@ Open the toolbar popup or **Options** page. Features are enabled by default and 
 | Open unread reports | Click **Open Unread** beside Archive. Opens unread reports from the displayed page in background tabs. |
 | Loot Calculator | Select resource text, then **right-click → Calculate Troops Needed**. Choose tribe and carrying unit. Reports also show unit-count badges. Set default/per-server units in the **Loot Calculator** settings tab. |
 | In-game to-do list | Add, edit, reorder, and complete village-specific tasks. Lists are saved locally; the widget can be dragged or collapsed. |
-| Skip builder-bonus ads | Mutes video-feature ads and moves them to a corner so the page stays usable; announces when the ad finishes. **Ad queue:** click **Construct 25% faster** while an ad plays or while the builder is busy, or **+ Queue** on bonus boxes, to run that ad later in a small corner frame once its button is ready. The **Ad queue (n)** pill shows pending ads and has **Clear**. Keep the tab visible; queued ads pause in hidden tabs. |
+| Skip builder-bonus ads | Mutes video-feature ads you start and moves them to a corner so the page stays usable; links you open meanwhile load in an overlay so the ad keeps playing. Announces when the ad finishes. The ad always plays at normal speed, and the extension never starts an ad on its own. |
 | Counter-attack calculator | In **Counter-attack**, enter coordinates, troop/server speeds, bonuses, and attack timings to calculate return/interception times. |
 
 <a href="docs/images/farm-selection.png"><img src="docs/images/farm-selection.png" alt="Right-click menu for selected farm-list targets" width="420" /></a>
