@@ -29,8 +29,16 @@ const pendingFetches = new Map();
 const NOTIFICATION_ID = "tsp-alarm-notif";
 const ALARM_KEY = "tsp_alarm_state";
 
-// Forecast history for tuning the model. Call only inside serialize().
+// Forecast history for tuning the model. Call only inside serialize(). The log
+// is diagnostic, so a failed write (e.g. storage quota) must not fail the save.
 async function recordForecast(origin, reason) {
+	try {
+		await writeForecast(origin, reason);
+	} catch (error) {
+		console.warn("Next Settlement Calc forecast log:", error.message);
+	}
+}
+async function writeForecast(origin, reason) {
 	const key = storageKey(origin);
 	const stored = await api.storage.local.get([
 		key,
@@ -167,14 +175,23 @@ async function dismissAlarm() {
 
 // Fetch only on the scheduled refresh or an explicit popup request. A worker
 // wake must not reset the five-minute schedule or initiate another scan.
-async function ensureAlarms() {
-	for (const [name, periodInMinutes] of [
-		["checkCP", 1],
-		["autoFetchCP", 5],
-	]) {
-		if (!(await api.alarms.get(name)))
-			await api.alarms.create(name, { periodInMinutes });
-	}
+// onInstalled, onStartup and the top level can all run on a cold start; share
+// one check so concurrent runs can't both create (and restart) an alarm.
+let alarmsReady = null;
+function ensureAlarms() {
+	alarmsReady ||= (async () => {
+		for (const [name, periodInMinutes] of [
+			["checkCP", 1],
+			["autoFetchCP", 5],
+		]) {
+			if (!(await api.alarms.get(name)))
+				await api.alarms.create(name, { periodInMinutes });
+		}
+	})().catch((error) => {
+		alarmsReady = null;
+		throw error;
+	});
+	return alarmsReady;
 }
 async function fetchPage(origin, pathname) {
 	const observedAt = Date.now();
@@ -190,8 +207,9 @@ async function fetchPage(origin, pathname) {
 function fetchServerData(origin) {
 	if (pendingFetches.has(origin)) return pendingFetches.get(origin);
 	const work = (async () => {
-		await api.action.setBadgeText({ text: "⟳" });
 		try {
+			// The badge is cosmetic; a failure here must not leave this fetch pending.
+			await api.action.setBadgeText({ text: "⟳" }).catch(() => {});
 			const results = await Promise.allSettled([
 				fetchPage(origin, "/statistics/general"),
 				fetchPage(origin, "/village/statistics/culturepoints"),
@@ -219,7 +237,8 @@ function fetchServerData(origin) {
 			return success;
 		} finally {
 			pendingFetches.delete(origin);
-			if (!pendingFetches.size) await api.action.setBadgeText({ text: "" });
+			if (!pendingFetches.size)
+				await api.action.setBadgeText({ text: "" }).catch(() => {});
 		}
 	})();
 	pendingFetches.set(origin, work);

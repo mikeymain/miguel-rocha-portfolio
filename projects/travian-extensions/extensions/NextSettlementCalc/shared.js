@@ -1,19 +1,16 @@
 /**
- * shared.js — Travian Settlement Planner: Shared Constants & Utilities
+ * shared.js — Next Settlement Calc: Shared Constants & Utilities
  *
  * This module is loaded by background.js, content.js, and popup.js.
  * It attaches everything to `globalThis.TSP` so it works in all contexts
  * (background service worker, content scripts, popup) without ES module imports.
+ * The `TSP` name and `tsp_` storage prefix predate the rename and are kept so
+ * existing saved data keeps loading.
  */
 
-/* eslint-disable no-unused-vars */
 "use strict";
 
 globalThis.TSP = (() => {
-	// =========================================================================
-	//  BROWSER API SHIM
-	// =========================================================================
-
 	/** @type {typeof chrome} Chrome extension API */
 	const api = chrome;
 
@@ -447,11 +444,15 @@ globalThis.TSP = (() => {
 	function formatDuration(seconds) {
 		if (!Number.isFinite(seconds)) return "—";
 		const s = Math.max(0, Math.floor(seconds));
-		return `${Math.floor(s / SECS_PER_DAY)}d ${Math.floor(s / SECS_PER_HOUR) % 24}h ${Math.floor(s / 60) % 60}m`;
+		return `${Math.floor(s / SECS_PER_DAY)}d ${Math.floor(s / SECS_PER_HOUR) % 24}h ${Math.floor(s / SECS_PER_MIN) % 60}m`;
 	}
 	function formatHMS(seconds) {
 		const s = Math.max(0, Math.floor(nonNegative(seconds)));
-		return [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60]
+		return [
+			Math.floor(s / SECS_PER_HOUR),
+			Math.floor(s / SECS_PER_MIN) % 60,
+			s % SECS_PER_MIN,
+		]
 			.map((v) => String(v).padStart(2, "0"))
 			.join(":");
 	}

@@ -97,13 +97,21 @@
 				alarmRequested = true;
 				playAudio();
 			}
-		} catch {
-			/* The extension may have been reloaded while this tab was open. */
+		} catch (error) {
+			warnUnexpected(error);
 		}
+	}
+	// A reloaded extension leaves this tab orphaned; that is expected and quiet.
+	// Anything else (e.g. Travian changed its markup) should leave a trace.
+	function warnUnexpected(error) {
+		if (!/context invalidated/i.test(error?.message || ""))
+			console.warn("Next Settlement Calc:", error);
 	}
 	if (document.readyState === "loading")
 		document.addEventListener("DOMContentLoaded", initialize, { once: true });
 	else initialize();
+	// Travian swaps the CP tab contents via AJAX; give it time to land.
+	const RESCAN_DELAY_MS = 700;
 	let rescanTimer;
 	document.addEventListener("click", (event) => {
 		if (
@@ -112,7 +120,7 @@
 			)
 		) {
 			clearTimeout(rescanTimer);
-			rescanTimer = setTimeout(() => scanPage().catch(() => {}), 700);
+			rescanTimer = setTimeout(() => scanPage().catch(warnUnexpected), RESCAN_DELAY_MS);
 		}
 	});
 	window.addEventListener("pagehide", () => {

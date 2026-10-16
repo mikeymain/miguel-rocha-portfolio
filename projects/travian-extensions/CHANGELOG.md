@@ -4,6 +4,14 @@
 
 - Removed InactiveSearch Map Opener from the published extensions.
 
+## Next Settlement Calc 2.3.2 — 2026-10-16
+
+- A failed forecast-log write (for example full storage) no longer fails the CP save it records.
+- A failed toolbar-badge update no longer leaves a refresh stuck until the browser restarts.
+- The popup's countdowns keep running if loading a server fails.
+- Unexpected content-script errors are logged to the console instead of being silently dropped.
+- Alarm setup on browser start runs once instead of up to three times in parallel.
+
 ## Next Settlement Calc 2.3.1 — 2026-10-15
 
 - Renamed from CP Predictor / CP Planner to Next Settlement Calc (extension name, toolbar title and popup header).

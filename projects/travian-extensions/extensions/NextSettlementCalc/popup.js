@@ -265,11 +265,7 @@
 			);
 			const tag = row.querySelector(".timer-tag");
 			if (village.smallCel && village.largeCel) {
-				const first = cooldownRemaining(
-					village,
-					now,
-					(now - (data.lastUpdate || now)) / 1000,
-				);
+				const first = remaining;
 				const smallDuration = TSP.getCelebrationDuration(
 					"small",
 					village.townHall,
@@ -570,6 +566,8 @@
 					event.key === "0" ? 1 : zoom + (event.key === "-" ? -0.1 : 0.1),
 				);
 			});
+			// Start the clock first so a failed server load can't freeze the timers.
+			interval = setInterval(calculate, 1000);
 			if (server) {
 				await selectServer(server);
 				refreshServers(servers).catch(report);
@@ -577,7 +575,6 @@
 				clearDisplay(
 					"Open a Travian game page to start tracking culture points.",
 				);
-			interval = setInterval(calculate, 1000);
 		} catch (error) {
 			report(error);
 		}
