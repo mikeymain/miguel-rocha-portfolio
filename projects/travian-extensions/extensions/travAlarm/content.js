@@ -70,7 +70,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 // ==========================================
 // STARTUP
 // ==========================================
-const jitterMs = (ms) => Math.round(ms * (0.7 + Math.random() * 0.8));
 
 const TIMING_INTERVALS = {
   STATE_SYNC: 15000, // safety net; changes are pushed via storage.onChanged
@@ -113,15 +112,21 @@ function checkFiredStorageAlarms() {
   }
 
   if (anyNewlyFired) {
-    fetchState.warehouse.lastTime = 0; // Reset cooldown to allow immediate re-fetch
+    resetFetchCooldown("warehouse"); // allow an immediate re-fetch
     fetchWarehouseData();
   }
 }
 
-/** Runs fn after a jittered initial delay, then on a jittered interval. */
+/**
+ * Runs fn after a jittered initial delay, then again after a fresh jittered
+ * delay each time, so requests never settle into a fixed period.
+ */
 function every(fn, initialMs, repeatMs) {
-  setTimeout(fn, jitterMs(initialMs));
-  setInterval(fn, jitterMs(repeatMs));
+  const run = () => {
+    fn();
+    setTimeout(run, jitterMs(repeatMs));
+  };
+  setTimeout(run, jitterMs(initialMs));
 }
 
 function startLoops(firstAlarms) {

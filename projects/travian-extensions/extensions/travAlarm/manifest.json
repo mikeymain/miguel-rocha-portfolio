@@ -1,7 +1,7 @@
 {
 	"manifest_version": 3,
 	"name": "TravAlarm",
-	"version": "3.28",
+	"version": "3.29",
 	"permissions": [
 		"notifications",
 		"alarms",

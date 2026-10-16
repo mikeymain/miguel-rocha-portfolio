@@ -37,6 +37,9 @@ const fetchState = {
   hero: { isFetching: false, lastTime: 0 },
 };
 
+/** Randomises a delay to 70–150% so requests don't follow a fixed rhythm. */
+const jitterMs = (ms) => Math.round(ms * (0.7 + Math.random() * 0.8));
+
 let _firedResourceAlarms = new Set();
 
 // ==========================================

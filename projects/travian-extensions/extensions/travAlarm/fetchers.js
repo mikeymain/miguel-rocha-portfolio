@@ -451,10 +451,38 @@ function _noteNewdidTarget(vid) {
 function canFetch(key, cooldownMs) {
 	if (!isPlayerActive()) return false;
 	const f = fetchState[key];
-	if (f.isFetching || Date.now() - f.lastTime < cooldownMs) return false;
+	const now = Date.now();
+	const last = Math.max(f.lastTime, readFetchCooldown(key, now));
+	if (f.isFetching || now - last < cooldownMs) return false;
 	f.isFetching = true;
-	f.lastTime = Date.now();
+	f.lastTime = now;
+	try {
+		localStorage.setItem(fetchCooldownKey(key), String(now));
+	} catch {
+		/* Storage blocked: fall back to this page's in-memory cooldown. */
+	}
 	return true;
+}
+
+// Cooldowns live in this origin's localStorage, so a new page load or a second
+// Travian tab continues them instead of firing a fresh burst of requests.
+const fetchCooldownKey = (key) => `_twFetchTs_${key}_${serverTag}`;
+function readFetchCooldown(key, now) {
+	try {
+		const stored = parseInt(localStorage.getItem(fetchCooldownKey(key)), 10) || 0;
+		return stored > now ? 0 : stored; // ignore timestamps from a clock moved back
+	} catch {
+		return 0;
+	}
+}
+/** Clears a cooldown so the next canFetch() for `key` may run immediately. */
+function resetFetchCooldown(key) {
+	fetchState[key].lastTime = 0;
+	try {
+		localStorage.removeItem(fetchCooldownKey(key));
+	} catch {
+		/* nothing stored */
+	}
 }
 
 /**
@@ -775,7 +803,7 @@ async function fetchWarehouseData() {
 				await withVillageLock(async () => {
 					const delays = [];
 					for (const [i, { vDid }] of starvingRows.entries()) {
-						if (i > 0) await sleepMs(VILLAGE_SWITCH_GAP_MS);
+						if (i > 0) await sleepMs(jitterMs(VILLAGE_SWITCH_GAP_MS));
 						delays.push(await fetchGranaryEmptyDelay(vDid));
 					}
 					starvingRows.forEach(({ vName }, i) => {
@@ -907,23 +935,9 @@ async function fetchCelebrationsData() {
 // PERIODIC RALLY POINT CHECK FOR VILLAGES UNDER ATTACK
 // ==========================================
 async function checkResourceVillageAttacks() {
-	// Seed the throttle from the persisted timestamp so a page refresh doesn't
-	// reset the 10-minute cooldown and re-fire a newdid= burst shortly after
-	// every load (same reload-race as the rally cooldown in
-	// scanForSidebarAttacksAndFetch).
-	if (fetchState.attackCheck.lastTime === 0) {
-		fetchState.attackCheck.lastTime =
-			parseInt(localStorage.getItem(`_twAtkChkTs_${serverTag}`), 10) || 0;
-	}
+	// canFetch persists the 10-minute cooldown, so a page refresh doesn't
+	// re-fire a newdid= burst shortly after every load.
 	if (!canFetch("attackCheck", 600000)) return; // 10 minutes
-	try {
-		localStorage.setItem(
-			`_twAtkChkTs_${serverTag}`,
-			String(fetchState.attackCheck.lastTime),
-		);
-	} catch {
-		/* silenced */
-	}
 
 	// Find villages with active resource/storage alarms
 	const resourceVillages = new Set();
@@ -979,7 +993,7 @@ async function checkResourceVillageAttacks() {
 	try {
 		await withVillageLock(async () => {
 			for (const [i, vid] of villagesToCheck.entries()) {
-				if (i > 0) await sleepMs(VILLAGE_SWITCH_GAP_MS);
+				if (i > 0) await sleepMs(jitterMs(VILLAGE_SWITCH_GAP_MS));
 				if (isFetchingRally) break;
 				const attacks = await fetchAndParseRallyPoint(vid);
 				if (attacks && attacks.length > 0) {
@@ -1076,7 +1090,7 @@ function scanForSidebarAttacksAndFetch() {
 			// One village at a time, spaced like a player clicking through them.
 			const allFetchedAlarms = [];
 			for (const [i, idKey] of fetchOrder.entries()) {
-				if (i > 0) await sleepMs(VILLAGE_SWITCH_GAP_MS);
+				if (i > 0) await sleepMs(jitterMs(VILLAGE_SWITCH_GAP_MS));
 				const vid = idKey === "CURRENT" ? null : idKey;
 				try {
 					const alarms = await fetchAndParseRallyPoint(vid);

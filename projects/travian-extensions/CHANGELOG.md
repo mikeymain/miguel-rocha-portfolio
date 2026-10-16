@@ -4,6 +4,12 @@
 
 - Removed InactiveSearch Map Opener from the published extensions.
 
+## TravAlarm 3.29 — 2026-10-16
+
+- Background refresh cooldowns (training, warehouse, celebrations, hero, production, attack check) now persist across page loads and are shared by all tabs of a server. Moving between pages no longer fires a fresh burst of requests each time.
+- Each background refresh is scheduled with a new random delay, so requests no longer follow a fixed rhythm.
+- Village switches during multi-village checks are spaced 1–2.3 s apart at random instead of exactly 1.5 s.
+
 ## TravAlarm 3.28 — 2026-10-16
 
 - Fixed: the rally-point check for villages with resource alarms stopped for the rest of the page's life after its first run found nothing to check.
