@@ -25,7 +25,14 @@ function flushPendingTiles() {
   _tilePipelineReady = true;
   const pending = _pendingTileBatches;
   _pendingTileBatches = [];
-  pending.forEach(receiveTileData);
+  // One bad batch must not drop the batches queued after it.
+  pending.forEach((batch) => {
+    try {
+      receiveTileData(batch);
+    } catch (err) {
+      console.error("[OasisCalc] Failed to analyse a tile batch", err);
+    }
+  });
 }
 
 // Receive tile data forwarded from Travian.api wrapper in page-bridge.js
@@ -33,5 +40,8 @@ document.addEventListener(_EVT_TD, (e) => {
   if (!e.detail) return;
   try {
     receiveTileData(JSON.parse(e.detail));
-  } catch (_) {}
+  } catch (err) {
+    // Previously swallowed: an analyser bug left the scan looking complete.
+    console.error("[OasisCalc] Failed to analyse a tile batch", err);
+  }
 });

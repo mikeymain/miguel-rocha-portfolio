@@ -4,6 +4,11 @@
 
 - Removed InactiveSearch Map Opener from the published extensions.
 
+## Oasis Finder 69.5 — 2026-10-20
+
+- **Fetch Troops**: an error page or a redirect to the login page now shows **Failed** and keeps your stored troops. Previously it saved every unit as 0 and showed "Fetched ✓".
+- A map tile that fails to analyse no longer stops the tiles before it from being saved and shown, and the error is logged instead of hidden.
+
 ## Night Mode 2.5 — 2026-10-20
 
 - Turning Night Mode off restores the game's own theme. Previously it always switched to light, overriding a player who uses the game's built-in night theme.

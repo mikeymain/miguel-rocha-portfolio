@@ -1,6 +1,6 @@
 # Travian Best Oasis Finder
 
-Version 69.4.
+Version 69.5.
 
 [Features and usage guide](../../README.md#oasis-finder) · [Installation](../../README.md#install-in-brave-chrome-or-edge)
 

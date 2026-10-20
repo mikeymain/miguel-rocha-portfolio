@@ -188,6 +188,11 @@ async function fetchVillageTroops(did) {
   const base = "/build.php?gid=16&tt=1&filter=3";
   const url = did ? `${base}&newdid=${did}` : base;
   const res = await fetch(url, { credentials: "include" });
+  // An error page or a redirect away from the rally point (e.g. to the login
+  // page) must not be read as "no troops" and overwrite the stored counts.
+  if (!res.ok || (res.url && new URL(res.url).pathname !== "/build.php")) {
+    throw new Error(`Troops page unavailable (${res.status})`);
+  }
   const text = await res.text();
   const parser = new DOMParser();
   const doc = parser.parseFromString(text, "text/html");

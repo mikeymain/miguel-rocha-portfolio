@@ -24,6 +24,9 @@ function analyzeTiles(tiles) {
     }
   }
 
+  // try/finally: a tile that throws must not skip saving and rendering the
+  // tiles already processed (they are already counted as covered).
+  try {
   tiles.forEach((tile) => {
     if (!tile?.position || !("text" in tile || "t" in tile || "title" in tile)) return;
     if (tile.position.x === null || tile.position.y === null ||
@@ -80,11 +83,12 @@ function analyzeTiles(tiles) {
     sessionScannedOases.add(key);
     resultsMap.set(key, { x: normX, y: normY, animals: observation.animals, scannedAt: Date.now() });
   });
-
-  if (dbUpdated) saveDatabase();
-  if (Object.keys(newBonuses).length) saveOasisBonuses(newBonuses);
-  saveScanData();
-  _debouncedRender();
+  } finally {
+    if (dbUpdated) saveDatabase();
+    if (Object.keys(newBonuses).length) saveOasisBonuses(newBonuses);
+    saveScanData();
+    _debouncedRender();
+  }
 }
 
 let _renderTimer = 0;

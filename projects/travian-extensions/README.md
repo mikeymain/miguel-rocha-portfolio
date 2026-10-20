@@ -18,7 +18,7 @@ Screenshots use sample data. Unofficial project, unaffiliated with Travian Games
 
 | Extension | Version | What it does | Load this folder |
 | --- | --- | --- | --- |
-| [Oasis Finder](#oasis-finder) | 69.4 | Scores nearby oases for hero and troop raids; improves oasis farm-list sorting | `extensions/OasisCalc` |
+| [Oasis Finder](#oasis-finder) | 69.5 | Scores nearby oases for hero and troop raids; improves oasis farm-list sorting | `extensions/OasisCalc` |
 | [TravAlarm](#travalarm) | 3.29 | Groups game timers and custom reminders in a floating dashboard | `extensions/travAlarm` |
 | [Travian QoL](#travian-qol) | 1.2.0 | Farm-list selection, bulk tab opening, report tools, loot calculator, to-do list, and more | `extensions/TravianQoL` |
 | [Rank Tracker](#rank-tracker) | 4.8.2 | Records statistics and shows rankings, deltas, and history graphs | `extensions/TravianRankTracker` |
