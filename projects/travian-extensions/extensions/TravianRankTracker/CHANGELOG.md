@@ -1,5 +1,10 @@
 # Travian Rank Tracker v5.0 — Refactor Changelog
 
+## Rank Tracker 4.8.4 — 2026-10-20
+
+- Restoring a backup now asks first when it would delete saved data that isn't in the backup, such as another server's history. Cancel keeps everything as it was.
+- Removed the unused `cookies` permission and the web-accessible `chart.js` entry; the popup still loads the chart locally.
+
 ## Rank Tracker 4.8.3 — 2026-10-20
 
 - An unreadable production total no longer overwrites Prod / Hour with an empty value; the value from the statistics data is kept.

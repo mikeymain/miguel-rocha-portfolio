@@ -1,10 +1,9 @@
 {
 	"manifest_version": 3,
 	"name": "Travian Rank Tracker",
-	"version": "4.8.3",
+	"version": "4.8.4",
 	"description": "Tracks Top 10 ranks, General stats, and Village Strength.",
 	"permissions": [
-		"cookies",
 		"storage",
 		"alarms",
 		"activeTab",
@@ -44,12 +43,6 @@
 			"matches": ["*://*.travian.com/*", "*://*.travian.org/*", "*://*.travian.net/*", "*://*.travian.us/*", "*://*.travian.de/*"],
 			"js": ["raid-income-bridge.js"],
 			"run_at": "document_end"
-		}
-	],
-	"web_accessible_resources": [
-		{
-			"resources": ["chart.js"],
-			"matches": ["<all_urls>"]
 		}
 	]
 }

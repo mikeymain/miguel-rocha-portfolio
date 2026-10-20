@@ -896,11 +896,26 @@ function initBackupRestore() {
 					value.sort((a, b) => a.timestamp - b.timestamp);
 				}
 				for (const key of Object.keys(data)) if (key.startsWith("raidIncome_")) delete data[key];
+				let cancelled = false;
 				await navigator.locks.request("rank-tracker-storage", async () => {
 					const previous = await api.storage.local.get(null);
+					const removed = Object.keys(previous).filter((key) => !(key in data));
+					const servers = removed.filter((key) => key.startsWith("history_")).length;
+					if (removed.length > 0 && !confirm(
+						`This backup does not contain ${removed.length} saved item(s)` +
+						(servers ? `, including history for ${servers} server(s)` : "") +
+						". Restoring deletes them. Continue?",
+					)) {
+						cancelled = true;
+						return;
+					}
 					await api.storage.local.set(data);
-					await api.storage.local.remove(Object.keys(previous).filter((key) => !(key in data)));
+					await api.storage.local.remove(removed);
 				});
+				if (cancelled) {
+					setUpdateStatus("Restore cancelled");
+					return;
+				}
 				setUpdateStatus("✅ Data Restored!");
 				setTimeout(() => (window.location.href = "popup.html"), 800);
 			} catch {

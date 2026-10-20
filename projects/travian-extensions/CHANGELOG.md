@@ -1,5 +1,10 @@
 # Changelog
 
+## Rank Tracker 4.8.4 — 2026-10-20
+
+- Restoring a backup now asks first when it would delete saved data that isn't in the backup, such as another server's history. Cancel keeps everything as it was.
+- Removed the unused `cookies` permission and the web-accessible `chart.js` entry; the popup still loads the chart locally.
+
 ## NPC AutoMerchant 3.1.1 — 2026-10-20
 
 - **Pull exact amounts** and **Pull ÷4** on the marketplace indicator now open the hero transfer with the amounts shown. Previously the game subtracted the village's stock a second time, so the transfer was pre-filled too low or with 0.
