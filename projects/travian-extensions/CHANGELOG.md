@@ -4,6 +4,15 @@
 
 - Removed InactiveSearch Map Opener from the published extensions.
 
+## Night Mode 2.5 — 2026-10-20
+
+- Turning Night Mode off restores the game's own theme. Previously it always switched to light, overriding a player who uses the game's built-in night theme.
+- A saved toggle or button color now also reaches open tabs through storage, so tabs that missed the popup's message (still loading, or restored from the back/forward cache) update too.
+- The night theme stays on if the page replaces its `<body>`.
+- Invalid stored button colors fall back to the game's native buttons instead of breaking them, and the popup no longer shows black or an empty favorites strip when a saved value is unreadable.
+- Typing an invalid hex in the popup no longer switches native buttons to a recolor you didn't choose.
+- A failed settings read is logged instead of being hidden.
+
 ## TravianQoL 1.2.0 — 2026-10-16
 
 - Skip Ads: removed the ad queue. Queued ads used to be fetched, checked every 30 s and started later in a hidden frame without a click. Clicking a video-ad button while another ad plays now goes straight to the game, and any queue saved by an older version is deleted.
