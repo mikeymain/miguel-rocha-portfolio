@@ -1,5 +1,11 @@
 # Travian Rank Tracker v5.0 — Refactor Changelog
 
+## Rank Tracker 4.8.3 — 2026-10-20
+
+- An unreadable production total no longer overwrites Prod / Hour with an empty value; the value from the statistics data is kept.
+- Statistics read from the page are stored only when they are numbers, so unexpected page text can't end up in history or the popup.
+- A failed backup download now shows "Error: Backup failed" instead of failing silently.
+
 ## Rank Tracker 4.8.2 — 2026-10-05
 
 - Preserve reset boundaries when opening the popup; save direct page observations to history.

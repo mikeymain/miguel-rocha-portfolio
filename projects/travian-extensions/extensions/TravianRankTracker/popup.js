@@ -852,7 +852,9 @@ function initBackupRestore() {
 				document.body.removeChild(a);
 				URL.revokeObjectURL(url);
 			}
-		} catch {}
+		} catch {
+			setUpdateStatus("Error: Backup failed");
+		}
 	});
 
 	document

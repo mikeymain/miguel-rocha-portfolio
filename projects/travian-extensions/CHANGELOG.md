@@ -1,5 +1,11 @@
 # Changelog
 
+## Rank Tracker 4.8.3 — 2026-10-20
+
+- An unreadable production total no longer overwrites Prod / Hour with an empty value; the value from the statistics data is kept.
+- Statistics read from the page are stored only when they are numbers, so unexpected page text can't end up in history or the popup.
+- A failed backup download now shows "Error: Backup failed" instead of failing silently.
+
 ## 2026-10-15
 
 - Removed InactiveSearch Map Opener from the published extensions.

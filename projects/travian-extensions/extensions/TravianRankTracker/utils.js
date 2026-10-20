@@ -230,6 +230,13 @@ function extractReactData(html) {
 			}
 		}
 
+		// Every field is numeric; drop anything else so page text is never
+		// stored and later rendered as popup markup.
+		for (const [key, value] of Object.entries(res)) {
+			const num = typeof value === "string" && value.trim() !== "" ? Number(value) : value;
+			if (typeof num === "number" && Number.isFinite(num)) res[key] = num;
+			else delete res[key];
+		}
 		return res;
 	} catch {
 		return null;
@@ -857,7 +864,8 @@ async function fetchAllEndpoints(serverOrigin, api, storageKey, options = {}) {
 				const prodText = await prodRes.text();
 				const prodDoc = new DOMParser().parseFromString(prodText, "text/html");
 				const totalSpan = prodDoc.querySelector(".sum .total");
-				if (totalSpan) mergedData.valProd = cleanSmartNum(totalSpan.innerText);
+				const total = totalSpan ? cleanSmartNum(totalSpan.innerText) : null;
+				if (total != null) mergedData.valProd = total;
 			}
 		} catch (_) {
 			/* non-critical */
