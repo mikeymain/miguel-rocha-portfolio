@@ -177,13 +177,22 @@ NPC.HeroPageObserver = {
       "border:1px solid rgba(255,255,255,0.35);border-radius:3px;color:#fff;" +
       "cursor:pointer;font-size:11px;line-height:1.4;font-family:inherit;";
 
-    const total = NPC.PullDialogObserver.loadNeededRemain();
+    const total = Number(NPC.PullDialogObserver.loadNeededRemain()) || 0;
+    const villageName = String(village?.name ?? "").replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+    // The native dialog treats its amounts as a target stock level, so add the
+    // village's stock to pull exactly the requested amounts (see ui.js Pull).
+    const pull = (amounts, mode) => {
+      const stock = NPC.ResourceParser.getVillageStock();
+      NPC.HeroPuller.requestPull(amounts, mode, null, {
+        targetThreshold: amounts.map((a, i) => a + (stock[i] || 0)),
+      });
+    };
     const renderRows = () => {
       // Title doubles as the drag handle — `_npc-drag` class is what the
       // mousedown listener checks via closest(). cursor:move telegraphs it.
       let html = `<div class="_npc-drag" title="Drag to move" style="font-weight:700;cursor:move;margin-bottom:${village?.name ? 2 : 6}px;">⠿ Resources Needed</div>`;
       if (village?.name) {
-        html += `<div style="font-size:10px;opacity:0.75;margin-bottom:6px;">for ${village.name} (${total})</div>`;
+        html += `<div style="font-size:10px;opacity:0.75;margin-bottom:6px;">for ${villageName} (${total})</div>`;
       }
       neededList.forEach((item) => {
         const per = split > 1 ? Math.floor(item.amount / split) : item.amount;
@@ -267,14 +276,14 @@ NPC.HeroPageObserver = {
           const idx = NPC.RESOURCE_NAMES.indexOf(r.name);
           if (idx >= 0) amounts[idx] = Math.floor(r.amount / split);
         });
-        NPC.HeroPuller.requestPull(amounts, "exact");
+        pull(amounts, "exact");
       });
 
       indicator.querySelector("#" + ID.pullDiv).addEventListener("click", () => {
         const deficit = Math.abs(total);
         const per = Math.floor(deficit / split / 4);
         if (per <= 0) return;
-        NPC.HeroPuller.requestPull([per, per, per, per], "divided");
+        pull([per, per, per, per], "divided");
       });
     };
 

@@ -246,7 +246,12 @@ NPC.HeroPuller = {
 			true,
 		);
 
-		const returnUrl = data.returnUrl;
+		// Only return within this game server; the URL comes from localStorage.
+		let returnUrl = null;
+		try {
+			const url = typeof data.returnUrl === "string" && new URL(data.returnUrl, window.location.href);
+			if (url && url.origin === window.location.origin) returnUrl = url.href;
+		} catch {}
 		setTimeout(() => {
 			if (returnUrl && returnUrl !== window.location.href) {
 				window.location.href = returnUrl;

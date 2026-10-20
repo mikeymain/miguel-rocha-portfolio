@@ -1,6 +1,6 @@
 # Travian NPC AutoMerchant
 
-Version 3.1.0.
+Version 3.1.1.
 
 [Features and usage guide](../../README.md#npc-automerchant) · [Installation](../../README.md#install-in-brave-chrome-or-edge)
 

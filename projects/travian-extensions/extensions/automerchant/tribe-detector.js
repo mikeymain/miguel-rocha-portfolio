@@ -48,7 +48,8 @@ NPC.TribeDetector = {
 
 		for (const el of unitEls) {
 			// Extract the full 1 or 2 digit unit number (e.g., '5' from 'u5', '21' from 'u21')
-			const match = el.className.match(/\bu(\d{1,2})\b/);
+			// getAttribute: SVG elements expose className as an object, not a string
+			const match = (el.getAttribute("class") || "").match(/\bu(\d{1,2})\b/);
 			if (!match) continue;
 
 			const unitId = Number(match[1]);

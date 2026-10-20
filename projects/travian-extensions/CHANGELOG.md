@@ -1,5 +1,12 @@
 # Changelog
 
+## NPC AutoMerchant 3.1.1 — 2026-10-20
+
+- **Pull exact amounts** and **Pull ÷4** on the marketplace indicator now open the hero transfer with the amounts shown. Previously the game subtracted the village's stock a second time, so the transfer was pre-filled too low or with 0.
+- The indicator shows the saved village name as plain text.
+- After a transfer from the hero inventory, the helper only returns to a page on the same game server.
+- Tribe detection no longer fails on pages with SVG icons.
+
 ## Rank Tracker 4.8.3 — 2026-10-20
 
 - An unreadable production total no longer overwrites Prod / Hour with an empty value; the value from the statistics data is kept.
