@@ -24,7 +24,7 @@ Screenshots use sample data. Unofficial project, unaffiliated with Travian Games
 | [Rank Tracker](#rank-tracker) | 4.8.2 | Records statistics and shows rankings, deltas, and history graphs | `extensions/TravianRankTracker` |
 | [Next Settlement Calc](#next-settlement-calc) | 2.4.0 | Estimates when you will reach the next settlement's culture-point requirement | `extensions/NextSettlementCalc` |
 | [NPC AutoMerchant](#npc-automerchant) | 3.1.0 | Calculates troop resource needs and helps prepare hero resource transfers | `extensions/automerchant` |
-| [Night Mode](#night-mode) | 2.4 | Darkens Travian and adds a button-color picker with saved favorites | `extensions/travian_night_mode` |
+| [Night Mode](#night-mode) | 2.5 | Darkens Travian and adds a button-color picker with saved favorites | `extensions/travian_night_mode` |
 
 ## Install in Brave, Chrome, or Edge
 

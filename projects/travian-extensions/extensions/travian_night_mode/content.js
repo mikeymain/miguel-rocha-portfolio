@@ -2385,8 +2385,17 @@ div.cropBalanceContainer .balanceTroops {
 const { styleId, buttonStyleId, themeAttribute, themeValues, defaultButtonColor } =
 	NIGHT_MODE_CONFIG;
 
-let themeObserver = null;
+let themeObserver = null; // watches <html> for a (new) <body>
+let bodyObserver = null; // watches <body>'s data-theme
+// The game's own data-theme before night mode overrode it; restored when
+// night mode is switched off, so the player's in-game choice survives.
+let originalTheme;
 let currentButtonColor = defaultButtonColor;
+
+const isHexColor = (c) => typeof c === "string" && /^#[0-9a-f]{6}$/i.test(c);
+// Anything that isn't the sentinel or a #rrggbb color would silently break the
+// oklch() button styles, so it falls back to the native buttons.
+const validButtonColor = (c) => (c === defaultButtonColor || isHexColor(c) ? c : defaultButtonColor);
 
 // Adds a <style> with the given id once; its CSS never changes afterwards.
 function ensureStyle(id, cssText) {
@@ -2404,9 +2413,10 @@ function removeCSS() {
 }
 
 /**
- * Keeps the game's own night theme switched on. Only <body>'s data-theme
- * attribute is watched; at document_start <body> doesn't exist yet, so until it
- * does only <html>'s direct children are watched for it to appear.
+ * Keeps the game's own night theme switched on. <body>'s data-theme attribute
+ * is watched, and <html>'s direct children too (cheap: only they are
+ * observed), so a <body> that appears after document_start, or replaces the
+ * old one, is enforced as well.
  */
 function startThemeObserver() {
 	stopThemeObserver();
@@ -2414,13 +2424,15 @@ function startThemeObserver() {
 	const enforce = () => {
 		const body = document.body;
 		if (!body) return;
-		if (body.getAttribute(themeAttribute) !== themeValues.dark) {
-			body.setAttribute(themeAttribute, themeValues.dark);
-		}
 		if (watched !== body) {
 			watched = body;
-			themeObserver.disconnect();
-			themeObserver.observe(body, { attributeFilter: [themeAttribute] });
+			if (originalTheme === undefined) originalTheme = body.getAttribute(themeAttribute);
+			bodyObserver?.disconnect();
+			bodyObserver = new MutationObserver(enforce);
+			bodyObserver.observe(body, { attributeFilter: [themeAttribute] });
+		}
+		if (body.getAttribute(themeAttribute) !== themeValues.dark) {
+			body.setAttribute(themeAttribute, themeValues.dark);
 		}
 	};
 	themeObserver = new MutationObserver(enforce);
@@ -2430,7 +2442,9 @@ function startThemeObserver() {
 
 function stopThemeObserver() {
 	themeObserver?.disconnect();
+	bodyObserver?.disconnect();
 	themeObserver = null;
+	bodyObserver = null;
 }
 
 function setNightMode(isEnabled) {
@@ -2440,7 +2454,7 @@ function setNightMode(isEnabled) {
 		startThemeObserver();
 	} else {
 		stopThemeObserver();
-		document.body?.setAttribute(themeAttribute, themeValues.light);
+		document.body?.setAttribute(themeAttribute, originalTheme ?? themeValues.light);
 		removeCSS();
 	}
 }
@@ -2504,17 +2518,38 @@ chrome.storage.local
 		[NIGHT_MODE_CONFIG.storageKey]: NIGHT_MODE_CONFIG.defaultEnabled,
 		[NIGHT_MODE_CONFIG.buttonColorKey]: defaultButtonColor,
 	})
-	.then((result) => {
-		currentButtonColor = result[NIGHT_MODE_CONFIG.buttonColorKey] || defaultButtonColor;
-		setNightMode(result[NIGHT_MODE_CONFIG.storageKey]);
-	})
-	.catch(() => setNightMode(NIGHT_MODE_CONFIG.defaultEnabled));
+	.then(
+		(result) => {
+			const enabled = result[NIGHT_MODE_CONFIG.storageKey];
+			currentButtonColor = validButtonColor(result[NIGHT_MODE_CONFIG.buttonColorKey]);
+			setNightMode(typeof enabled === "boolean" ? enabled : NIGHT_MODE_CONFIG.defaultEnabled);
+		},
+		// Only a failed read falls back to the default; an error thrown while
+		// applying the theme is no longer masked by a second attempt.
+		(error) => {
+			console.warn("Travian Night Mode: could not read settings", error);
+			setNightMode(NIGHT_MODE_CONFIG.defaultEnabled);
+		},
+	);
 
-// Messages from the popup (toggle and/or button color change).
+// Messages from the popup (toggle and/or live color preview).
 chrome.runtime.onMessage.addListener((message) => {
 	if (typeof message?.buttonColor === "string") {
-		currentButtonColor = message.buttonColor;
+		currentButtonColor = validButtonColor(message.buttonColor);
 		applyButtonColor();
 	}
 	if (typeof message?.nightMode === "boolean") setNightMode(message.nightMode);
+});
+
+// Saved changes reach every tab through storage too, including tabs the
+// popup's message missed (still loading, or restored from the back/forward cache).
+chrome.storage.onChanged?.addListener((changes, area) => {
+	if (area !== "local") return;
+	const color = changes[NIGHT_MODE_CONFIG.buttonColorKey];
+	if (color) {
+		currentButtonColor = validButtonColor(color.newValue);
+		applyButtonColor();
+	}
+	const enabled = changes[NIGHT_MODE_CONFIG.storageKey]?.newValue;
+	if (typeof enabled === "boolean") setNightMode(enabled);
 });

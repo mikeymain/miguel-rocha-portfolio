@@ -205,13 +205,23 @@ makeDrag(hueArea, onHueMove);
 
 // Editable hex field: live-preview while typing valid values, normalize/commit
 // on blur or Enter.
+// True once this edit has previewed a valid color in the tabs.
+let hexPreviewed = false;
 hexInput.addEventListener("input", () => {
-	if (setFromHex(hexInput.value)) broadcastPreview();
+	if (setFromHex(hexInput.value)) {
+		hexPreviewed = true;
+		broadcastPreview();
+	}
 });
 hexInput.addEventListener("change", () => {
-	setFromHex(hexInput.value); // ignore if invalid; reverts to last good value
+	// Invalid input reverts to the last good value. That value is saved only if
+	// this edit previewed it; otherwise, in the default state, it is just the
+	// placeholder swatch, and saving it would switch the native buttons to a
+	// recolor the player never chose.
+	const valid = setFromHex(hexInput.value);
 	hexInput.value = currentHex().toUpperCase();
-	persistCurrent();
+	if (valid || hexPreviewed) persistCurrent();
+	hexPreviewed = false;
 });
 hexInput.addEventListener("keydown", (e) => {
 	if (e.key === "Enter") hexInput.blur();
@@ -293,11 +303,18 @@ resetColor.addEventListener("click", () => {
 chrome.storage.local
 	.get({ nightMode: true, purpleButtonColor: DEFAULT_STATE, [FAV_KEY]: null })
 	.then((res) => {
-		toggle.checked = res.nightMode;
-		setFromHex(
-			res.purpleButtonColor === DEFAULT_STATE ? DEFAULT_SWATCH : res.purpleButtonColor,
-		);
-		favorites = res[FAV_KEY] ?? [...SEED_FAVS];
+		toggle.checked = res.nightMode !== false;
+		// An unreadable stored color shows the default swatch, not black.
+		if (res.purpleButtonColor === DEFAULT_STATE || !setFromHex(res.purpleButtonColor)) {
+			setFromHex(DEFAULT_SWATCH);
+		}
+		// Drop anything in the favorites list that isn't a #rrggbb color, so one
+		// bad entry can't stop the strip (and its "+" button) from rendering.
+		const stored = Array.isArray(res[FAV_KEY])
+			? res[FAV_KEY].filter((c) => typeof c === "string" && /^#[0-9a-f]{6}$/i.test(c))
+			: null;
+		favorites = stored ?? [...SEED_FAVS];
 		if (res[FAV_KEY] === null) saveFavorites();
 		renderFavorites();
-	});
+	})
+	.catch((error) => console.error("Travian Night Mode: could not load settings", error));
