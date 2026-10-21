@@ -17,6 +17,9 @@
  */
 /* global NPC */
 
+// The legacy flow navigates straight to /hero/inventory, so 30 s is ample.
+const PULL_INTENT_TTL_MS = 30 * 1000;
+
 NPC.HeroPuller = {
 	FORM_TIMEOUT_MS: 1000,
 
@@ -124,7 +127,9 @@ NPC.HeroPuller = {
 			const raw = localStorage.getItem(NPC.STORAGE_KEYS.AUTO_PULL);
 			if (!raw) return null;
 			const data = JSON.parse(raw);
-			if (Date.now() - data.timestamp > 5 * 60 * 1000) {
+			// Only a pull started moments ago may run on its own; an abandoned one
+			// must not click Transfer when the inventory is opened later.
+			if (Date.now() - data.timestamp > PULL_INTENT_TTL_MS) {
 				localStorage.removeItem(NPC.STORAGE_KEYS.AUTO_PULL);
 				return null;
 			}

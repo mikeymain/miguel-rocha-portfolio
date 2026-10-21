@@ -21,9 +21,9 @@ Screenshots use sample data. Unofficial project, unaffiliated with Travian Games
 | [Oasis Finder](#oasis-finder) | 69.5 | Scores nearby oases for hero and troop raids; improves oasis farm-list sorting | `extensions/OasisCalc` |
 | [TravAlarm](#travalarm) | 3.29 | Groups game timers and custom reminders in a floating dashboard | `extensions/travAlarm` |
 | [Travian QoL](#travian-qol) | 1.2.0 | Farm-list selection, bulk tab opening, report tools, loot calculator, to-do list, and more | `extensions/TravianQoL` |
-| [Rank Tracker](#rank-tracker) | 4.8.4 | Records statistics and shows rankings, deltas, and history graphs | `extensions/TravianRankTracker` |
+| [Rank Tracker](#rank-tracker) | 4.8.5 | Records statistics and shows rankings, deltas, and history graphs | `extensions/TravianRankTracker` |
 | [Next Settlement Calc](#next-settlement-calc) | 2.4.0 | Estimates when you will reach the next settlement's culture-point requirement | `extensions/NextSettlementCalc` |
-| [NPC AutoMerchant](#npc-automerchant) | 3.1.1 | Calculates troop resource needs and helps prepare hero resource transfers | `extensions/automerchant` |
+| [NPC AutoMerchant](#npc-automerchant) | 3.1.2 | Calculates troop resource needs and helps prepare hero resource transfers | `extensions/automerchant` |
 | [Night Mode](#night-mode) | 2.5 | Darkens Travian and adds a button-color picker with saved favorites | `extensions/travian_night_mode` |
 
 ## Install in Brave, Chrome, or Edge
@@ -146,8 +146,8 @@ Refreshes when you open the popup or click **Refresh**; there are no background 
 1. In a training building, click the troop's **NPC exchange** control to open the calculator with that troop selected. A generic NPC dialog may lack the required troop context.
 2. Check the tribe and ruleset: **3 Tribes Classic**, **5 Tribe**, or **6 Tribe Rebalanced**.
 3. Enter **Build amount** or click **Max**. Max assumes an optimal NPC split of the total resource pool; actual recruitment also depends on stock distribution and queue conditions.
-4. **Send to Indicator** saves the resource shortfall. **Pull from Hero** normally opens the game's transfer dialog with target amounts. Check amounts and destination before confirming.
-5. If the native dialog is unavailable, **Pull from Hero** can navigate to hero inventory, fill the amounts, and submit the transfer automatically.
+4. **Send to Indicator** saves the resource shortfall for the marketplace indicator, which offers **Pull ÷4** only when the total pool is short. **Pull from Hero** normally opens the game's transfer dialog with target amounts. Check amounts and destination before confirming.
+5. If the native dialog is unavailable, **Pull from Hero** can navigate to hero inventory, fill the amounts, and submit the transfer automatically. A pull that doesn't reach the inventory within 30 seconds is dropped.
 
 ## Night Mode
 

@@ -8,7 +8,7 @@
 NPC.PullDialogObserver = {
   STORAGE_KEY: NPC.STORAGE_KEYS.NEEDED_AMOUNTS,
 
-  saveNeededAmounts(amounts, village, remain) {
+  saveNeededAmounts(amounts, village, remain, source = "npc") {
     try {
       localStorage.setItem(
         this.STORAGE_KEY,
@@ -17,6 +17,7 @@ NPC.PullDialogObserver = {
           amounts,
           village: village || null,
           remain: remain || 0,
+          source,
         }),
       );
     } catch (e) {
@@ -54,6 +55,8 @@ NPC.PullDialogObserver = {
 
   updateNeededAmounts() {
     const npcData = NPC.ResourceParser.parseNPCDialog();
+    // Nothing needed (or the dialog isn't rendered yet): keep what was saved.
+    if (![0, 1, 2, 3].some((i) => npcData.needed[i] > 0)) return;
     this.saveNeededAmounts(
       npcData.needed,
       this._getCurrentVillageInfo(),
@@ -231,7 +234,10 @@ NPC.HeroPageObserver = {
       const deficit = Math.abs(total);
       const perResForNpc = Math.floor(deficit / split / 4);
       html += `<button id="${ID.pull}" style="${PULL_BTN_STYLE}" title="Pull each needed resource from hero inventory">⤓ Pull exact amounts</button>`;
-      html += `<button id="${ID.pullDiv}" style="${PULL_BTN_STYLE}" title="Pull ${NPC.Utils.formatNumber(perResForNpc)} of each resource (total ${NPC.Utils.formatNumber(perResForNpc * 4)}) — for NPC trade after">⤓ Pull ÷4 for NPC (${NPC.Utils.formatNumber(perResForNpc)} ×4)</button>`;
+      // A positive or zero remain means the pool already covers the need.
+      if (total < 0) {
+        html += `<button id="${ID.pullDiv}" style="${PULL_BTN_STYLE}" title="Pull ${NPC.Utils.formatNumber(perResForNpc)} of each resource (total ${NPC.Utils.formatNumber(perResForNpc * 4)}) — for NPC trade after">⤓ Pull ÷4 for NPC (${NPC.Utils.formatNumber(perResForNpc)} ×4)</button>`;
+      }
 
       html += `<button id="${ID.close}" style="${BTN_STYLE}margin-top:8px;">Dismiss</button>`;
       return html;
@@ -279,7 +285,7 @@ NPC.HeroPageObserver = {
         pull(amounts, "exact");
       });
 
-      indicator.querySelector("#" + ID.pullDiv).addEventListener("click", () => {
+      indicator.querySelector("#" + ID.pullDiv)?.addEventListener("click", () => {
         const deficit = Math.abs(total);
         const per = Math.floor(deficit / split / 4);
         if (per <= 0) return;
@@ -583,7 +589,8 @@ NPC.NPCObserver = {
       (node.id === "npc" ? node : null) ||
       node.querySelector?.(".exchangeResources");
     if (npc && !document.querySelector("#_rh-ui")) {
-      NPC.PullDialogObserver.updateNeededAmounts();
+      // Amounts are saved when the player edits a desired field, not on open,
+      // so opening another NPC dialog doesn't replace a saved need.
       this._watchDesiredInputs();
       // Only render the menu when the NPC dialog was opened from a specific
       // troop row — i.e. the click handler in _setupExchangeButtonListener
@@ -619,7 +626,12 @@ NPC.NPCObserver = {
   },
 
   _watchDesiredInputs() {
-    const onDesiredChange = () => NPC.PullDialogObserver.updateNeededAmounts();
+    // Script-driven changes (Distribute, the helper's own fills) may save, but
+    // must not replace amounts sent with "Send to Indicator"; typing always saves.
+    const onDesiredChange = (e) => {
+      if (!e.isTrusted && NPC.PullDialogObserver._loadStoredData()?.source === "troop") return;
+      NPC.PullDialogObserver.updateNeededAmounts();
+    };
     for (let i = 0; i < 4; i++) {
       const input = document.querySelector(`input[name="desired${i}"]`);
       if (input && !input._npcWatched) {

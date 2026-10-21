@@ -1,5 +1,17 @@
 # Changelog
 
+## NPC AutoMerchant 3.1.2 — 2026-10-21
+
+- A hero pull started from the calculator is dropped if the hero inventory isn't reached within 30 seconds, so an abandoned pull no longer clicks Transfer the next time you open the inventory.
+- **Send to Indicator** now also saves the total shortfall, so **Pull ÷4** on the marketplace works for troop calculations.
+- **Pull ÷4** is hidden when the resource pool already covers the need.
+- Opening another NPC dialog no longer replaces the saved amounts. An empty reading never overwrites them, and the game's or helper's own field updates can't replace amounts sent with **Send to Indicator**. Typing in the desired fields still saves.
+
+## Rank Tracker 4.8.5 — 2026-10-21
+
+- The 1h, 3h, D and W changes now show "-" when no saved point lies within half that window, instead of comparing against the current value or a much older point.
+- Background updates no longer record the last known population as a new reading, so the population graph has gaps instead of flat lines between popup openings.
+
 ## Rank Tracker 4.8.4 — 2026-10-20
 
 - Restoring a backup now asks first when it would delete saved data that isn't in the backup, such as another server's history. Cancel keeps everything as it was.

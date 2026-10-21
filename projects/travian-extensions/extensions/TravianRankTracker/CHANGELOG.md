@@ -1,5 +1,10 @@
 # Travian Rank Tracker v5.0 — Refactor Changelog
 
+## Rank Tracker 4.8.5 — 2026-10-21
+
+- The 1h, 3h, D and W changes now show "-" when no saved point lies within half that window, instead of comparing against the current value or a much older point.
+- Background updates no longer record the last known population as a new reading, so the population graph has gaps instead of flat lines between popup openings.
+
 ## Rank Tracker 4.8.4 — 2026-10-20
 
 - Restoring a backup now asks first when it would delete saved data that isn't in the backup, such as another server's history. Cancel keeps everything as it was.

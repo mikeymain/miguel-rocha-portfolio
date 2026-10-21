@@ -392,7 +392,7 @@ NPC.UIManager = {
     // NPC-divided alternative (totalDeficit / 4) is the wrong number here
     // because it assumes a follow-up gold NPC trade; we want enough per
     // resource to recruit immediately.
-    const computeDeficitAmounts = () => {
+    const computeTroopNeed = () => {
       const troop = this._troop;
       if (!troop) return null;
       const buildCount =
@@ -400,16 +400,21 @@ NPC.UIManager = {
       if (buildCount <= 0) return null;
       const cost = troop.cost.map((c) => c * buildCount);
       const stock = NPC.ResourceParser.getVillageStock();
-      return cost.map((c, i) => Math.max(0, c - (stock[i] || 0)));
+      return {
+        deficit: cost.map((c, i) => Math.max(0, c - (stock[i] || 0))),
+        // Same sign as the NPC dialog's "remain": negative when the pool is short.
+        remain: stock.reduce((s, v) => s + (v || 0), 0) - cost.reduce((s, c) => s + c, 0),
+      };
     };
+    const computeDeficitAmounts = () => computeTroopNeed()?.deficit ?? null;
 
     const sendBtn = previewEl.querySelector("#_r-send-indicator");
     if (sendBtn) {
       sendBtn.addEventListener("click", () => {
-        const amounts = computeDeficitAmounts();
-        if (!amounts) return;
+        const need = computeTroopNeed();
+        if (!need) return;
         const village = NPC.PullDialogObserver._getCurrentVillageInfo();
-        NPC.PullDialogObserver.saveNeededAmounts(amounts, village);
+        NPC.PullDialogObserver.saveNeededAmounts(need.deficit, village, need.remain, "troop");
         const origHTML = sendBtn.innerHTML;
         sendBtn.textContent = "\u2713 Saved";
         sendBtn.classList.add("_r-send-ok");

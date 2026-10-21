@@ -1,6 +1,6 @@
 # Travian Rank Tracker
 
-Version 4.8.4.
+Version 4.8.5.
 
 [Features and usage guide](../../README.md#rank-tracker) · [Installation](../../README.md#install-in-brave-chrome-or-edge)
 

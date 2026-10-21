@@ -582,6 +582,12 @@ async function saveSnapshot(current, api, storageKey) {
 		delete current.top10;
 		for (const key of WEEKLY_KEYS) delete current[key];
 	}
+	// Population is read only from page markup, which background workers can't
+	// parse either; keep a carried value out of history (latest still shows it).
+	if (current.valPop != null && current.popTimestamp !== current.timestamp) {
+		current = { ...current };
+		delete current.valPop;
+	}
 
 	// Derive the never-trimmed playtime anchor key from `history_{origin}`,
 	// and read it alongside the history in a single storage round-trip.
@@ -618,7 +624,9 @@ async function saveSnapshot(current, api, storageKey) {
 	const weeklyBoundary = !!last?.top10?.length !== !!current.top10?.length ||
 		(hist.length > 1 && !!hist[hist.length - 2].top10?.length !== !!last?.top10?.length);
 	if (hist.length > 0 && Date.now() - lastTs < DEDUP_WINDOW_MS && !counterReset && !weeklyBoundary) {
-		hist[hist.length - 1] = current; // overwrite recent entry
+		// Overwrite the recent entry, keeping a population it observed.
+		hist[hist.length - 1] = current.valPop == null && last.valPop != null
+			? { ...current, valPop: last.valPop } : current;
 	} else {
 		hist.push(current);
 	}
@@ -750,7 +758,10 @@ async function processHtmlData(
 	for (const k of domFields) {
 		if (jsonData?.[k] == null && scannedData[k] != null) merged[k] = scannedData[k];
 	}
-	if (scannedData.valPop != null) merged.valPop = scannedData.valPop;
+	if (scannedData.valPop != null) {
+		merged.valPop = scannedData.valPop;
+		merged.popTimestamp = merged.timestamp;
+	}
 
 	if (scannedData.foundTop10) {
 		for (const key of WEEKLY_KEYS) delete merged[key];
@@ -847,7 +858,10 @@ async function fetchAllEndpoints(serverOrigin, api, storageKey, options = {}) {
 			if (ovRes.ok) {
 				const ovText = await ovRes.text();
 				const ovData = parseStatsRobust(ovText, false, true);
-				if (ovData.valPop) mergedData.valPop = ovData.valPop;
+				if (ovData.valPop) {
+					mergedData.valPop = ovData.valPop;
+					mergedData.popTimestamp = mergedData.timestamp;
+				}
 				if (ovData.rankPop) mergedData.rankPop = ovData.rankPop;
 			}
 		} catch (_) {

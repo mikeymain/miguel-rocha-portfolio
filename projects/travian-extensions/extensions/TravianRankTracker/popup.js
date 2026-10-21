@@ -338,15 +338,16 @@ async function loadFromStorage(storageKey, serverOrigin) {
    ═══════════════════════════════════════════════════════════════════════ */
 
 /**
- * Find the history entry closest to `targetTime`.
+ * Find the history entry closest to `targetTime`, or null when none lies within
+ * half the comparison window (so "1h" never compares against now or a day ago).
  */
-function getHistoryPoint(history, targetTime) {
+function getHistoryPoint(history, targetTime, now = Date.now()) {
 	if (!history?.length || targetTime < history.reduce((oldest, point) => Math.min(oldest, point.timestamp), Infinity)) return null;
 	let closest = null;
-	let minDiff = Infinity;
+	let minDiff = (now - targetTime) / 2;
 	for (const item of history) {
 		const diff = Math.abs(item.timestamp - targetTime);
-		if (diff < minDiff) {
+		if (diff <= minDiff) {
 			minDiff = diff;
 			closest = item;
 		}
