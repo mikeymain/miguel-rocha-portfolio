@@ -1,5 +1,11 @@
 # Changelog
 
+## Travian QoL 1.2.1 — 2026-10-22
+
+- **Loot Calculator** finds the lost-resources row on reports in any language, so net resources work outside English.
+- Loot Calculator settings no longer lose a change to an older pending save, report tooltips show no unit count while **Show on Reports** is off, and switching to a unit with the same capacity redraws the badges.
+- **Adventure sort** waits for rows that load late, sorts distances written with a decimal comma, and keeps rows that aren't adventures in place.
+
 ## NPC AutoMerchant 3.1.2 — 2026-10-21
 
 - A hero pull started from the calculator is dropped if the hero inventory isn't reached within 30 seconds, so an abandoned pull no longer clicks Transfer the next time you open the inventory.

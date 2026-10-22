@@ -265,16 +265,21 @@
 		return total;
 	}
 	function extractLostResources(statsTable) {
-		for (const row of statsTable.querySelectorAll('tr')) {
-			const th = row.querySelector('th');
-			if (!th || th.textContent.trim() !== 'Resources lost') continue;
-			const cells = row.querySelectorAll('td');
-			return {
-				attackerLost: parseValueFromElement(cells[0]?.querySelector('.value')),
-				defenderLost: parseValueFromElement(cells[1]?.querySelector('.value')),
-			};
-		}
-		return { attackerLost: 0, defenderLost: 0 };
+		const rows = [...statsTable.querySelectorAll('tr')].filter(
+			(row) => row.querySelector('th') && !row.classList.contains('tlw-net-row'),
+		);
+		// The label is translated, so outside English fall back to the only row
+		// whose cells show resource amounts.
+		const resourceRows = rows.filter((row) => row.querySelector('td i.resources_medium'));
+		const row =
+			rows.find((r) => r.querySelector('th').textContent.trim() === 'Resources lost') ??
+			(resourceRows.length === 1 ? resourceRows[0] : null);
+		if (!row) return { attackerLost: 0, defenderLost: 0 };
+		const cells = row.querySelectorAll('td');
+		return {
+			attackerLost: parseValueFromElement(cells[0]?.querySelector('.value')),
+			defenderLost: parseValueFromElement(cells[1]?.querySelector('.value')),
+		};
 	}
 	function createNetResourcesRow(net, defenderLost) {
 		const row = document.createElement('tr');
@@ -385,7 +390,7 @@
 	}
 	function injectTippyUnitCount(tippyRoot) {
 		if (!active) return;
-		if (autoUnitCap <= 0 || !autoUnitName) return;
+		if (!isAutoEnabled || autoUnitCap <= 0 || !autoUnitName) return;
 		if (tippyRoot.style.visibility !== 'visible') return;
 		const content = tippyRoot.querySelector('.tippy-content');
 		if (!content) return;
@@ -477,10 +482,12 @@
 	}
 	function createDebouncer() {
 		let timeout = null;
-		return (callback) => {
+		const debounced = (callback) => {
 			clearTimeout(timeout);
 			timeout = setTimeout(callback, STORAGE_SAVE_DELAY_MS);
 		};
+		debounced.cancel = () => clearTimeout(timeout);
+		return debounced;
 	}
 
 	// ===== OVERLAY =====
@@ -658,7 +665,12 @@
 			const newOffsetY = parseInt(offYInput.value, 10) || 0;
 			const saveObj = buildSettingsObject(enabled, debugOn, unitName, newOffsetX, newOffsetY);
 			if (shouldDebounce) debouncedSave(() => chrome.storage.local.set(saveObj));
-			else chrome.storage.local.set(saveObj);
+			else {
+				// A pending debounced save holds older values; this save supersedes it.
+				debouncedSave.cancel();
+				chrome.storage.local.set(saveObj);
+			}
+			const unitChanged = Boolean(unitName) && autoUnitName !== unitName;
 			isAutoEnabled = enabled;
 			isDebugEnabled = debugOn;
 			// '' means "use the global default"; the storage listener reloads
@@ -670,7 +682,8 @@
 				updateBadgesPosition();
 			}
 			const newCap = UNIT_CAP_MAP.get(unitName);
-			if (newCap && autoUnitCap !== newCap) {
+			// Badges show the unit name too, so redraw for a same-capacity unit.
+			if (newCap && (autoUnitCap !== newCap || unitChanged)) {
 				autoUnitCap = newCap;
 				refreshAllBadges();
 			}

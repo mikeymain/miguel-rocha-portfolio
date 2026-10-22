@@ -25,8 +25,8 @@
 	function parseDistance(text) {
 		// Strip Travian's invisible bidi markers before number-matching.
 		const cleaned = text.replace(/[‪-‮⁦-⁩​-‏]/g, '');
-		const match = cleaned.match(/(\d+(?:\.\d+)?)/);
-		return match ? parseFloat(match[1]) : Infinity;
+		const match = cleaned.match(/(\d+(?:[.,]\d+)?)/);
+		return match ? parseFloat(match[1].replace(',', '.')) : Infinity;
 	}
 
 	function sortAdventures() {
@@ -38,15 +38,17 @@
 		const parent = table.querySelector('tbody') || table;
 		const rows = Array.from(parent.children).filter((el) => el.tagName === 'TR');
 		const adventureRows = rows.filter((row) => row.querySelector('td.distance'));
-		if (adventureRows.length < 2) {
-			table.dataset.advSorted = '1';
-			return true;
-		}
+		// Rows may still be rendering; keep watching until there is something to sort.
+		if (adventureRows.length < 2) return false;
 
+		// Sort in place so other rows (headers, footers) keep their position.
+		const anchor = document.createComment('');
+		parent.insertBefore(anchor, adventureRows[0]);
 		adventureRows
 			.map((row) => ({ row, dist: parseDistance(row.querySelector('td.distance').textContent) }))
 			.sort((a, b) => a.dist - b.dist)
-			.forEach(({ row }) => parent.appendChild(row));
+			.forEach(({ row }) => parent.insertBefore(row, anchor));
+		anchor.remove();
 
 		table.dataset.advSorted = '1';
 		table.classList.add('adv-sorted');
