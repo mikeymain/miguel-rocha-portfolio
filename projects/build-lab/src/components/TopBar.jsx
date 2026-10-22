@@ -20,6 +20,9 @@ export function TopBar({ view, onView, savedCount, spent, onOpenModal, onSave })
         <button className={view === "builder" ? "active" : ""} onClick={() => onView("builder")}>
           Builder
         </button>
+        <button className={view === "finder" ? "active" : ""} onClick={() => onView("finder")}>
+          Find build
+        </button>
         <button className={view === "saved" ? "active" : ""} onClick={() => onView("saved")}>
           Saved builds{savedCount > 0 && <span className="nav-count">{savedCount}</span>}
         </button>

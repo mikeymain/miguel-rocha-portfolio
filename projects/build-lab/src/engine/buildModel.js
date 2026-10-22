@@ -1,8 +1,12 @@
 import { getRules, getCaps, getOverall, normalizeBody, attributeIds } from "./gameRules.js";
 import { applyAttributeChange, reconcileAttributes, satisfyMinimums } from "./dependencies.js";
 import { exactBodyCaps } from "./capBreakerEngine.js";
+const capsCache = new Map();
+// Body ceilings never change for a body, so cache them; callers must not mutate the result.
 export function buildCaps(body) {
-  return exactBodyCaps(body) ?? getCaps(body);
+  const key = `${body.position}/${body.height}/${body.weight}/${body.wingspan}`;
+  if (!capsCache.has(key)) capsCache.set(key, Object.freeze(exactBodyCaps(body) ?? getCaps(body)));
+  return capsCache.get(key);
 }
 export const usableCaps = (body) =>
   Object.fromEntries(Object.entries(buildCaps(body)).map(([id, cap]) => [id, cap ?? 25]));

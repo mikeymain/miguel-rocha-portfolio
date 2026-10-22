@@ -1,4 +1,11 @@
-import { Broom, Info, PencilSimple, PersonSimpleRun } from "@phosphor-icons/react";
+import {
+  ArrowsIn,
+  Broom,
+  Info,
+  MagnifyingGlass,
+  PencilSimple,
+  PersonSimpleRun,
+} from "@phosphor-icons/react";
 import { formatHeight, groups } from "../data";
 import { AttributeCost } from "./AttributeCost";
 import { AttributeGroup } from "./AttributeGroup";
@@ -94,6 +101,8 @@ export function BuildEditor({
   onHoverSteppers,
   actions,
   onMinimizeBuild,
+  onMinimizeCaps,
+  onOpenFinder,
   onResetLocks,
   onOpenModal,
   onRename,
@@ -128,6 +137,22 @@ export function BuildEditor({
           />
           +/- on hover
         </label>
+        <button
+          className="toolbar-finder toolbar-min-caps"
+          title="Keep every after-cap rating with as few cap breakers as the overall budget allows"
+          onClick={onMinimizeCaps}
+        >
+          <ArrowsIn size={14} />
+          Minimize caps
+        </button>
+        <button
+          className="toolbar-finder"
+          title="Search for the strongest legal build that reaches this build's after-cap ratings"
+          onClick={onOpenFinder}
+        >
+          <MagnifyingGlass size={14} />
+          Open in Finder
+        </button>
         <button
           className="toolbar-minimize"
           aria-label="Minimize unlocked attributes"

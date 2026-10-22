@@ -12,6 +12,8 @@ A React planner for NBA 2K27 player builds, with linked attribute changes, saved
 - Body settings, badge requirements and cap-breaker planning.
 - Saved builds, side-by-side comparisons, shareable links and image exports.
 - Responsive attribute lanes that reflow with the editor's width (CSS container queries).
+- Build Finder: set the ratings you want after cap breakers and search every legal body in a height range. Targets can be Must or best effort, set from a body's maximum or from a badge tier, and results spend every regular and specialization cap breaker. When nothing qualifies it shows the closest builds. Searches run in a Web Worker and can be stopped.
+- Minimize caps: keep every after-cap rating with as few cap breakers as the overall budget allows.
 
 ## Run locally
 
@@ -24,14 +26,14 @@ Open `http://127.0.0.1:4173`. `npm run build` produces a static site in `dist/cl
 
 ## Tests
 
-- `npm test` runs the calculation tests in `tests/*.test.mjs`: linked-attribute rules, cap projections, cost curves, locks and share links.
+- `npm test` runs the calculation tests in `tests/*.test.mjs`: linked-attribute rules, cap projections, cost curves, locks, share links and the Build Finder.
 - `npm run test:ui` starts the dev server and runs the Playwright browser tests in `tests/ui/`: editing flows, saved builds, layout at several widths and typography. It uses Playwright's Chromium; set `PLAYWRIGHT_CHANNEL=msedge` to use an installed Edge instead.
 
 ## Source guide
 
 - `src/Builder.jsx` owns the application state and wires handlers to the components in `src/components/`.
 - `src/storage.js` restores and saves the draft and the saved-build library, turning every storage failure into a user-facing notice.
-- `src/engine/` holds the calculation logic: linked attributes, cap breakers and projections. It has no React dependency, so it is tested directly.
+- `src/engine/` holds the calculation logic: linked attributes, cap breakers, projections and the Build Finder search (`buildFinder.js`, `capSwap.js`, `badgeValue.js`, run off the page by `finderWorker.js`). It has no React dependency, so it is tested directly.
 - `src/catalogs/` holds compiled badge, animation and takeover data.
 
 ## Accuracy

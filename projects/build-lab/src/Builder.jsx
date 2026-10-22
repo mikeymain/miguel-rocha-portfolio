@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CheckCircle, X } from "@phosphor-icons/react";
 import { toPng } from "html-to-image";
-import { attributes, badges, byId, changesBetween, clamp } from "./data";
+import { attributes, badges, byId, changesBetween, clamp, formatHeight } from "./data";
 import { dependencyRules } from "./engine/ruleset";
 import {
   attributeIncreaseCosts,
@@ -19,6 +19,8 @@ import { loadSession, saveSession } from "./storage";
 import { BodyPlanner } from "./components/BodyPlanner";
 import { BottomBar } from "./components/BottomBar";
 import { BuildEditor } from "./components/BuildEditor";
+import { BuildFinder } from "./components/BuildFinder";
+import { minimizeCapsKeepingRatings } from "./engine/capSwap";
 import { CapsModal } from "./components/CapsModal";
 import { ExportCard } from "./components/ExportCard";
 import { Inspector } from "./components/Inspector";
@@ -284,6 +286,40 @@ export function Builder() {
     }
   }
 
+  // Keep every after-cap rating with as few cap breakers as the overall
+  // budget allows, as one undo step. Locked ratings stay fixed.
+  function minimizeCaps() {
+    if (!spent) {
+      setToast("This build uses no cap breakers.");
+      return;
+    }
+    const next = minimizeCapsKeepingRatings(build);
+    const left = Object.values(next.breakers).reduce((sum, n) => sum + (n || 0), 0);
+    if (left >= spent) {
+      setToast(
+        "No cap breaker can be removed without lowering a rating or going over the overall budget.",
+      );
+      return;
+    }
+    update(next);
+    const removed = spent - left;
+    setToast(
+      `Saved ${removed} cap breaker${removed === 1 ? "" : "s"} (${left} left). Every after-cap rating is kept; Undo restores the previous spread.`,
+    );
+  }
+
+  function openFinderResult(found) {
+    const next = {
+      ...found,
+      name: `${found.body.position} ${formatHeight(found.body.height)} finder build`,
+    };
+    update(next);
+    setComparison(structuredClone(next));
+    setView("builder");
+    setEditorMode("combined");
+    setToast("Finder build opened. Edit it or save a copy from the builder.");
+  }
+
   const attributeActions = {
     showAttributeBadges,
     focusAttribute: setSelected,
@@ -324,6 +360,8 @@ export function Builder() {
             onHoverSteppers={setHoverSteppers}
             actions={attributeActions}
             onMinimizeBuild={minimizeBuild}
+            onMinimizeCaps={minimizeCaps}
+            onOpenFinder={() => setView("finder")}
             onResetLocks={() => {
               update({ ...build, locks: {} });
               setToast("All attribute locks cleared.");
@@ -352,6 +390,12 @@ export function Builder() {
             onSelectAttribute={showAttributeBadges}
           />
         </main>
+      ) : view === "finder" ? (
+        <BuildFinder
+          referenceBuild={build}
+          onBack={() => setView("builder")}
+          onOpenBuild={openFinderResult}
+        />
       ) : (
         <SavedBuilds
           saved={saved}
