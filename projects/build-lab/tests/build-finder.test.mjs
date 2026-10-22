@@ -482,18 +482,22 @@ test("badge targets fold OR joins and pick the cheapest reachable option", async
 
 test("closest builds rank unreachable requests by points short and keep Must labels", async () => {
   const { findClosestBuilds } = await import("../src/engine/buildFinder.js");
+  const body = enumerateFinderBodies({ position: "SG", minHeight: 77, maxHeight: 77 })[0],
+    caps = buildCaps(body);
+  const mustIds = ["dunk", "three", "handle", "perimeter", "speed", "mid"];
   const request = {
+    position: body.position,
     minHeight: 77,
     maxHeight: 77,
-    capBreakerCount: 5,
+    weight: body.weight,
+    wingspan: body.wingspan,
+    capBreakerCount: 3,
     priorities: [],
     maxBodyCandidates: 24,
     limit: 8,
     capTargets: [
-      { id: "dunk", target: 99, must: true },
-      { id: "three", target: 91, must: true },
-      { id: "block", target: 80, must: true },
-      { id: "handle", target: 85, must: false },
+      ...mustIds.map((id) => ({ id, target: caps[id], must: true })),
+      { id: "block", target: 70, must: false },
     ],
   };
   assert.equal(findCapBreakerBuilds(request).results.length, 0);
@@ -507,9 +511,72 @@ test("closest builds rank unreachable requests by points short and keep Must lab
     best.shortfall,
     best.misses.reduce((sum, miss) => sum + miss.target - miss.final, 0),
   );
-  assert.equal(best.capTargets.find((row) => row.id === "handle").must, false);
-  assert.equal(best.capTargets.find((row) => row.id === "block").must, true);
-  assert.ok(best.totalCapsUsed <= 5 && getOverall(best.build.ratings, 77).uncapped <= 99 + 1e-6);
+  assert.equal(best.capTargets.find((row) => row.id === "block").must, false);
+  assert.equal(best.capTargets.find((row) => row.id === "dunk").must, true);
+  for (const [id, count] of Object.entries(best.build.breakers))
+    if (count) assert.ok(mustIds.includes(id), `${id} is not a Must target`);
+  assert.ok(best.totalCapsUsed <= 3 && getOverall(best.build.ratings, 77).uncapped <= 99 + 1e-6);
+});
+
+test("closest search only uses bodies that reach every Must and reports when none can", async () => {
+  const { runFinderSearch } = await import("../src/engine/buildFinder.js");
+  const base = {
+    minHeight: 77,
+    maxHeight: 77,
+    capBreakerCount: 5,
+    priorities: [],
+    maxBodyCandidates: 24,
+    limit: 8,
+  };
+  const alone = runFinderSearch({
+    ...base,
+    capTargets: [
+      { id: "dunk", target: 99, must: true },
+      { id: "block", target: 80, must: true },
+    ],
+  });
+  assert.equal(alone.results.length, 0);
+  assert.match(alone.errors.join(" "), /80 Block \(max \d+\)/);
+  const together = runFinderSearch({
+    ...base,
+    capTargets: [
+      { id: "dunk", target: 96, must: true },
+      { id: "three", target: 94, must: true },
+      { id: "handle", target: 92, must: true },
+    ],
+  });
+  assert.equal(together.results.length, 0);
+  assert.match(together.errors.join(" "), /No single body .* every Must target together/);
+});
+
+test("cap breakers only go on Must targets", async () => {
+  const { capBudgetFits, runFinderSearch } = await import("../src/engine/buildFinder.js");
+  const capTargets = [
+    { id: "dunk", target: 95, must: true },
+    { id: "block", target: 70, must: false },
+  ];
+  assert.ok(capBudgetFits({ dunk: 2 }, { capBreakerCount: 3, capTargets }));
+  assert.ok(
+    !capBudgetFits({ block: 1 }, { capBreakerCount: 3, capTargets }),
+    "best-effort targets take no caps",
+  );
+  assert.ok(
+    !capBudgetFits({ mid: 1 }, { capBreakerCount: 3, capTargets }),
+    "non-targets take no caps",
+  );
+  const found = runFinderSearch({
+    minHeight: 77,
+    maxHeight: 77,
+    capBreakerCount: 4,
+    priorities: [],
+    maxBodyCandidates: 12,
+    limit: 4,
+    capTargets,
+  });
+  assert.ok(found.results.length > 0);
+  for (const result of found.results)
+    for (const [id, count] of Object.entries(result.build.breakers))
+      if (count) assert.equal(id, "dunk");
 });
 
 test("badge thresholds list the next reachable step for an attribute", async () => {
@@ -674,7 +741,7 @@ test("specialization caps free budget even when the starting spread already meet
   assert.ok(getOverall(best.build.ratings, 79).uncapped <= 99 + 1e-6);
 });
 
-test("every finder result spends all specialization cap breakers", async () => {
+test("specialization cap breakers only go on Must targets in their category", async () => {
   const { runFinderSearch } = await import("../src/engine/buildFinder.js");
   const ratings = {
     close: 74,
@@ -761,7 +828,11 @@ test("every finder result spends all specialization cap breakers", async () => {
     const found = runFinderSearch(request);
     assert.ok(found.results.length > 0);
     for (const result of found.results) {
-      assert.equal(shooting(result.build), 2, "both shooting breakers are placed");
+      const targetIds = request.capTargets.map((item) => item.id);
+      for (const [id, count] of Object.entries(result.build.breakers))
+        if (count) assert.ok(targetIds.includes(id), `${id} is not a Must target`);
+      if (!targetIds.some((id) => ["mid", "three"].includes(id)))
+        assert.equal(shooting(result.build), 0, "shooting breakers need a shooting Must");
       assert.equal(result.build.breakers.free || 0, 0, "free throw never takes cap breakers");
       assert.ok(result.totalCapsUsed <= request.capBreakerCount + 2);
       assert.ok(getOverall(result.build.ratings, 79).uncapped <= 99 + 1e-6);

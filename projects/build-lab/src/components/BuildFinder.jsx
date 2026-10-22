@@ -272,7 +272,8 @@ export function BuildFinder({ referenceBuild, onBack, onOpenBuild }) {
     };
     searchRef.current = startFinderSearch(input, {
       onResult: (result) => {
-        setResults(result);
+        if (result.errors?.length) setErrors(result.errors);
+        else setResults(result);
         done();
       },
       onError: (message) => {

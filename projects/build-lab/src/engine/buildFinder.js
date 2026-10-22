@@ -14,14 +14,28 @@ const SPECIALIZATIONS = ["fin", "sht", "plm", "def", "reb", "phy"];
 // User direction: the finder never places cap breakers on these attributes.
 const NO_CAP_ATTRIBUTES = ["free"];
 
-// Regular cap breakers go on any attribute; specialization breakers only on
-// attributes in the selected specialization's category.
+// User direction: cap breakers only go on Must targets. capIds overrides this
+// when a relaxed search marks every target best effort. Without any Must
+// target, every target may take cap breakers; null means no targets given.
+export function capAttributeIds(request) {
+  if (Array.isArray(request.capIds)) return new Set(request.capIds);
+  const targets = request.capTargets || [];
+  if (!targets.length) return null;
+  const musts = targets.filter((item) => item.must !== false);
+  return new Set((musts.length ? musts : targets).map((item) => item.id));
+}
+
+// Regular cap breakers go on any allowed attribute; specialization breakers
+// only on allowed attributes in the selected specialization's category.
 export function capBudgetFits(counts, request) {
   const specialization = SPECIALIZATIONS.includes(request.specialization)
     ? request.specialization
     : null;
   const extra = specialization ? Math.max(0, request.specializationCount || 0) : 0;
   if (NO_CAP_ATTRIBUTES.some((id) => (counts[id] || 0) > 0)) return false;
+  const allowed = capAttributeIds(request);
+  if (allowed && Object.entries(counts).some(([id, count]) => count > 0 && !allowed.has(id)))
+    return false;
   let inside = 0,
     outside = 0;
   for (const [id, count] of Object.entries(counts)) {
@@ -577,6 +591,7 @@ function searchRequest(input) {
   return {
     request: {
       ...input,
+      capIds: [...(capAttributeIds(input) || [])],
       capTargets: targets.filter((item) => item.must !== false),
       priorities: [
         ...(input.priorities || []),
@@ -729,7 +744,9 @@ export function findCapBreakerBuilds(input = {}) {
   const errors = validateFinderRequest(input);
   if (errors.length) return { errors, results: [] };
   const { request, bestEffort } = searchRequest(input);
-  const bodies = enumerateFinderBodies(request);
+  const bodies = enumerateFinderBodies(request).filter((body) =>
+    bodyReachesMusts(body, request.reachTargets),
+  );
   const results = [];
   const maxCandidates = Math.max(1, Math.min(request.maxBodyCandidates ?? 80, 240));
   const bodyReference = request.bodyReference;
@@ -949,27 +966,49 @@ function applyAllCaps(build, rows, input) {
   };
 }
 
+// A Must target is only reachable on a body whose ceiling for it is at least
+// the target; cap breakers never lift a rating past that ceiling.
+function bodyReachesMusts(body, musts = []) {
+  if (!musts.length) return true;
+  const caps = buildCaps(body);
+  return musts.every((item) => (caps[item.id] ?? 25) >= item.target);
+}
+
+function unreachableMustError(input, musts) {
+  const maximums = finderTargetMaximums(input);
+  const alone = musts.filter((item) => maximums[item.id] < item.target);
+  if (alone.length)
+    return `No body in this height range can reach ${alone.map((item) => `${item.target} ${labels[item.id]} (max ${maximums[item.id]})`).join(", ")}. Lower that Must or make it best effort.`;
+  // Name the body that misses the fewest Must points and what it misses.
+  let closest = null;
+  for (const body of enumerateFinderBodies(input)) {
+    const caps = buildCaps(body);
+    const misses = musts
+      .filter((item) => (caps[item.id] ?? 25) < item.target)
+      .map((item) => ({ item, max: caps[item.id] ?? 25 }));
+    const short = misses.reduce((sum, miss) => sum + miss.item.target - miss.max, 0);
+    if (!closest || short < closest.short) closest = { body, misses, short };
+  }
+  const { body, misses } = closest;
+  return `No single body in this height range can reach every Must target together. Closest body: ${body.position} ${formatHeight(body.height)}, ${body.weight} lbs, ${formatHeight(body.wingspan)} wingspan, which tops out at ${misses.map(({ item, max }) => `${max} ${labels[item.id]} (Must ${item.target})`).join(", ")}. Lower those Musts or make them best effort.`;
+}
+
 export function findClosestBuilds(input = {}) {
   const targets = input.capTargets || [];
-  const mustIds = new Set(targets.filter((item) => item.must !== false).map((item) => item.id));
-  // First keep the search exact but lower targets no body in range can reach;
-  // that still spends cap breakers efficiently. Then relax every target.
-  const maximums = finderTargetMaximums(input);
-  const clamped = targets.map((item) => ({
-    ...item,
-    target: Math.max(25, Math.min(item.target, maximums[item.id])),
-  }));
-  let found = clamped.some((item, index) => item.target !== targets[index].target)
-    ? findCapBreakerBuilds({ ...input, capTargets: clamped, skipSpecialization: true })
-    : { errors: [], results: [] };
-  if (found.errors.length) return found;
-  if (!found.results.length)
-    found = findCapBreakerBuilds({
-      ...input,
-      objective: "maximizePriorities",
-      capTargets: targets.map((item) => ({ ...item, must: false })),
-      skipSpecialization: true,
-    });
+  const musts = targets.filter((item) => item.must !== false);
+  const mustIds = new Set(musts.map((item) => item.id));
+  // Only bodies whose ceilings reach every Must can be shown; best-effort
+  // targets may still fall short.
+  if (!enumerateFinderBodies(input).some((body) => bodyReachesMusts(body, musts)))
+    return { errors: [unreachableMustError(input, musts)], results: [] };
+  const found = findCapBreakerBuilds({
+    ...input,
+    reachTargets: musts,
+    capIds: [...(capAttributeIds(input) || [])],
+    skipSpecialization: true,
+    objective: "maximizePriorities",
+    capTargets: targets.map((item) => ({ ...item, must: false })),
+  });
   if (found.errors.length) return found;
   const goals = new Map(targets.map((item) => [item.id, item.target]));
   const otherIds = attributeIds.filter((id) => !goals.has(id));
