@@ -963,3 +963,36 @@ test("building around the cap budget spends every regular breaker but never on f
     assert.ok(getOverall(result.build.ratings, 79).uncapped <= 99 + 1e-6);
   }
 });
+
+test("Must limits follow edit order: raising one Must lowers Musts set earlier", async () => {
+  const { finderTargetLimits, finderTargetMaximums } = await import("../src/engine/buildFinder.js");
+  const range = { minHeight: 69, maxHeight: 88 };
+  const top = finderTargetMaximums(range);
+  const ratings = Object.fromEntries(Object.keys(top).map((id) => [id, 25]));
+  const mustIds = new Set(["dunk", "three"]);
+  const free = finderTargetLimits(
+    range,
+    { ...ratings, dunk: top.dunk, three: 25 },
+    { mustIds, order: ["dunk"] },
+  );
+  assert.equal(free.limits.dunk, top.dunk, "a lone Must can reach the range maximum");
+  const both = finderTargetLimits(
+    range,
+    { ...ratings, dunk: top.dunk, three: top.three },
+    { mustIds, order: ["three", "dunk"] },
+  );
+  assert.equal(both.limits.three, top.three, "the latest edit keeps the range maximum");
+  assert.ok(both.limits.dunk < top.dunk, "dunk comes down for a maximum three");
+  assert.equal(both.ratings.dunk, both.limits.dunk, "dunk target is clamped to its new limit");
+  const again = finderTargetLimits(range, both.ratings, { mustIds, order: ["three", "dunk"] });
+  assert.deepEqual(again.ratings, both.ratings, "clamped ratings are stable");
+  const bestEffort = finderTargetLimits(
+    range,
+    { ...ratings, dunk: top.dunk, three: top.three },
+    { mustIds: new Set(["three"]), order: ["three"] },
+  );
+  assert.ok(
+    bestEffort.limits.dunk < top.dunk,
+    "best-effort targets are limited to bodies that reach every Must",
+  );
+});

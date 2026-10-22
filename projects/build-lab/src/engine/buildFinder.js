@@ -173,6 +173,45 @@ export function finderTargetMaximums({ minHeight = 69, maxHeight = 88 } = {}) {
   return maximums;
 }
 
+const rangeCapsCache = new Map();
+function rangeBodyCaps({ minHeight = 69, maxHeight = 88 } = {}) {
+  const key = `${minHeight}-${maxHeight}`;
+  if (!rangeCapsCache.has(key))
+    rangeCapsCache.set(key, enumerateFinderBodies({ minHeight, maxHeight }).map(buildCaps));
+  return rangeCapsCache.get(key);
+}
+
+// Per-attribute target limits that respect the Must targets. Musts are walked
+// in priority order (most recently edited first): each one is limited to the
+// best ceiling among bodies that reach every Must before it, so raising one
+// Must lowers the limits of Musts edited earlier. Other attributes are limited
+// to bodies that reach every Must. Returns the limits and the clamped ratings.
+export function finderTargetLimits(
+  range,
+  ratings,
+  { mustIds = new Set(), order = attributeIds } = {},
+) {
+  let pool = rangeBodyCaps(range);
+  const ceiling = (id) =>
+    pool.reduce((best, caps) => Math.max(best, Number.isInteger(caps[id]) ? caps[id] : 25), 25);
+  const limits = {},
+    next = { ...ratings };
+  const ranked = [...new Set([...order, ...attributeIds])].filter(
+    (id) => mustIds.has(id) && next[id] > 25,
+  );
+  for (const id of ranked) {
+    limits[id] = ceiling(id);
+    next[id] = Math.min(next[id], limits[id]);
+    pool = pool.filter((caps) => caps[id] >= next[id]);
+  }
+  for (const id of attributeIds) {
+    if (id in limits) continue;
+    limits[id] = ceiling(id);
+    next[id] = Math.min(next[id], limits[id]);
+  }
+  return { limits, ratings: next };
+}
+
 // Badge tier steps on one attribute within the height range, lowest first.
 // Only this attribute's requirement is listed; other requirements may apply.
 export function badgeThresholds(id, { minHeight = 69, maxHeight = 88 } = {}) {

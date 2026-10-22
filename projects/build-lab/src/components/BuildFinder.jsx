@@ -14,6 +14,7 @@ import { attributes, byId, groups, formatHeight } from "../data";
 import {
   badgeTargetPlan,
   capBudgetTotal,
+  finderTargetLimits,
   finderTargetMaximums,
   nextBadgeThreshold,
   getFinderHeights,
@@ -168,10 +169,33 @@ export function BuildFinder({ referenceBuild, onBack, onOpenBuild }) {
   const [badgeName, setBadgeName] = useState("");
   const [badgeTier, setBadgeTier] = useState("Bronze");
   const [badgeNote, setBadgeNote] = useState("");
-  const maximums = useMemo(
+  // Priority for Must limits, most recently edited first.
+  const [editOrder, setEditOrder] = useState(() => attributes.map((attribute) => attribute.id));
+  const rangeMaximums = useMemo(
     () => finderTargetMaximums({ minHeight, maxHeight }),
     [minHeight, maxHeight],
   );
+  const limited = useMemo(
+    () =>
+      finderTargetLimits({ minHeight, maxHeight }, targetRatings, {
+        mustIds: new Set(
+          attributes.map((attribute) => attribute.id).filter((id) => !bestEffort.has(id)),
+        ),
+        order: editOrder,
+      }),
+    [minHeight, maxHeight, targetRatings, bestEffort, editOrder],
+  );
+  const maximums = limited.limits;
+  useEffect(() => {
+    const lowered = attributes.filter(
+      (attribute) => limited.ratings[attribute.id] < targetRatings[attribute.id],
+    );
+    if (!lowered.length) return;
+    setTargetRatings(limited.ratings);
+    setBadgeNote(
+      `Lowered to fit your other Musts: ${lowered.map((attribute) => `${attribute.name} ${targetRatings[attribute.id]} → ${limited.ratings[attribute.id]}`).join(", ")}.`,
+    );
+  }, [limited]);
   const tierOptions = badgeTiers.filter((tier) =>
     badges.some((item) => item.name === badgeName && item.tier === tier),
   );
@@ -184,11 +208,15 @@ export function BuildFinder({ referenceBuild, onBack, onOpenBuild }) {
       must: !bestEffort.has(attribute.id),
     }));
   const heights = getFinderHeights();
-  // Targets never exceed what the best body in the height range can reach.
+  const prioritize = (ids) =>
+    setEditOrder((order) => [...ids, ...order.filter((id) => !ids.includes(id))]);
+  // An edited target may go up to the best body in the height range; Musts
+  // edited earlier then come down to what bodies with this target can reach.
   function setDesiredRating(id, value) {
+    prioritize([id]);
     setTargetRatings((ratings) => ({
       ...ratings,
-      [id]: Math.max(25, Math.min(maximums[id], value)),
+      [id]: Math.max(25, Math.min(rangeMaximums[id], value)),
     }));
     setResults(null);
   }
@@ -210,6 +238,7 @@ export function BuildFinder({ referenceBuild, onBack, onOpenBuild }) {
       setBadgeNote(plan.error);
       return;
     }
+    prioritize(plan.requirements.map((requirement) => requirement.id));
     setTargetRatings(plan.targets);
     setBestEffort(
       (ids) =>
@@ -232,7 +261,9 @@ export function BuildFinder({ referenceBuild, onBack, onOpenBuild }) {
       `Targets lowered to what this build reaches: ${result.misses.map((miss) => `${miss.final} ${miss.name}`).join(", ")}.`,
     );
   }
+  // A new Must yields to the Musts already set.
   function toggleMust(id) {
+    setEditOrder((order) => [...order.filter((other) => other !== id), id]);
     setBestEffort((ids) => {
       const next = new Set(ids);
       if (next.has(id)) next.delete(id);
@@ -539,14 +570,18 @@ export function BuildFinder({ referenceBuild, onBack, onOpenBuild }) {
                               id={id}
                               name={name}
                               value={value}
-                              max={maximums[id]}
+                              max={rangeMaximums[id]}
                               onChange={(next) => setDesiredRating(id, next)}
                             />
                             <button
                               type="button"
                               className="cap finder-max"
                               aria-label={`Set ${name} to max ${maximums[id]}`}
-                              title={`Highest ${name} any body in this height range can reach. Click to target it.`}
+                              title={
+                                maximums[id] < rangeMaximums[id]
+                                  ? `Highest ${name} a body can reach alongside your other Musts (${rangeMaximums[id]} in this height range; going higher lowers Musts you set earlier). Click to target it.`
+                                  : `Highest ${name} any body in this height range can reach. Click to target it.`
+                              }
                               onClick={() => setDesiredRating(id, maximums[id])}
                             >
                               {maximums[id]}
@@ -586,7 +621,7 @@ export function BuildFinder({ referenceBuild, onBack, onOpenBuild }) {
                               <div className="slider-track">
                                 <span
                                   style={{
-                                    width: `${maximums[id] > 25 ? ((value - 25) / (maximums[id] - 25)) * 100 : 0}%`,
+                                    width: `${rangeMaximums[id] > 25 ? ((value - 25) / (rangeMaximums[id] - 25)) * 100 : 0}%`,
                                   }}
                                 />
                               </div>
@@ -594,7 +629,7 @@ export function BuildFinder({ referenceBuild, onBack, onOpenBuild }) {
                                 id={`target-${id}`}
                                 type="range"
                                 min="25"
-                                max={maximums[id]}
+                                max={rangeMaximums[id]}
                                 step="1"
                                 aria-label={`${name} slider`}
                                 value={value}
@@ -615,7 +650,7 @@ export function BuildFinder({ referenceBuild, onBack, onOpenBuild }) {
                               <button
                                 type="button"
                                 aria-label={`Increase desired ${name}`}
-                                disabled={value >= maximums[id]}
+                                disabled={value >= rangeMaximums[id]}
                                 onClick={() => setDesiredRating(id, value + 1)}
                               >
                                 <Plus size={12} />
