@@ -318,8 +318,13 @@ export function Builder() {
   }
 
   function openFinderResult(found) {
+    // Keep the locks from the build the finder was opened from.
+    const locks = Object.fromEntries(
+      Object.entries(build.locks || {}).filter(([, locked]) => locked === true),
+    );
     const next = {
       ...found,
+      ...(Object.keys(locks).length ? { locks } : {}),
       name: `${found.body.position} ${formatHeight(found.body.height)} finder build`,
     };
     update(next);
