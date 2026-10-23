@@ -79,8 +79,9 @@ export function ScreenshotImport({ onImport }) {
     <div className="screenshot-import">
       <h3>Read a 2K screenshot</h3>
       <p className="muted">
-        Use a full 16:9 screenshot of the MyCareer Attribute Upgrades screen. Choose a file or paste
-        the image. Check the values before loading.
+        Use a screenshot of the MyCareer Attribute Upgrades screen that shows the numbers above and
+        below every bar. Cropped or resized is fine; include the HT / WT / WS header to fill in the
+        body. Choose a file or paste the image, then check the values before loading.
       </p>
       <label className="form-label">
         Screenshot

@@ -55,3 +55,40 @@ test("screenshot values become a build whose cap breakers reproduce every final 
     { dunk: 5, post: 1, perimeter: 1, strength: 1, vertical: 4 },
   );
 });
+
+test("column fit recovers scale and offset from a partial, noisy row of numbers", async () => {
+  const { fitColumns } = await import("../src/screenshotReader.js");
+  const reference = [
+    113, 192, 270, 349, 428, 535, 614, 692, 798, 877, 956, 1062, 1142, 1220, 1298, 1405, 1484, 1591,
+    1670, 1749, 1827,
+  ];
+  const found = reference
+    .map((x, index) => 0.7 * x - 40 + (index % 3) - 1)
+    .filter((_, index) => ![2, 9, 15].includes(index));
+  found.push(5);
+  const fit = fitColumns(found, reference);
+  assert.ok(Math.abs(fit.scale - 0.7) < 0.01);
+  assert.ok(Math.abs(fit.offset + 40) < 3);
+  assert.equal(fit.matched, 18);
+  assert.equal(fitColumns([10, 20, 30], reference), null);
+});
+
+test("number boxes group into rows and readings are decided by vote", async () => {
+  const { numberRows, voteReading } = await import("../src/screenshotReader.js");
+  const rows = numberRows([
+    { x: 1, y: 921, height: 27 },
+    { x: 2, y: 214, height: 15 },
+    { x: 3, y: 924, height: 27 },
+    { x: 4, y: 216, height: 15 },
+  ]);
+  assert.deepEqual(
+    rows.map((row) => row.map((box) => box.x)),
+    [
+      [2, 4],
+      [1, 3],
+    ],
+  );
+  assert.equal(voteReading([71, 75, 75, null]), 75);
+  assert.equal(voteReading([77, null, 71]), 77);
+  assert.equal(voteReading([null, null]), null);
+});

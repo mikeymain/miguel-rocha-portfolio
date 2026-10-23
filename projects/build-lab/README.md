@@ -13,7 +13,7 @@ A React planner for NBA 2K27 player builds, with linked attribute changes, saved
 - Saved builds, side-by-side comparisons, shareable links and image exports.
 - Responsive attribute lanes that reflow with the editor's width (CSS container queries).
 - Build Finder: set the ratings you want after cap breakers and search every legal body in a height range. Targets can be Must or best effort, set from a body's maximum or from a badge tier, cap breakers only go on Must targets, and target limits follow the other Musts (the latest edit wins). Results either spend your cap breaker budget or, with "Fewest needed", rank builds by the fewest cap breakers the targets need. Only bodies that can reach every Must are searched; when none can, the finder names the closest body and what it misses. When nothing qualifies it shows the closest builds. Searches run in a Web Worker and can be stopped.
-- Screenshot import: the Import button reads a full 16:9 screenshot of the in-game MyCareer Attribute Upgrades screen (Tesseract.js, in the browser), fills in body, base ratings and ratings after cap breakers for review, then loads the build with matching cap breakers.
+- Screenshot import: the Import button reads a screenshot of the in-game MyCareer Attribute Upgrades screen (full, cropped or resized; the column layout is found from the numbers under the bars) (Tesseract.js, in the browser), fills in body, base ratings and ratings after cap breakers for review, then loads the build with matching cap breakers.
 - Minimize caps: keep every after-cap rating with as few cap breakers as the overall budget allows.
 
 ## Run locally
