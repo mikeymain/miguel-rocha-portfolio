@@ -257,6 +257,15 @@ export function Builder() {
     setToast("Saved build renamed.");
   }
 
+  function importScreenshot(incoming) {
+    update(incoming);
+    closeModal();
+    setView("builder");
+    setToast(
+      "Build read from the screenshot. Check it against the game; Undo restores the previous draft.",
+    );
+  }
+
   function importBuild(text) {
     update(parseBuildLink(text));
     closeModal();
@@ -501,7 +510,13 @@ export function Builder() {
           onClose={closeModal}
         />
       )}
-      {modal?.type === "import" && <ImportModal onImport={importBuild} onClose={closeModal} />}
+      {modal?.type === "import" && (
+        <ImportModal
+          onImport={importBuild}
+          onImportScreenshot={importScreenshot}
+          onClose={closeModal}
+        />
+      )}
       {modal?.type === "reset" && (
         <ConfirmModal
           title="Reset all attributes?"

@@ -1,4 +1,4 @@
-import { CaretDown, FloppyDisk, ShareNetwork } from "@phosphor-icons/react";
+import { CaretDown, FloppyDisk, ShareNetwork, UploadSimple } from "@phosphor-icons/react";
 
 export function TopBar({ view, onView, savedCount, spent, onOpenModal, onSave }) {
   return (
@@ -37,6 +37,14 @@ export function TopBar({ view, onView, savedCount, spent, onOpenModal, onSave })
         <button className="cap-button" onClick={() => onOpenModal("caps")}>
           Cap breakers <span className="count">{spent}</span>
           <CaretDown size={14} />
+        </button>
+        <button
+          className="icon-button share-top"
+          aria-label="Import a build"
+          title="Import a build link or 2K screenshot"
+          onClick={() => onOpenModal("import")}
+        >
+          <UploadSimple size={20} />
         </button>
         <button
           className="icon-button share-top"

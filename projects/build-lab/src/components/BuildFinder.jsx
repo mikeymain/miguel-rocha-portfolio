@@ -133,9 +133,13 @@ function DesiredRating({ id, name, value, max, onChange }) {
   );
 }
 
+// Five cap breakers on every attribute: no budget limit.
+const UNLIMITED_CAPS = 5 * attributes.length;
+
 export function BuildFinder({ referenceBuild, onBack, onOpenBuild }) {
-  // The finder always builds around the cap budget; minimizing caps lives in the builder.
-  const objective = "maximizePriorities";
+  // Build around the cap budget, or find the fewest cap breakers the targets need.
+  const [fewestCaps, setFewestCaps] = useState(false);
+  const objective = fewestCaps ? "minimizeCaps" : "maximizePriorities";
   const [minHeight, setMinHeight] = useState(referenceBuild.body.height);
   const [maxHeight, setMaxHeight] = useState(referenceBuild.body.height);
   const [capBreakerCount, setCapBreakerCount] = useState(
@@ -277,9 +281,13 @@ export function BuildFinder({ referenceBuild, onBack, onOpenBuild }) {
       objective,
       minHeight,
       maxHeight,
-      capBreakerCount: Number(capBreakerCount),
-      specializationCount: Number(specializationCount),
-      specialization: specialization || null,
+      ...(fewestCaps
+        ? { capBreakerCount: UNLIMITED_CAPS, specializationCount: 0, specialization: null }
+        : {
+            capBreakerCount: Number(capBreakerCount),
+            specializationCount: Number(specializationCount),
+            specialization: specialization || null,
+          }),
       capTargets,
       priorities: [],
       bodyReference: referenceBuild.body,
@@ -343,8 +351,9 @@ export function BuildFinder({ referenceBuild, onBack, onOpenBuild }) {
             <div>
               <h2>Choose height range and cap budget</h2>
               <p>
-                The finder searches legal positions, weights, and wingspans within this height range
-                and spends every cap breaker you have.
+                {fewestCaps
+                  ? "The finder searches legal positions, weights, and wingspans within this height range and ranks builds by the fewest cap breakers your Must targets need."
+                  : "The finder searches legal positions, weights, and wingspans within this height range and spends every cap breaker you have."}
               </p>
             </div>
           </div>
@@ -382,56 +391,73 @@ export function BuildFinder({ referenceBuild, onBack, onOpenBuild }) {
               </select>
             </label>
             <label>
-              Cap breakers available
-              <input
-                type="number"
-                min="0"
-                max="999"
-                value={capBreakerCount}
-                onChange={(event) => {
-                  setCapBreakerCount(event.target.value);
-                  setResults(null);
-                }}
-              />
-            </label>
-            <label>
-              Specialization
+              Cap budget
               <select
-                value={specialization}
+                value={fewestCaps ? "fewest" : "budget"}
                 onChange={(event) => {
-                  const next = event.target.value;
-                  if (next && !specialization) setSpecializationCount("2");
-                  setSpecialization(next);
+                  setFewestCaps(event.target.value === "fewest");
                   setResults(null);
                 }}
               >
-                <option value="">None</option>
-                {groups.map((group) => (
-                  <option key={group.id} value={group.id}>
-                    {group.name}
-                  </option>
-                ))}
+                <option value="budget">Use my cap breakers</option>
+                <option value="fewest">Fewest needed</option>
               </select>
             </label>
-            <label>
-              Specialization breakers
-              <input
-                type="number"
-                min="0"
-                max="999"
-                value={specializationCount}
-                disabled={!specialization}
-                title={
-                  specialization
-                    ? "Usable only on attributes in the selected specialization"
-                    : "Choose a specialization to use these breakers"
-                }
-                onChange={(event) => {
-                  setSpecializationCount(event.target.value);
-                  setResults(null);
-                }}
-              />
-            </label>
+            {!fewestCaps && (
+              <>
+                <label>
+                  Cap breakers available
+                  <input
+                    type="number"
+                    min="0"
+                    max="999"
+                    value={capBreakerCount}
+                    onChange={(event) => {
+                      setCapBreakerCount(event.target.value);
+                      setResults(null);
+                    }}
+                  />
+                </label>
+                <label>
+                  Specialization
+                  <select
+                    value={specialization}
+                    onChange={(event) => {
+                      const next = event.target.value;
+                      if (next && !specialization) setSpecializationCount("2");
+                      setSpecialization(next);
+                      setResults(null);
+                    }}
+                  >
+                    <option value="">None</option>
+                    {groups.map((group) => (
+                      <option key={group.id} value={group.id}>
+                        {group.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Specialization breakers
+                  <input
+                    type="number"
+                    min="0"
+                    max="999"
+                    value={specializationCount}
+                    disabled={!specialization}
+                    title={
+                      specialization
+                        ? "Usable only on attributes in the selected specialization"
+                        : "Choose a specialization to use these breakers"
+                    }
+                    onChange={(event) => {
+                      setSpecializationCount(event.target.value);
+                      setResults(null);
+                    }}
+                  />
+                </label>
+              </>
+            )}
           </div>
 
           <div className="finder-section-heading finder-section-spaced">
@@ -780,7 +806,9 @@ export function BuildFinder({ referenceBuild, onBack, onOpenBuild }) {
                       <span
                         className={`finder-caps-pill ${result.totalCapsUsed > capBudgetTotal(request()) ? "negative" : "positive"}`}
                       >
-                        {result.totalCapsUsed} / {capBudgetTotal(request()) || 0} CB
+                        {fewestCaps
+                          ? `${result.totalCapsUsed} CB`
+                          : `${result.totalCapsUsed} / ${capBudgetTotal(request()) || 0} CB`}
                       </span>
                       <strong className="finder-ovr">
                         {result.overall}
@@ -882,7 +910,7 @@ export function BuildFinder({ referenceBuild, onBack, onOpenBuild }) {
                           result.totalCapsUsed > capBudgetTotal(request()) ? "negative" : "positive"
                         }
                       >
-                        {result.totalCapsUsed} cap breakers used
+                        {result.totalCapsUsed} cap breakers {fewestCaps ? "needed" : "used"}
                         {specialization && Number(specializationCount) > 0
                           ? ` · ${result.capTargets.filter((row) => byId[row.id].group === specialization).reduce((sum, row) => sum + row.caps, 0)} on ${groups.find((group) => group.id === specialization).name}`
                           : ""}

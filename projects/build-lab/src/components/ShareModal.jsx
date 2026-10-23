@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Check, Copy } from "@phosphor-icons/react";
+import { ScreenshotImport } from "./ScreenshotImport";
 import { Modal } from "./Modal";
 
 export function ShareModal({
@@ -75,11 +76,11 @@ export function ShareModal({
 }
 
 /** Accepts a Build Lab link, raw build JSON, or an original Locker Codes builder link. */
-export function ImportModal({ onImport, onClose }) {
+export function ImportModal({ onImport, onImportScreenshot, onClose }) {
   const [text, setText] = useState("");
   const [error, setError] = useState("");
   return (
-    <Modal title="Import a build" onClose={onClose}>
+    <Modal title="Import a build" wide onClose={onClose}>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -107,6 +108,7 @@ export function ImportModal({ onImport, onClose }) {
           <button className="primary">Import build</button>
         </div>
       </form>
+      <ScreenshotImport onImport={onImportScreenshot} />
     </Modal>
   );
 }

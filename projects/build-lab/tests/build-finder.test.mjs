@@ -996,3 +996,33 @@ test("Must limits follow edit order: raising one Must lowers Musts set earlier",
     "best-effort targets are limited to bodies that reach every Must",
   );
 });
+
+test("fewest caps mode ranks builds by cap breakers needed with no budget limit", async () => {
+  const { runFinderSearch } = await import("../src/engine/buildFinder.js");
+  const body = { position: "SF", height: 79, weight: 237, wingspan: 84 },
+    caps = buildCaps(body);
+  const capTargets = [
+    { id: "dunk", target: caps.dunk, must: true },
+    { id: "three", target: caps.three, must: true },
+    { id: "block", target: caps.block, must: true },
+  ];
+  const found = runFinderSearch({
+    objective: "minimizeCaps",
+    minHeight: 79,
+    maxHeight: 79,
+    capBreakerCount: 105,
+    priorities: [],
+    maxBodyCandidates: 12,
+    limit: 4,
+    capTargets,
+  });
+  assert.ok(found.results.length > 0);
+  for (let index = 1; index < found.results.length; index++)
+    assert.ok(found.results[index - 1].totalCapsUsed <= found.results[index].totalCapsUsed);
+  for (const result of found.results) {
+    for (const item of capTargets)
+      assert.ok(result.capTargets.find((row) => row.id === item.id).met);
+    for (const [id, count] of Object.entries(result.build.breakers))
+      if (count) assert.ok(capTargets.some((item) => item.id === id));
+  }
+});
