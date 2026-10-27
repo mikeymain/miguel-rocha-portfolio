@@ -92,3 +92,19 @@ test("number boxes group into rows and readings are decided by vote", async () =
   assert.equal(voteReading([77, null, 71]), 77);
   assert.equal(voteReading([null, null]), null);
 });
+
+test("an in-progress player loads its Max ratings with no cap breakers", () => {
+  const base = byId([
+    74, 79, 89, 46, 34, 85, 94, 69, 70, 94, 93, 29, 75, 70, 59, 25, 35, 89, 80, 39, 78,
+  ]);
+  const current = byId([
+    46, 51, 60, 25, 25, 57, 64, 40, 33, 57, 61, 25, 49, 33, 25, 25, 25, 66, 53, 25, 51,
+  ]);
+  const build = buildFromScreenshot({
+    body: { position: "PG", height: 74, weight: 169, wingspan: 75 },
+    base,
+    finals: current,
+  });
+  assert.deepEqual(build.ratings, base);
+  assert.ok(Object.values(build.breakers).every((count) => count === 0));
+});

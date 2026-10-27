@@ -354,13 +354,11 @@ export async function readBuildScreenshot(file, onProgress = () => {}) {
           adaptive,
           strict,
         );
-      finals[id] = await cell(FINAL_BAND, false, false);
+      // A player still being upgraded shows current ratings below "Max", so a
+      // lower bottom number is not a misread. Dimmed columns need the adaptive
+      // threshold for the bottom number.
+      finals[id] = (await cell(FINAL_BAND, false, false)) ?? (await cell(FINAL_BAND, true, false));
       base[id] = await cell(BASE_BAND, true, false);
-      // A base above its final rating is a misread; vote over every variant.
-      if (base[id] != null && finals[id] != null && base[id] > finals[id]) {
-        base[id] = await cell(BASE_BAND, true, true);
-        finals[id] = await cell(FINAL_BAND, false, true);
-      }
       onProgress(0.2 + (0.8 * (index + 1)) / attributes.length);
     }
     return {

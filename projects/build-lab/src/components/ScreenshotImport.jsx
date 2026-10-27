@@ -81,7 +81,8 @@ export function ScreenshotImport({ onImport }) {
       <p className="muted">
         Use a screenshot of the MyCareer Attribute Upgrades screen that shows the numbers above and
         below every bar. Cropped or resized is fine; include the HT / WT / WS header to fill in the
-        body. Choose a file or paste the image, then check the values before loading.
+        body. Choose a file or paste the image, then check the values before loading. Max values
+        become the build; cap breakers are added where Current is above Max.
       </p>
       <label className="form-label">
         Screenshot
@@ -162,8 +163,8 @@ export function ScreenshotImport({ onImport }) {
                 aria-hidden={column === 1 || undefined}
               >
                 <span>Attribute</span>
-                <span>Base</span>
-                <span>After caps</span>
+                <span>Max</span>
+                <span>Current</span>
               </div>
             ))}
             {attributes.map((a) => (
@@ -179,7 +180,7 @@ export function ScreenshotImport({ onImport }) {
                   type="number"
                   min="25"
                   max="99"
-                  aria-label={`${a.name} base`}
+                  aria-label={`${a.name} max`}
                   value={read.base[a.id] ?? ""}
                   onChange={(event) => setRating("base", a.id, event.target.value)}
                 />
@@ -187,7 +188,7 @@ export function ScreenshotImport({ onImport }) {
                   type="number"
                   min="25"
                   max="99"
-                  aria-label={`${a.name} after caps`}
+                  aria-label={`${a.name} current`}
                   value={read.finals[a.id] ?? ""}
                   onChange={(event) => setRating("finals", a.id, event.target.value)}
                 />
