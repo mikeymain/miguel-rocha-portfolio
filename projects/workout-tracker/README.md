@@ -1,6 +1,6 @@
-# Workout Tracker
+# Hypertrophy
 
-A mobile-first workout tracker for recording sets, reviewing progress and adapting training to the user's equipment and experience. The app's in-app name is Leg Day.
+A mobile-first workout tracker for recording sets, reviewing progress and adapting training to the user's equipment and experience. The portfolio name is Hypertrophy; this snapshot still has older app labels (Leg Day, Lift and Gym). The source folder remains `workout-tracker` so existing links keep working.
 
 **Stack:** JavaScript modules, HTML, CSS, service worker, localStorage. No build step and no dependencies.
 

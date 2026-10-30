@@ -1,8 +1,8 @@
-![Miguel Rocha — Selected projects in web development, Python, browser extensions and Blender](assets/portfolio-header.svg)
+![Miguel Rocha — Customer support and practical software projects](assets/portfolio-header.svg)
 
 # Building tools for everyday problems
 
-I'm **Miguel Rocha**, based in Lisbon. My projects span web applications, Python services, browser extensions and Blender vehicle modding. I'm looking for **junior developer roles and technology internships in Lisbon or remotely**.
+I'm **Miguel Rocha**, based in Lisbon, with customer-support experience at Teleperformance and Majorel. I'm looking for **customer or technical support roles in Lisbon or remotely**, bringing clear communication in Portuguese and English (C2), troubleshooting skills and hands-on experience building software.
 
 [Start here](#start-here) · [All projects](#all-projects) · [Reviewer guide](docs/REVIEWER-GUIDE.md) · [Validation](docs/VALIDATION.md)
 
@@ -10,58 +10,44 @@ I'm **Miguel Rocha**, based in Lisbon. My projects span web applications, Python
 
 ## Start here
 
-### 01 / Build Lab
+### 01 / PC Remote
 
-**Plan an NBA 2K27 build without losing track of linked decisions.**
+**Control a Windows PC from a phone on the local network.**
 
-Changing one attribute can affect the rest of a player build. Build Lab combines a React interface with separate calculation modules, attribute locks, undo, saved builds and comparisons.
+A phone interface for a trackpad, keyboard, hotkeys, media and volume controls, backed by a Python server. Devices pair with a PIN and reconnect using individual tokens.
 
-`React` `JavaScript` `Vite` `State management` `Node.js tests`
+`Python` `JavaScript` `WebSockets` `Windows integration` `pytest`
 
-![Build Lab player-build planning interface](assets/build-lab-dashboard.png)
+- **Practical focus:** responsive phone controls, connection recovery and straightforward device pairing.
+- **Implementation:** input validation, host and origin checks, rate limiting and tests that replace the real Windows input layer.
+- **Scope:** designed for a trusted local network; see the project's security notes before use.
 
-- **Engineering focus:** linked changes, atomic undo, persistent builds, a testable calculation layer and focused UI components.
-- **Evidence:** 56 unit tests, 48 Playwright browser tests and the production build run in CI on every push.
-- **Scope:** an independent fan project using externally sourced rules, data and calculation inputs. See its source notes for accuracy limitations and attribution.
-
-[Explore Build Lab →](projects/build-lab/)
+[Explore PC Remote →](projects/pc-remote/)
 
 ---
 
-### 02 / Travian Extensions
+### 02 / Hypertrophy
 
-**Seven browser extensions for Travian, released as a community beta.**
+**Record workouts and review progress, including offline.**
 
-Timers, oasis scoring, settlement forecasts, statistics history and interface improvements for the browser game Travian. Each extension installs separately and has a usage guide with screenshots.
+Hypertrophy builds a training programme around the user's equipment and experience, logs sets and keeps workout history in the browser. It includes rest timers, progress records and backup import/export.
 
-`JavaScript` `Manifest V3` `Service workers` `DOM integration` `Chrome APIs`
+`JavaScript` `HTML/CSS` `PWA` `Offline caching` `Local storage`
 
-- **Engineering focus:** content scripts that adapt to changing game pages, background scheduling, local data stores and per-feature settings.
-- **Distribution:** a release zip is published automatically for each new extension version.
+- **Practical focus:** mobile use, adaptable training programmes and access without a connection.
+- **Implementation:** persistent workout history, save-data migration and tests for programme generation and training calculations.
 
-[Explore Travian Extensions →](projects/travian-extensions/)
+[Explore Hypertrophy →](projects/workout-tracker/)
 
 ---
-
-### 03 / BMW M4 ADRO Kit
-
-**A collaborative vehicle mod, from Blender work to a published release.**
-
-Blender was the main tool used for the modelling work on this Forza Horizon 6 mod. The release includes **widebody and standard-body variants**, custom exterior parts, interior styling and in-game colour options.
-
-`Blender` `3D modelling` `Vehicle modding` `Release preparation`
-
-[View the published mod on Nexus Mods ↗](https://www.nexusmods.com/forzahorizon6/mods/469)
-
-This is collaborative work, not a claim of sole authorship. Downloads are available on Nexus Mods; large game archives are not stored here.
 
 ## All projects
 
 | Project                                                                           | What it does                                                                                        | Main skills                                                  |
 | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| [Build Lab](projects/build-lab/)                                                  | NBA 2K27 build planning, linked attributes, saved builds and comparisons                            | React, JavaScript, state management, automated tests         |
 | [PC Remote](projects/pc-remote/)                                                  | Controls a Windows PC from a phone over the local network, with paired devices and hardened sign-in | Python, WebSockets, authentication, pytest, touch interfaces |
-| [Workout Tracker](projects/workout-tracker/)                                      | Logs training, tracks progress and stores workout history                                           | JavaScript, responsive UI, PWA, local storage                |
+| [Hypertrophy](projects/workout-tracker/)                                          | Logs training, tracks progress and stores workout history offline                                   | JavaScript, responsive UI, PWA, local storage                |
+| [Build Lab](projects/build-lab/)                                                  | NBA 2K27 build planning, linked attributes, saved builds and comparisons                            | React, JavaScript, state management, automated tests         |
 | [Travian Extensions](projects/travian-extensions/)                                | Seven browser extensions for Travian: timers, oasis scoring, statistics and interface tools         | Manifest V3, service workers, Chrome APIs, DOM integration   |
 | [Next Settlement Calc](projects/travian-extensions/extensions/NextSettlementCalc) | Estimates when culture points reach settlement thresholds                                           | Data parsing, forecasting, event simulation                  |
 | [TravAlarm](projects/travian-extensions/extensions/travAlarm)                     | Tracks game events and schedules browser/audio alerts                                               | Manifest V3, service workers, Chrome APIs                    |
@@ -83,11 +69,11 @@ This is collaborative work, not a claim of sole authorship. Downloads are availa
 
 Each project has its own README covering its purpose, source structure and how to try it. Everything lives under `projects/`.
 
-Start with Build Lab for React and calculation logic, PC Remote for Python, WebSockets and network security, or Travian Extensions for browser integration.
+Start with PC Remote for Python and device integration, or Hypertrophy for a mobile web app with offline storage. Other projects remain available in the table above.
 
 ## Quality checks
 
-Every push runs [CI](.github/workflows/ci.yml): ESLint and Prettier across the repository, Black for the Python code, unit tests for Build Lab, PC Remote and Workout Tracker, and Build Lab's production build and Playwright browser tests. To run the same checks locally:
+Every push runs [CI](.github/workflows/ci.yml): ESLint and Prettier across the repository, Black for the Python code, unit tests for Build Lab, PC Remote and Hypertrophy, and Build Lab's production build and Playwright browser tests. To run the same checks locally:
 
 ```sh
 npm ci

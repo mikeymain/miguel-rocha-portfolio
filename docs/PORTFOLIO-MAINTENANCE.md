@@ -4,7 +4,7 @@ This repository holds portfolio copies of personal projects. Each project is dev
 
 ## Organisation
 
-- `projects/`: Build Lab, PC Remote, Workout Tracker and Travian Extensions. The M4 mod is linked to its Nexus Mods page only.
+- `projects/`: PC Remote, Hypertrophy (in `workout-tracker/`), Build Lab and Travian Extensions. PC Remote and Hypertrophy are featured on the front page. The M4 mod is linked to its Nexus Mods page only.
 - `assets/`: the header and screenshots used by the READMEs.
 - `docs/`: validation notes and this guide.
 - `ATTRIBUTION.md`: third-party sources and ownership notes.
