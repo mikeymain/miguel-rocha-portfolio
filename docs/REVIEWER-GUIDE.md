@@ -2,7 +2,7 @@
 
 [Back to the portfolio](../README.md)
 
-Start with **PC Remote**, a Python service for controlling a Windows PC from a phone, and **Hypertrophy**, an offline-capable workout tracker. These are the two featured personal projects. The repository also contains Build Lab and seven Travian browser extensions; the collaborative BMW M4 ADRO mod is published on Nexus Mods. There is no shared install step: open a project's README for its environment and setup.
+Start with **PC Remote**, a Python service for controlling a Windows PC from a phone, and **Hypertrophy**, an offline-capable workout tracker. The featured projects continue with **Build Lab**, a constraint-based planning application, and **Travian Extensions**, a suite of browser tools for planning, alerts and interface customisation. The collaborative BMW M4 ADRO mod is published on Nexus Mods. There is no shared install step: open a project's README for its environment and setup.
 
 ## Where to read first
 

@@ -41,14 +41,44 @@ Hypertrophy builds a training programme around the user's equipment and experien
 
 ---
 
+### 03 / Build Lab — Constraint-Based Planning
+
+**Compare configurations while keeping interdependent rules and limits in view.**
+
+A React application built for NBA 2K player planning. A separate calculation layer models linked attributes and budget limits, while the interface supports locked values, undo, saved configurations and comparisons.
+
+`React` `JavaScript` `State management` `Web Workers` `Automated testing`
+
+- **Engineering focus:** managing dependent inputs, keeping changes consistent and moving configuration searches off the main UI thread.
+- **Validation:** unit tests for calculation logic and Playwright tests for browser interactions. Game rules and data are externally sourced; see the project attribution and accuracy notes.
+
+[Explore Build Lab →](projects/build-lab/)
+
+---
+
+### 04 / Travian Extensions — Browser Tools Suite
+
+**Turn browser-page data into planning views, event alerts and configurable interface tools.**
+
+Seven independently installable Manifest V3 extensions built for Travian. The suite includes settlement forecasts, statistics history, scheduled alerts and interface customisation, with usage guides and versioned release packages.
+
+`JavaScript` `Manifest V3` `Service workers` `Chrome APIs` `Persistent storage`
+
+- **Engineering focus:** integrating with changing pages, maintaining local data and scheduling notifications through background browser services.
+- **Maintenance:** individual settings, documented installation and automated packaging of extension releases.
+
+[Explore Travian Extensions →](projects/travian-extensions/)
+
+---
+
 ## All projects
 
 | Project                                                                           | What it does                                                                                        | Main skills                                                  |
 | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
 | [PC Remote](projects/pc-remote/)                                                  | Controls a Windows PC from a phone over the local network, with paired devices and hardened sign-in | Python, WebSockets, authentication, pytest, touch interfaces |
 | [Hypertrophy](projects/workout-tracker/)                                          | Logs training, tracks progress and stores workout history offline                                   | JavaScript, responsive UI, PWA, local storage                |
-| [Build Lab](projects/build-lab/)                                                  | NBA 2K27 build planning, linked attributes, saved builds and comparisons                            | React, JavaScript, state management, automated tests         |
-| [Travian Extensions](projects/travian-extensions/)                                | Seven browser extensions for Travian: timers, oasis scoring, statistics and interface tools         | Manifest V3, service workers, Chrome APIs, DOM integration   |
+| [Build Lab](projects/build-lab/)                                                  | Constraint-based NBA 2K player planning with linked inputs, saved configurations and comparisons    | React, JavaScript, state management, automated tests         |
+| [Travian Extensions](projects/travian-extensions/)                                | Browser tools for Travian: planning, data visualisation, event alerts and interface customisation   | Manifest V3, service workers, Chrome APIs, DOM integration   |
 | [Next Settlement Calc](projects/travian-extensions/extensions/NextSettlementCalc) | Estimates when culture points reach settlement thresholds                                           | Data parsing, forecasting, event simulation                  |
 | [TravAlarm](projects/travian-extensions/extensions/travAlarm)                     | Tracks game events and schedules browser/audio alerts                                               | Manifest V3, service workers, Chrome APIs                    |
 | [Travian QoL](projects/travian-extensions/extensions/TravianQoL)                  | Configurable interface improvements and planning tools                                              | Modular JavaScript, DOM integration, persistent settings     |
