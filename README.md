@@ -1,8 +1,8 @@
-![Miguel Rocha — Customer support and practical software projects](assets/portfolio-header.svg)
+![Miguel Rocha — Technical skills, software projects and customer support](assets/portfolio-header.svg)
 
 # Building tools for everyday problems
 
-I'm **Miguel Rocha**, based in Lisbon, with customer-support experience at Teleperformance and Majorel. I'm looking for **customer or technical support roles in Lisbon or remotely**, bringing clear communication in Portuguese and English (C2), troubleshooting skills and hands-on experience building software.
+I'm **Miguel Rocha**, based in Lisbon, with hands-on experience building software and creating 3D models in Blender, alongside customer-support experience at Teleperformance and Majorel. I'm looking for **technical support, junior development and customer support roles in Lisbon or remotely**, bringing troubleshooting skills and clear communication in Portuguese and English (C2).
 
 [Start here](#start-here) · [All projects](#all-projects) · [Reviewer guide](docs/REVIEWER-GUIDE.md) · [Validation](docs/VALIDATION.md)
 
@@ -68,6 +68,18 @@ Seven independently installable Manifest V3 extensions built for Travian. The su
 - **Maintenance:** individual settings, documented installation and automated packaging of extension releases.
 
 [Explore Travian Extensions →](projects/travian-extensions/)
+
+---
+
+### 05 / BMW M4 ADRO Kit — Blender Vehicle Modelling
+
+**Collaborative 3D modelling work taken through to a published vehicle mod.**
+
+Used Blender to contribute to a Forza Horizon 6 vehicle modification, with widebody and standard-body variants, custom exterior parts and interior styling. This is a shared project, with contributions credited on the published release.
+
+`Blender` `3D modelling` `Vehicle modelling` `Collaboration`
+
+[View the published mod on Nexus Mods →](https://www.nexusmods.com/forzahorizon6/mods/469)
 
 ---
 
