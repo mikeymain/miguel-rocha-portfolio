@@ -1,139 +1,64 @@
-![Miguel Rocha — Technical skills, software projects and customer support](assets/portfolio-header.svg)
+# Miguel Rocha
 
-# Building tools for everyday problems
+**Technical support · Junior development**
 
-I'm **Miguel Rocha**, based in Lisbon, with hands-on experience building software and creating 3D models in Blender, alongside customer-support experience at Teleperformance and Majorel. I'm looking for **technical support, junior development and customer support roles in Lisbon or remotely**, bringing troubleshooting skills and clear communication in Portuguese and English (C2).
+Lisbon, Portugal · Portuguese (native) · English (C2)
 
-[Start here](#start-here) · [All projects](#all-projects) · [Reviewer guide](docs/REVIEWER-GUIDE.md) · [Validation](docs/VALIDATION.md)
+Personal projects in JavaScript, React and Python, alongside customer support experience at Teleperformance (Meta Business Support) and Majorel (Bolt). Open to Lisbon-based and remote roles.
 
-[![CI](https://github.com/mikeymain/miguel-rocha-portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/mikeymain/miguel-rocha-portfolio/actions/workflows/ci.yml)
+[LinkedIn](https://www.linkedin.com/in/miguel-rocha-63755922b/) · [Source guide](docs/REVIEWER-GUIDE.md) · [Validation](docs/VALIDATION.md)
 
-## Start here
+## Software projects
 
-### 01 / PC Remote
+### [PC Remote](projects/pc-remote/)
 
-**Control a Windows PC from a phone on the local network.**
+Control a Windows PC from a phone over the local network: trackpad, keyboard, hotkeys, media and volume controls.
 
-A phone interface for a trackpad, keyboard, hotkeys, media and volume controls, backed by a Python server. Devices pair with a PIN and reconnect using individual tokens.
+- Python WebSocket server with PIN pairing, per-device tokens, host and origin checks, rate limiting and input validation.
+- pytest coverage for authentication and command handling, with the Windows input layer replaced by a stub.
+- Uses plain HTTP; intended for trusted networks. See the [security notes](projects/pc-remote/README.md#security).
 
-`Python` `JavaScript` `WebSockets` `Windows integration` `pytest`
+**Python · JavaScript · WebSockets · Windows APIs · pytest**
 
-- **Practical focus:** responsive phone controls, connection recovery and straightforward device pairing.
-- **Implementation:** input validation, host and origin checks, rate limiting and tests that replace the real Windows input layer.
-- **Scope:** designed for a trusted local network; see the project's security notes before use.
+### [Hypertrophy](projects/workout-tracker/)
 
-[Explore PC Remote →](projects/pc-remote/)
+Installable workout tracker with equipment-based programmes, set logging, rest timers and progress history.
 
----
+- Offline caching, browser-local storage and JSON backup import/export.
+- Node.js tests for programme generation, save migration and training calculations.
 
-### 02 / Hypertrophy
+**JavaScript · HTML/CSS · Service workers · localStorage**
 
-**Record workouts and review progress, including offline.**
+### [Build Lab](projects/build-lab/)
 
-Hypertrophy builds a training programme around the user's equipment and experience, logs sets and keeps workout history in the browser. It includes rest timers, progress records and backup import/export.
+React application for NBA 2K player planning, with linked attributes, budget limits, saved configurations and comparisons.
 
-`JavaScript` `HTML/CSS` `PWA` `Offline caching` `Local storage`
+- Separate calculation layer, locked inputs, undo and configuration searches in a Web Worker.
+- Calculation unit tests and Playwright browser tests. Externally sourced rules have [documented accuracy limits](projects/build-lab/README.md#accuracy).
 
-- **Practical focus:** mobile use, adaptable training programmes and access without a connection.
-- **Implementation:** persistent workout history, save-data migration and tests for programme generation and training calculations.
+**React · JavaScript · Vite · Web Workers · Playwright**
 
-[Explore Hypertrophy →](projects/workout-tracker/)
+### [Travian Extensions](projects/travian-extensions/)
 
----
+Seven Manifest V3 browser extensions for Travian: settlement forecasts, statistics history, event alerts and configurable interface tools.
 
-### 03 / Build Lab — Constraint-Based Planning
+- Content scripts, background services, persistent settings and browser notifications.
+- Individual installation guides and versioned [release packages](https://github.com/mikeymain/miguel-rocha-portfolio/releases).
 
-**Compare configurations while keeping interdependent rules and limits in view.**
+**JavaScript · Chrome APIs · Service workers · DOM integration**
 
-A React application built for NBA 2K player planning. A separate calculation layer models linked attributes and budget limits, while the interface supports locked values, undo, saved configurations and comparisons.
+## 3D modelling
 
-`React` `JavaScript` `State management` `Web Workers` `Automated testing`
+### [BMW M4 ADRO Kit — Nexus Mods](https://www.nexusmods.com/forzahorizon6/mods/469)
 
-- **Engineering focus:** managing dependent inputs, keeping changes consistent and moving configuration searches off the main UI thread.
-- **Validation:** unit tests for calculation logic and Playwright tests for browser interactions. Game rules and data are externally sourced; see the project attribution and accuracy notes.
+Contributed Blender vehicle modelling to a collaborative Forza Horizon 6 mod, including widebody and standard-body variants. Contributor credits are listed on the published release.
 
-[Explore Build Lab →](projects/build-lab/)
+**Blender · Vehicle modelling · Collaboration**
 
----
+## Repository guide
 
-### 04 / Travian Extensions — Browser Tools Suite
+Project READMEs contain setup instructions and source maps. The [source guide](docs/REVIEWER-GUIDE.md) identifies implementation entry points; [validation](docs/VALIDATION.md) describes automated coverage and manual checks.
 
-**Turn browser-page data into planning views, event alerts and configurable interface tools.**
+[GitHub Actions](https://github.com/mikeymain/miguel-rocha-portfolio/actions/workflows/ci.yml) runs JavaScript linting and formatting, Python formatting, unit tests, and Build Lab's production build and browser tests. Travian extensions are excluded from linting and formatting.
 
-Seven independently installable Manifest V3 extensions built for Travian. The suite includes settlement forecasts, statistics history, scheduled alerts and interface customisation, with usage guides and versioned release packages.
-
-`JavaScript` `Manifest V3` `Service workers` `Chrome APIs` `Persistent storage`
-
-- **Engineering focus:** integrating with changing pages, maintaining local data and scheduling notifications through background browser services.
-- **Maintenance:** individual settings, documented installation and automated packaging of extension releases.
-
-[Explore Travian Extensions →](projects/travian-extensions/)
-
----
-
-### 05 / BMW M4 ADRO Kit — Blender Vehicle Modelling
-
-**Collaborative 3D modelling work taken through to a published vehicle mod.**
-
-Used Blender to contribute to a Forza Horizon 6 vehicle modification, with widebody and standard-body variants, custom exterior parts and interior styling. This is a shared project, with contributions credited on the published release.
-
-`Blender` `3D modelling` `Vehicle modelling` `Collaboration`
-
-[View the published mod on Nexus Mods →](https://www.nexusmods.com/forzahorizon6/mods/469)
-
----
-
-## All projects
-
-| Project                                                                           | What it does                                                                                        | Main skills                                                  |
-| --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| [PC Remote](projects/pc-remote/)                                                  | Controls a Windows PC from a phone over the local network, with paired devices and hardened sign-in | Python, WebSockets, authentication, pytest, touch interfaces |
-| [Hypertrophy](projects/workout-tracker/)                                          | Logs training, tracks progress and stores workout history offline                                   | JavaScript, responsive UI, PWA, local storage                |
-| [Build Lab](projects/build-lab/)                                                  | Constraint-based NBA 2K player planning with linked inputs, saved configurations and comparisons    | React, JavaScript, state management, automated tests         |
-| [Travian Extensions](projects/travian-extensions/)                                | Browser tools for Travian: planning, data visualisation, event alerts and interface customisation   | Manifest V3, service workers, Chrome APIs, DOM integration   |
-| [Next Settlement Calc](projects/travian-extensions/extensions/NextSettlementCalc) | Estimates when culture points reach settlement thresholds                                           | Data parsing, forecasting, event simulation                  |
-| [TravAlarm](projects/travian-extensions/extensions/travAlarm)                     | Tracks game events and schedules browser/audio alerts                                               | Manifest V3, service workers, Chrome APIs                    |
-| [Travian QoL](projects/travian-extensions/extensions/TravianQoL)                  | Configurable interface improvements and planning tools                                              | Modular JavaScript, DOM integration, persistent settings     |
-| [Travian Night Mode](projects/travian-extensions/extensions/travian_night_mode)   | Persistent dark theme for dynamically changing pages                                                | CSS, MutationObserver, preference synchronisation            |
-| [BMW M4 ADRO Kit ↗](https://www.nexusmods.com/forzahorizon6/mods/469)             | Published Forza Horizon 6 vehicle mod with two body variants                                        | Blender, 3D modelling, game modding                          |
-
-## Skills in practice
-
-| Area                      | Examples in this portfolio                                                           |
-| :------------------------ | :----------------------------------------------------------------------------------- |
-| **Frontend development**  | React, JavaScript, responsive HTML/CSS, browser storage                              |
-| **Backend & integration** | Python, WebSockets, local network services                                           |
-| **Browser tooling**       | Manifest V3, content scripts, service workers, DOM integration                       |
-| **Testing & workflow**    | Git, GitHub Actions CI, ESLint, Prettier and Black, unit, browser and security tests |
-| **3D work**               | Blender modelling, vehicle modifications and release packaging                       |
-
-## Explore the repository
-
-Each project has its own README covering its purpose, source structure and how to try it. Everything lives under `projects/`.
-
-Start with PC Remote for Python and device integration, or Hypertrophy for a mobile web app with offline storage. Other projects remain available in the table above.
-
-## Quality checks
-
-Every push runs [CI](.github/workflows/ci.yml): ESLint and Prettier across the repository, Black for the Python code, unit tests for Build Lab, PC Remote and Hypertrophy, and Build Lab's production build and Playwright browser tests. To run the same checks locally:
-
-```sh
-npm ci
-npm run lint && npm run format:check && npm test
-```
-
-PC Remote's tests run with Python 3.10 or newer:
-
-```sh
-pip install -r projects/pc-remote/requirements-dev.txt black
-black --check projects/pc-remote
-python -m pytest projects/pc-remote
-```
-
-See [docs/VALIDATION.md](docs/VALIDATION.md) for what the tests cover and what still needs a manual check.
-
-## Scope and attribution
-
-Game projects are independent fan projects, not official products. Build Lab includes externally sourced rule data and game-related artwork; see [sources and attribution](ATTRIBUTION.md) and its documented accuracy limitations. M4 downloads are hosted on Nexus Mods, not copied into this repository.
-
-No blanket open-source licence is asserted for third-party assets.
+Game-related projects are unofficial. Third-party data and assets are documented in [attribution](ATTRIBUTION.md); no blanket licence is asserted for those materials.
