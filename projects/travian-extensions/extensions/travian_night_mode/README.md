@@ -1,9 +1,9 @@
-# Travian Night Mode
+# Night Mode
 
-Version 2.5.
+Adds a persistent dark theme and configurable button colours to Travian pages.
 
-[Features and usage guide](../../README.md#night-mode) · [Installation](../../README.md#install-in-brave-chrome-or-edge)
+**Version 2.5 · JavaScript · Manifest V3**
 
-Load this folder directly with **Load unpacked**. No build step is required.
+[Usage guide](../../docs/USAGE.md#night-mode) · [Installation](../../README.md#install-in-brave-chrome-or-edge) · [All extensions](../../README.md)
 
-Issues or suggestions: Discord **`luckimikey`**, or a GitHub issue in this repository.
+Load this directory with **Load unpacked** in a desktop Chromium browser. No build step is required. Refresh the game page after installation or updates.

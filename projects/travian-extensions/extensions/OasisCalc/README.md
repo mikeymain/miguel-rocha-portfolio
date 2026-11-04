@@ -1,9 +1,9 @@
-# Travian Best Oasis Finder
+# Oasis Finder
 
-Version 69.5.
+Scores nearby oases using observed game data, troop costs and travel estimates.
 
-[Features and usage guide](../../README.md#oasis-finder) · [Installation](../../README.md#install-in-brave-chrome-or-edge)
+**Version 69.5 · JavaScript · Manifest V3**
 
-Load this folder directly with **Load unpacked**. No build step is required.
+[Usage guide](../../docs/USAGE.md#oasis-finder) · [Installation](../../README.md#install-in-brave-chrome-or-edge) · [All extensions](../../README.md)
 
-Issues or suggestions: Discord **`luckimikey`**, or a GitHub issue in this repository.
+Load this directory with **Load unpacked** in a desktop Chromium browser. No build step is required. Refresh the game page after installation or updates.

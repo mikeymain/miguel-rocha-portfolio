@@ -1,31 +1,50 @@
 # Hypertrophy
 
-A mobile-first workout tracker for recording sets, reviewing progress and adapting training to the user's equipment and experience. The portfolio name is Hypertrophy; this snapshot still has older app labels (Leg Day, Lift and Gym). The source folder remains `workout-tracker` so existing links keep working.
+[Portfolio](../../README.md) · [Attribution](../../ATTRIBUTION.md)
 
-**Stack:** JavaScript modules, HTML, CSS, service worker, localStorage. No build step and no dependencies.
+Installable workout tracker for recording sets, reviewing progress and generating training programmes from equipment and experience.
+
+**JavaScript modules · HTML/CSS · Service workers · localStorage**
 
 ## Features
 
-- Onboarding that builds a programme from the user's level, equipment, split and focus.
-- Set logging, rest timers and double progression based on previous sessions.
-- Exercise swaps, added and removed exercises, and 8-week training blocks.
-- History, personal records, estimated 1RM, bodyweight tracking and JSON backup import/export.
-- Installable web app with offline caching.
+- Programme generation from training level, equipment, split and focus.
+- Set logging, rest timers, exercise substitutions and eight-week training blocks.
+- Workout history, personal records, estimated one-repetition maximum and bodyweight tracking.
+- Offline caching and JSON backup import/export.
 
 ## Run locally
 
-From this directory, run `python -m http.server 8742 --directory app`, then open `http://localhost:8742`.
+Requires Python for the local web server. No application build step or runtime package installation is required. Run from this directory:
 
-## Tests
+```sh
+python -m http.server 8742 --directory app
+```
 
-From the repository root, `npm test` runs `tests/` with Node's test runner. The tests build the programme for every profile the onboarding can produce, and cover save-data migration, training-block maths and the 1RM estimate.
+Open `http://localhost:8742`. The source folder remains `workout-tracker`; some app labels still use Leg Day, Lift or Gym.
 
 ## Source guide
 
-- `app/js/program.js` defines the exercise library and builds programmes from a profile.
-- `app/js/state.js` handles persistence, migration of older saves and progression.
-- `app/js/stats.js` computes records, volume and streaks.
-- Screen modules (`home.js`, `workout.js`, `history.js`, `profile.js`) render each view.
-- `app/sw.js` manages offline caching.
+| Path                                                       | Purpose                                           |
+| ---------------------------------------------------------- | ------------------------------------------------- |
+| `app/js/program.js`                                        | Exercise library and programme generation         |
+| `app/js/state.js`                                          | Persistence, save migration and progression       |
+| `app/js/stats.js`                                          | Records, volume and streak calculations           |
+| `app/js/home.js`, `workout.js`, `history.js`, `profile.js` | Screen rendering                                  |
+| `app/sw.js`                                                | Offline caching                                   |
+| `tests/`                                                   | Programme, storage and training-calculation tests |
 
-All data stays in the browser, so exported backups matter. Exercise photographs come from free-exercise-db; see the root [attribution notes](../../ATTRIBUTION.md).
+## Validation
+
+From the repository root:
+
+```sh
+npm ci
+npm test
+```
+
+Node.js tests cover programme generation across onboarding profiles, save migration, training-block calculations and one-repetition maximum estimates. Phone installation and offline behaviour require manual verification.
+
+## Data
+
+Workout data is stored in the browser. Export a backup before clearing browser storage or changing devices. Exercise photographs come from free-exercise-db; see [attribution](../../ATTRIBUTION.md).

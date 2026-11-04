@@ -1,9 +1,9 @@
-# Travian Next Settlement Calc
+# Next Settlement Calc
 
-Version 2.4.0.
+Forecasts settlement culture-point thresholds from observed production and planned celebrations.
 
-[Features and usage guide](../../README.md#next-settlement-calc) · [Installation](../../README.md#install-in-brave-chrome-or-edge)
+**Version 2.4.0 · JavaScript · Manifest V3**
 
-Load this folder directly with **Load unpacked**. No build step is required.
+[Usage guide](../../docs/USAGE.md#next-settlement-calc) · [Installation](../../README.md#install-in-brave-chrome-or-edge) · [All extensions](../../README.md)
 
-Issues or suggestions: Discord **`luckimikey`**, or a GitHub issue in this repository.
+Load this directory with **Load unpacked** in a desktop Chromium browser. No build step is required. Refresh the game page after installation or updates.

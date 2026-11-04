@@ -1,42 +1,53 @@
 # Build Lab
 
-A React planner for NBA 2K27 player builds, with linked attribute changes, saved-build comparisons and an undoable editing workflow.
+[Portfolio](../../README.md) · [Usage guide](docs/USAGE.md) · [Accuracy notes](#accuracy)
 
-**Stack:** React 19, JavaScript, Vite, Playwright, Node.js test runner.
+React application for NBA 2K27 player planning, with linked attributes, budget constraints and saved-build comparisons.
 
-![Build Lab](../../assets/build-lab.png)
+**React 19 · JavaScript · Vite · Web Workers · Tesseract.js · Playwright**
 
 ## Features
 
-- Attribute editing with locks, linked attribute rules and atomic undo.
+- Attribute editing with locks, linked rules and undo.
 - Body settings, badge requirements and cap-breaker planning.
-- Saved builds, side-by-side comparisons, shareable links and image exports.
-- Responsive attribute lanes that reflow with the editor's width (CSS container queries).
-- Build Finder: set the ratings you want after cap breakers and search every legal body in a height range. Targets can be Must or best effort, set from a body's maximum or from a badge tier, cap breakers only go on Must targets, and target limits follow the other Musts (the latest edit wins). Results either spend your cap breaker budget or, with "Fewest needed", rank builds by the fewest cap breakers the targets need. Only bodies that can reach every Must are searched; when none can, the finder names the closest body and what it misses. When nothing qualifies it shows the closest builds. Searches run in a Web Worker and can be stopped.
-- Screenshot import: the Import button reads a screenshot of the in-game MyCareer Attribute Upgrades screen (full, cropped or resized; the column layout is found from the numbers under the bars) (Tesseract.js, in the browser), fills in body, base ratings and ratings after cap breakers for review, then loads the build with matching cap breakers.
-- Minimize caps: keep every after-cap rating with as few cap breakers as the overall budget allows.
+- Saved builds, comparisons, shareable links and image export.
+- Configuration search in a cancellable Web Worker.
+- In-browser screenshot import for review before loading a build.
+
+![Build Lab player-build planning interface](../../assets/build-lab.png)
 
 ## Run locally
+
+Requires Node.js and npm. Run from this directory:
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Open `http://127.0.0.1:4173`. `npm run build` produces a static site in `dist/client/`.
-
-## Tests
-
-- `npm test` runs the calculation tests in `tests/*.test.mjs`: linked-attribute rules, cap projections, cost curves, locks, share links and the Build Finder.
-- `npm run test:ui` starts the dev server and runs the Playwright browser tests in `tests/ui/`: editing flows, saved builds, layout at several widths and typography. It uses Playwright's Chromium; set `PLAYWRIGHT_CHANNEL=msedge` to use an installed Edge instead.
+Open `http://127.0.0.1:4173`. `npm run build` writes the production site to `dist/client/`.
 
 ## Source guide
 
-- `src/Builder.jsx` owns the application state and wires handlers to the components in `src/components/`.
-- `src/storage.js` restores and saves the draft and the saved-build library, turning every storage failure into a user-facing notice.
-- `src/engine/` holds the calculation logic: linked attributes, cap breakers, projections and the Build Finder search (`buildFinder.js`, `capSwap.js`, `badgeValue.js`, run off the page by `finderWorker.js`). It has no React dependency, so it is tested directly.
-- `src/catalogs/` holds compiled badge, animation and takeover data.
+| Path                  | Purpose                                               |
+| --------------------- | ----------------------------------------------------- |
+| `src/Builder.jsx`     | Application state and component wiring                |
+| `src/components/`     | Editor, comparisons and dialogs                       |
+| `src/storage.js`      | Draft and saved-build persistence                     |
+| `src/engine/`         | Attribute rules, projections and configuration search |
+| `src/catalogs/`       | Compiled badge, animation and takeover data           |
+| `tests/`, `tests/ui/` | Calculation and browser tests                         |
+
+## Validation
+
+```sh
+npm test
+npm run build
+npm run test:ui
+```
+
+Unit tests cover linked rules, cap projections, cost curves, locks, share links and configuration search. Playwright covers editing, saved builds and layout at several widths. Browser tests require Playwright's browser installation; see `playwright.config.js` for configuration.
 
 ## Accuracy
 
-Game rules and data are externally sourced; this is not an official or fully verified reproduction of the game. See [feature parity](feature-parity.md) and the [dataset notes](research/nba2k27-builder-dataset/README.md). The linked-attribute table in `src/engine/linked-attributes.json` was extracted from a third-party builder and records its provenance.
+This is an unofficial planner using externally sourced rules and datasets. It is not a fully verified reproduction of the game. See [feature parity](feature-parity.md), [dataset provenance](research/nba2k27-builder-dataset/README.md) and [attribution](../../ATTRIBUTION.md). The linked-attribute table records its provenance in `src/engine/linked-attributes.json`.

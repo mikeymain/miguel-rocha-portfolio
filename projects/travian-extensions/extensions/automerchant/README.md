@@ -1,9 +1,9 @@
-# Travian NPC AutoMerchant
+# NPC AutoMerchant
 
-Version 3.1.2.
+Calculates troop resource requirements and assists with NPC allocation and hero transfers.
 
-[Features and usage guide](../../README.md#npc-automerchant) · [Installation](../../README.md#install-in-brave-chrome-or-edge)
+**Version 3.1.2 · JavaScript · Manifest V3**
 
-Load this folder directly with **Load unpacked**. No build step is required.
+[Usage guide](../../docs/USAGE.md#npc-automerchant) · [Installation](../../README.md#install-in-brave-chrome-or-edge) · [All extensions](../../README.md)
 
-Issues or suggestions: Discord **`luckimikey`**, or a GitHub issue in this repository.
+Load this directory with **Load unpacked** in a desktop Chromium browser. No build step is required. Refresh the game page after installation or updates.
