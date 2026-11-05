@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE = "gym-v1.24";
+const CACHE = "gym-v1.25";
 const MEDIA = [
   "Barbell_Squat",
   "Goblet_Squat",
@@ -62,6 +62,7 @@ const SHELL = [
   "./",
   "./index.html",
   "./styles.css",
+  "./fonts/bricolage-grotesque-latin.woff2",
   "./manifest.webmanifest",
   "./icons/icon-180.png",
   "./icons/icon-192.png",

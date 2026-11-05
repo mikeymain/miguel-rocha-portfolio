@@ -49,5 +49,5 @@ Node.js tests cover programme generation across onboarding profiles, save migrat
 
 - Workout data, profile details and measurements are stored in the browser's `localStorage` on the device. The app has no backend, accounts or analytics, and it never uploads this data.
 - Export a backup before clearing browser storage or changing devices. Imported backups are validated before they replace current data.
-- The app loads a display font from Google Fonts and caches demo-video thumbnails from YouTube and muscle diagrams from Wikimedia Commons for offline use. These hosts receive standard request details such as the device's IP address.
+- The display font, Bricolage Grotesque (SIL Open Font License 1.1, see `app/fonts/OFL.txt`), is served from the app. The app caches demo-video thumbnails from YouTube and muscle diagrams from Wikimedia Commons for offline use. These hosts receive standard request details such as the device's IP address.
 - Exercise photographs come from free-exercise-db and are served from the app; see [attribution](../../ATTRIBUTION.md).
