@@ -39,8 +39,17 @@ globalThis.localStorage = {
   setItem: (key, value) => store.set(key, value),
 };
 
-const { state, blockNumber, weekInBlock, weekMonIso, fmtWeight, esc, parseNum } =
-  await import("../app/js/state.js");
+const {
+  state,
+  blockNumber,
+  weekInBlock,
+  weekMonIso,
+  fmtWeight,
+  esc,
+  parseNum,
+  validateBackup,
+  replaceState,
+} = await import("../app/js/state.js");
 const { e1rm, bestFor } = await import("../app/js/stats.js");
 
 test("old saves migrate to the current profile shape", () => {
@@ -86,4 +95,39 @@ test("bests ignore warm-ups and unfinished sets", () => {
   assert.equal(best.topWeight, 110);
   assert.equal(best.weight, 100);
   assert.equal(best.reps, 5);
+});
+
+test("a normal backup, including the app's own export, passes validation", () => {
+  assert.equal(validateBackup(saved), null);
+  assert.equal(validateBackup(JSON.parse(JSON.stringify(state))), null);
+  const named = structuredClone(saved);
+  named.profile.name = "O'Brien";
+  assert.equal(validateBackup(named), null);
+});
+
+test("backups that could inject markup or break rendering are rejected", () => {
+  const withDay = structuredClone(saved);
+  withDay.sessions[0].day = "<img src=x onerror=alert(1)>";
+  assert.ok(validateBackup(withDay));
+
+  const withReps = structuredClone(saved);
+  withReps.sessions[0].exercises[0].sets[0].reps = "5<b>";
+  assert.ok(validateBackup(withReps));
+
+  const withKey = structuredClone(saved);
+  withKey.sessions[0].exercises[0].key = 'x" onclick="alert(1)';
+  assert.ok(validateBackup(withKey));
+
+  assert.ok(validateBackup({ sessions: [], weights: [{ date: "2026-01-01", kg: "abc" }] }));
+  assert.ok(validateBackup({ sessions: [{ date: "2026-01-01" }] }));
+  assert.ok(validateBackup({ sessions: [], active: {} }));
+  assert.ok(validateBackup([]));
+  assert.ok(validateBackup(null));
+});
+
+test("an imported backup is migrated like a saved one", () => {
+  replaceState(structuredClone({ ...saved, reonboard: undefined }));
+  assert.equal(state.profile.style, "ul");
+  assert.equal(state.profile.days, 5);
+  assert.deepEqual(state.extras, {});
 });

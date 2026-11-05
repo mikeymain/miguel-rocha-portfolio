@@ -18,6 +18,11 @@ function loadState() {
   } catch (e) {
     /* corrupted -> start fresh */
   }
+  return migrateState(s);
+}
+
+// Fill defaults and upgrade older save shapes. Used for saved data and imports.
+function migrateState(s) {
   if (!s) s = { blockStart: null, sessions: [], active: null };
   if (!s.profile) s.profile = null; // { gender, height, level, equipment }
   // one-time re-onboarding: drop the profile so the wizard runs again, but
@@ -96,8 +101,56 @@ export function saveState() {
 
 export function replaceState(s) {
   s.reonboard = REONBOARD; // an imported backup has already been onboarded
-  state = s;
+  state = migrateState(s);
   saveState();
+}
+
+// Imported backups are untrusted: several screens render their values with
+// innerHTML. Numeric fields must be numbers, and strings other than
+// user-entered names must not contain HTML or attribute delimiters.
+// Returns an error message, or null when the backup is safe to import.
+const NUMERIC_FIELDS = new Set([
+  "weight",
+  "reps",
+  "partial",
+  "cm",
+  "kg",
+  "week",
+  "block",
+  "days",
+  "height",
+]);
+const ESCAPED_TEXT_FIELDS = new Set(["name"]);
+const UNSAFE_CHARS = /[<>"'`]/;
+
+export function validateBackup(data) {
+  if (!data || typeof data !== "object" || !Array.isArray(data.sessions))
+    return "missing sessions list";
+  for (const s of data.sessions) {
+    if (!s || !Array.isArray(s.exercises)) return "session without exercises";
+    if (s.exercises.some((e) => !e || !Array.isArray(e.sets))) return "exercise without sets";
+  }
+  if (data.active && !Array.isArray(data.active.exercises)) return "invalid active workout";
+  return checkValues(data, "");
+}
+
+function checkValues(value, field) {
+  if (NUMERIC_FIELDS.has(field) && value != null && typeof value !== "object") {
+    return Number.isFinite(value) ? null : `${field} must be a number`;
+  }
+  if (typeof value === "string") {
+    return !ESCAPED_TEXT_FIELDS.has(field) && UNSAFE_CHARS.test(value)
+      ? `unexpected characters in ${field || "value"}`
+      : null;
+  }
+  if (!value || typeof value !== "object") return null;
+  for (const [k, v] of Object.entries(value)) {
+    if (!Array.isArray(value) && UNSAFE_CHARS.test(k))
+      return "unexpected characters in a field name";
+    const err = checkValues(v, Array.isArray(value) ? field : k);
+    if (err) return err;
+  }
+  return null;
 }
 
 // active program for the current profile (with Meso Builder overrides)

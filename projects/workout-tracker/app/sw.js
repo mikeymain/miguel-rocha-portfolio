@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE = "gym-v1.23";
+const CACHE = "gym-v1.24";
 const MEDIA = [
   "Barbell_Squat",
   "Goblet_Squat",

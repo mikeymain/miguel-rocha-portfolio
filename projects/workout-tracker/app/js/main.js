@@ -3,7 +3,15 @@
 import { $app, $importFile } from "./dom.js";
 import { LIB } from "./program.js";
 import { MUSCLE_IMG } from "./muscleMap.js";
-import { state, replaceState, saveState, todayISO, parseNum, toggleWeekSkip } from "./state.js";
+import {
+  state,
+  replaceState,
+  saveState,
+  todayISO,
+  parseNum,
+  toggleWeekSkip,
+  validateBackup,
+} from "./state.js";
 import { stopTimer } from "./timer.js";
 import {
   renderHome,
@@ -303,7 +311,8 @@ $importFile.addEventListener("change", () => {
   reader.onload = () => {
     try {
       const data = JSON.parse(reader.result);
-      if (!data || !Array.isArray(data.sessions)) throw new Error("bad format");
+      const problem = validateBackup(data);
+      if (problem) throw new Error(problem);
       if (!confirm(`Import ${data.sessions.length} session(s)? This replaces all current data.`))
         return;
       replaceState({
@@ -322,8 +331,8 @@ $importFile.addEventListener("change", () => {
         weekSkips: data.weekSkips || {},
       });
       state.profile ? renderHome() : renderOnboarding();
-    } catch (e) {
-      alert("That file doesn’t look like a gym backup.");
+    } catch {
+      alert("That file doesn’t look like a valid gym backup. Nothing was imported.");
     }
   };
   reader.readAsText(file);
