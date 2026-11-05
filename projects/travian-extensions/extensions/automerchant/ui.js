@@ -34,8 +34,8 @@ NPC.UIManager = {
                 <div class="_r-tab-content" id="_r-tab-troops">
                     <div class="_r-troop-calc">
                         <div class="_r-tribe-selector-row">
-                            <select id="_r-tribe-select" class="_r-select _r-tribe-select"></select>
-                            <select id="_r-server-type" class="_r-select _r-server-type-select">
+                            <select id="_r-tribe-select" class="_r-select _r-tribe-select" aria-label="Tribe"></select>
+                            <select id="_r-server-type" class="_r-select _r-server-type-select" aria-label="Server type">
                                 <option value="classic">3 Tribes Classic</option>
                                 <option value="fivetribe">5 Tribe</option>
                                 <option value="rebalanced">6 Tribe Rebalanced</option>
@@ -154,7 +154,7 @@ NPC.UIManager = {
             <div id="_r-can-build" style="display:none;"></div>
 
             <div class="_r-field" id="_r-build-wrap" style="display:none;">
-                <label class="_r-label">Build amount</label>
+                <label class="_r-label" for="_r-build-count">Build amount</label>
                 <div class="_r-build-row">
                     <input type="number" id="_r-build-count" class="_r-input" min="0" value="20" />
                     <button type="button" id="_r-build-max" class="_r-btn _r-btn-small" title="Set to max buildable">Max</button>
@@ -353,8 +353,8 @@ NPC.UIManager = {
                 <div class="_r-preview-row">
                     <span class="_r-preview-icon">${NPC.RESOURCE_ICONS[i]}</span>
                     <span class="_r-preview-name">${NPC.RESOURCE_NAMES[i]}</span>
-                    <span class="_r-preview-need">${cost[i]}</span>
-                    <button type="button" class="_r-copy-btn" data-val="${cost[i]}" title="Copy">&#x2398;</button>
+                    <span class="_r-preview-need">${NPC.Utils.formatNumber(cost[i])}</span>
+                    <button type="button" class="_r-copy-btn" data-val="${cost[i]}" title="Copy" aria-label="Copy ${NPC.RESOURCE_NAMES[i].toLowerCase()} amount">&#x2398;</button>
                 </div>
             `;
     }

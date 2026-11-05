@@ -72,7 +72,7 @@ function updateCoverageDisplay() {
   if (!fill || !label) return;
   const rawCoords = document.getElementById("_vpcoords")?.value || "";
   if (!rawCoords.includes("|")) {
-    fill.style.width = "0%";
+    fill.style.transform = "scaleX(0)";
     label.textContent = "Set coords first";
     return;
   }
@@ -84,7 +84,7 @@ function updateCoverageDisplay() {
     const scanned = countSessionOasesInRadius(cx, cy, radius);
     const known = countKnownOasesInRadius(cx, cy, radius);
     const updPct = known === 0 ? 0 : Math.round((scanned / known) * 100);
-    fill.style.width = updPct + "%";
+    fill.style.transform = "scaleX(" + Math.min(updPct, 100) / 100 + ")";
     if (known === 0) {
       label.textContent = "No known oases";
       if (meter) meter.title = "Run discovery mode first";
@@ -101,7 +101,7 @@ function updateCoverageDisplay() {
     const tilesTotal = countTotalTilesInRadius(radius);
     const tilePct =
       tilesTotal === 0 ? 0 : Math.round((tilesScanned / tilesTotal) * 100);
-    fill.style.width = tilePct + "%";
+    fill.style.transform = "scaleX(" + Math.min(tilePct, 100) / 100 + ")";
     if (tilesScanned === 0) {
       label.textContent = "Pan map to scan";
       if (meter) meter.title = "Pan the map to scan oases";
@@ -391,6 +391,7 @@ function setDensity(density, save) {
   panel.classList.add("dens-" + d);
   panel.querySelectorAll("._vpdens-btn").forEach((b) => {
     b.classList.toggle("active", b.dataset.density === d);
+    b.setAttribute("aria-pressed", String(b.dataset.density === d));
   });
   if (save) saveSettings();
 }
@@ -500,11 +501,11 @@ function createUI() {
             <span class="_vpheader-title">OASIS FINDER</span>
             <div class="_vpheader-tools">
                 <div class="_vpdensity">
-                    <button type="button" class="_vpdens-btn" data-density="compact" title="Compact">≡</button>
-                    <button type="button" class="_vpdens-btn active" data-density="normal" title="Normal">☰</button>
-                    <button type="button" class="_vpdens-btn" data-density="detail" title="Detail">▤</button>
+                    <button type="button" class="_vpdens-btn" data-density="compact" title="Compact" aria-label="Compact density" aria-pressed="false">≡</button>
+                    <button type="button" class="_vpdens-btn active" data-density="normal" title="Normal" aria-label="Normal density" aria-pressed="true">☰</button>
+                    <button type="button" class="_vpdens-btn" data-density="detail" title="Detail" aria-label="Detail density" aria-pressed="false">▤</button>
                 </div>
-                <button id="_vpcollapse" class="_vpcollapse-btn" title="Collapse">−</button>
+                <button type="button" id="_vpcollapse" class="_vpcollapse-btn" title="Collapse" aria-label="Collapse panel" aria-expanded="true" aria-controls="_vpbody">−</button>
             </div>
         </div>
 
@@ -522,10 +523,10 @@ function createUI() {
                         <button type="button" class="_vpseg-btn" data-mode="DB">Update</button>
                     </div>
                     <div class="_vpradius-group">
-                        <span class="_vpstepper-label">RADIUS</span>
-                        <button type="button" class="_vpstep-btn _vpstep-down" data-target="_vpradius" data-dir="-1">−</button>
-                        <input type="number" id="_vpradius" value="30" min="1" class="_vpnum">
-                        <button type="button" class="_vpstep-btn _vpstep-up" data-target="_vpradius" data-dir="1">+</button>
+                        <span class="_vpstepper-label" id="_vpradius-lbl">RADIUS</span>
+                        <button type="button" class="_vpstep-btn _vpstep-down" data-target="_vpradius" data-dir="-1" aria-label="Decrease radius">−</button>
+                        <input type="number" id="_vpradius" value="30" min="1" class="_vpnum" aria-labelledby="_vpradius-lbl">
+                        <button type="button" class="_vpstep-btn _vpstep-up" data-target="_vpradius" data-dir="1" aria-label="Increase radius">+</button>
                     </div>
                 </div>
                 <div class="_vpsort-risk">
@@ -539,7 +540,7 @@ function createUI() {
                         </select>
                     </div>
                     <div class="_vprisk-slider">
-                        <input type="range" id="_vprisk" min="1" max="5" value="3" step="1" class="_vpslider">
+                        <input type="range" id="_vprisk" min="1" max="5" value="3" step="1" class="_vpslider" aria-label="Risk tolerance">
                         <span id="_vprisk-label" class="_vprisk-label _vprisk-3">Balanced</span>
                     </div>
                 </div>
@@ -578,25 +579,25 @@ function createUI() {
                     <div class="_vphero-card">
                         <div class="_vphero-card-label">HEALTH</div>
                         <div class="_vpstepper">
-                            <button type="button" class="_vpstep-btn _vpstep-down" data-target="_vpmax-hp" data-dir="-1">−</button>
-                            <input type="number" id="_vpmax-hp" value="100" min="1" max="100" class="_vpnum">
-                            <button type="button" class="_vpstep-btn _vpstep-up" data-target="_vpmax-hp" data-dir="1">+</button>
+                            <button type="button" class="_vpstep-btn _vpstep-down" data-target="_vpmax-hp" data-dir="-1" aria-label="Decrease health">−</button>
+                            <input type="number" id="_vpmax-hp" value="100" min="1" max="100" class="_vpnum" aria-label="Hero health percent">
+                            <button type="button" class="_vpstep-btn _vpstep-up" data-target="_vpmax-hp" data-dir="1" aria-label="Increase health">+</button>
                         </div>
                     </div>
                     <div class="_vphero-card">
                         <div class="_vphero-card-label">TS LEVEL</div>
                         <div class="_vpstepper">
-                            <button type="button" class="_vpstep-btn _vpstep-down" data-target="_vpts-lvl" data-dir="-1">−</button>
-                            <input type="number" id="_vpts-lvl" value="0" min="0" max="20" class="_vpnum">
-                            <button type="button" class="_vpstep-btn _vpstep-up" data-target="_vpts-lvl" data-dir="1">+</button>
+                            <button type="button" class="_vpstep-btn _vpstep-down" data-target="_vpts-lvl" data-dir="-1" aria-label="Decrease TS level">−</button>
+                            <input type="number" id="_vpts-lvl" value="0" min="0" max="20" class="_vpnum" aria-label="Tournament square level">
+                            <button type="button" class="_vpstep-btn _vpstep-up" data-target="_vpts-lvl" data-dir="1" aria-label="Increase TS level">+</button>
                         </div>
                     </div>
                     <div class="_vphero-card">
                         <div class="_vphero-card-label">MAP TIER</div>
                         <div class="_vpstepper">
-                            <button type="button" class="_vpstep-btn _vpstep-down" data-target="_vphero-map" data-dir="-1">−</button>
-                            <input type="number" id="_vphero-map" value="0" min="0" max="3" class="_vpnum" title="Map tier: 0=none, 1=30%, 2=40%, 3=50% return speed bonus">
-                            <button type="button" class="_vpstep-btn _vpstep-up" data-target="_vphero-map" data-dir="1">+</button>
+                            <button type="button" class="_vpstep-btn _vpstep-down" data-target="_vphero-map" data-dir="-1" aria-label="Decrease map tier">−</button>
+                            <input type="number" id="_vphero-map" value="0" min="0" max="3" class="_vpnum" aria-label="Map tier" title="Map tier: 0=none, 1=30%, 2=40%, 3=50% return speed bonus">
+                            <button type="button" class="_vpstep-btn _vpstep-up" data-target="_vphero-map" data-dir="1" aria-label="Increase map tier">+</button>
                         </div>
                     </div>
                 </div>
@@ -650,12 +651,12 @@ function createUI() {
         </div>
 
         <div id="_vpdb-modal" class="_vpmodal">
-            <div class="_vpmodal-dialog">
+            <div class="_vpmodal-dialog" role="dialog" aria-modal="true" aria-labelledby="_vpmodal-title">
                 <div class="_vpmodal-header">
                     <div class="_vplogo"></div>
                     <span id="_vpmodal-title" class="_vpmodal-title">OASIS DATABASE</span>
                     <span id="_vpmodal-count" class="_vpmodal-count"></span>
-                    <button class="_vpmodal-close" id="_vpdb-close">✕</button>
+                    <button type="button" class="_vpmodal-close" id="_vpdb-close" aria-label="Close">✕</button>
                 </div>
                 <div class="_vpmodal-colhead">
                     <span class="_vpcol-loc">Location</span>
@@ -684,6 +685,8 @@ function createUI() {
     const collapsed = body.style.display === "none";
     body.style.display = collapsed ? "" : "none";
     btn.textContent = collapsed ? "−" : "+";
+    btn.setAttribute("aria-expanded", String(collapsed));
+    btn.setAttribute("aria-label", collapsed ? "Collapse panel" : "Expand panel");
   });
 
   // Drag the whole panel by its header
@@ -778,6 +781,7 @@ function createUI() {
     const updateRiskLabel = () => {
       const lvl = parseInt(riskSlider.value);
       riskLabel.textContent = getRiskThresholds(lvl).label;
+      riskSlider.setAttribute("aria-valuetext", riskLabel.textContent);
       riskLabel.className = "_vprisk-label _vprisk-" + lvl;
     };
     riskSlider.addEventListener("input", updateRiskLabel);
@@ -836,6 +840,25 @@ function createUI() {
   const dbModal = document.getElementById("_vpdb-modal");
   dbModal.addEventListener("click", (e) => {
     if (e.target === dbModal) closeDatabaseView();
+  });
+  // Dialog a11y: focus the close button on open, Escape closes, focus returns.
+  let modalReturnFocus = null;
+  new MutationObserver(() => {
+    const open = dbModal.style.display === "flex";
+    if (open && !modalReturnFocus) {
+      modalReturnFocus = document.activeElement;
+      document.getElementById("_vpdb-close")?.focus();
+    } else if (!open && modalReturnFocus) {
+      const target = modalReturnFocus;
+      modalReturnFocus = null;
+      if (target.isConnected && typeof target.focus === "function") target.focus();
+    }
+  }).observe(dbModal, { attributes: true, attributeFilter: ["style"] });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && dbModal.style.display === "flex") {
+      e.stopPropagation();
+      closeDatabaseView();
+    }
   });
 
   document.getElementById("_vpsync-hero").onclick = () => syncHeroStats(true);

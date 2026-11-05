@@ -441,6 +441,7 @@
 		let isDragging = false;
 		let startX, startY, initialLeft, initialTop;
 		handle.addEventListener('mousedown', (e) => {
+			if (e.target.closest('button')) return;
 			e.preventDefault();
 			isDragging = true;
 			const rect = el.getBoundingClientRect();
@@ -642,13 +643,14 @@
 		const { overlay, calcView, settingsView, settingsIcon, closeIcon, resInput, tribeSelect, autoUnitSelect, unitContainer, resultContainer, offXInput, offYInput, autoChk, debugChk, doneBtn } = els;
 		const doCalc = () => calculate(resInput, unitContainer, resultContainer);
 		const debouncedSave = createDebouncer();
-		closeIcon.onclick = () => overlay.remove();
+		closeIcon.onclick = () => closeOverlay(overlay);
 		resInput.oninput = doCalc;
 		doneBtn.onclick = () => settingsIcon.click();
 		settingsIcon.onclick = () => {
 			const isShowingCalc = calcView.style.display !== 'none';
 			calcView.style.display = isShowingCalc ? 'none' : 'block';
 			settingsView.style.display = isShowingCalc ? 'block' : 'none';
+			settingsIcon.setAttribute('aria-pressed', String(isShowingCalc));
 			if (isShowingCalc) populateAutoUnit(autoUnitSelect, tribeSelect.value);
 		};
 		tribeSelect.onchange = () => {
@@ -698,15 +700,34 @@
 		debugChk.onchange = () => applySettings(false);
 		autoUnitSelect.onchange = () => applySettings(false);
 	}
+	// Close the overlay and hand focus back to where it was before opening.
+	function closeOverlay(overlay) {
+		const target = overlay._tlwReturnFocus;
+		overlay.remove();
+		if (target && target.isConnected && typeof target.focus === 'function') target.focus();
+	}
+	function wireDialogKeyboard(overlay, returnFocusTo) {
+		overlay._tlwReturnFocus = returnFocusTo;
+		overlay.addEventListener('keydown', (e) => {
+			if (e.key !== 'Escape') return;
+			e.stopPropagation();
+			closeOverlay(overlay);
+		});
+	}
 	function createOverlay(selectionText) {
 		const existing = document.getElementById('tlw-overlay');
 		if (existing) existing.remove();
 		const totalRes = parseResources(selectionText);
 		const overlay = document.createElement('div');
 		overlay.id = 'tlw-overlay';
+		overlay.setAttribute('role', 'dialog');
+		overlay.setAttribute('aria-modal', 'true');
+		overlay.setAttribute('aria-labelledby', 'tlw-title');
+		overlay.tabIndex = -1;
+		const returnFocusTo = document.activeElement;
 		const header = document.createElement('div');
 		header.className = 'tlw-header';
-		header.innerHTML = `<span>Loot Wizard</span><div class="tlw-header-actions"><span class="tlw-btn-icon">⚙️</span><span class="tlw-close">&times;</span></div>`;
+		header.innerHTML = `<span id="tlw-title">Loot Wizard</span><div class="tlw-header-actions"><button type="button" class="tlw-btn-icon" aria-label="Settings" title="Settings" aria-pressed="false">⚙️</button><button type="button" class="tlw-close" aria-label="Close" title="Close">&times;</button></div>`;
 		const body = document.createElement('div');
 		body.className = 'tlw-body';
 		const calcView = buildCalcView(totalRes, selectionText);
@@ -733,8 +754,10 @@
 			doneBtn: settingsView.querySelector('.tlw-btn-save'),
 		};
 		wireOverlayEvents(els);
+		wireDialogKeyboard(overlay, returnFocusTo);
 		const doCalc = () => calculate(els.resInput, els.unitContainer, els.resultContainer);
 		renderUnits(els.unitContainer, currentTribe, doCalc);
+		(els.resInput || overlay).focus();
 	}
 
 	window.TravianQoL.register({

@@ -48,7 +48,8 @@ const THEME = {
   /* Accent colors */
   --nm-green-txt:  #c0d8a0;
   --nm-green:	     #91bf53;
-  --nm-link:       #6fa037;
+  --nm-link:       #8cc04f;
+  --nm-link-bg:    #6fa037;   /* Fill behind active icon buttons */
   --nm-green-hdr:  #313d1e;
   --nm-red:        #e05555;
   --nm-cyan:       #75cbdf;
@@ -563,10 +564,6 @@ body.village3 #troops > tbody > tr.sum > td {
   background-color: var(--nm-elevated) !important;
 }
 
-body.village3 #ressources a,
-body.village3 #warehouse a,
-body.village3 #production a,
-body.village3 #capacity a,
 /* Alliance reports filter buttons + report tables (table itself is silver, shows through cell gaps) */
 .allianceReportFilterButton,
 .allianceReportOwnFilterButton {
@@ -581,6 +578,10 @@ body.alliance #defs {
   background-color: var(--nm-elevated) !important;
 }
 
+body.village3 #ressources a,
+body.village3 #warehouse a,
+body.village3 #production a,
+body.village3 #capacity a,
 :is(body.village3, body.reports) #overview a,
 body.village3 #culture_points a,
 body.village3 #troops a,
@@ -634,7 +635,7 @@ div.village3 table#overview td.vil.fc {
 }
 
 #overview > tbody > tr:nth-child(4) > td.vil.fc > span {
-  color: var(--nm-base) !important;
+  color: var(--nm-white) !important;
 }
 
 #overview > tbody > tr > td.sub > div > a {
@@ -669,7 +670,7 @@ div.village3 table#overview td.vil.fc {
 #content textarea {
   background-color: var(--nm-elevated) !important;
   color: var(--nm-white) !important;
-  border-color: var(--nm-dim) !important;
+  border-color: var(--nm-muted) !important;
 }
 
 /* Native <select> dropdown options (e.g. catapult target picker in #troopSendForm) */
@@ -677,6 +678,16 @@ div.village3 table#overview td.vil.fc {
 #content select optgroup {
   background-color: var(--nm-elevated) !important;
   color: var(--nm-white) !important;
+}
+
+/* Visible keyboard focus on dark surfaces */
+#content input:focus-visible,
+#content select:focus-visible,
+#content textarea:focus-visible,
+#content button:focus-visible,
+#content a:focus-visible {
+  outline: 2px solid var(--nm-gold) !important;
+  outline-offset: 1px !important;
 }
 
 
@@ -727,12 +738,12 @@ div.village3 table#overview td.vil.fc {
   color: var(--nm-white) !important;
 }
 
-abort > button {
+.abort > button {
   filter: grayscale(1) brightness(0.7) !important;
 }
 
 #playerProfile > div > table > tbody > tr > td.name > span {
-  color: var(--nm-dim) !important;
+  color: var(--nm-muted) !important;
 }
 
 div.linklist div.recommendedLinks {
@@ -925,15 +936,15 @@ tr.slot * {
   background-color: var(--nm-base) !important;
 }
 
-openContextMenu * {
+.openContextMenu * {
   background-color: transparent !important;
 }
 
-farmListWrapper.expanded * {
+.farmListWrapper.expanded {
   background-color: var(--nm-base) !important;
 }
 
-targetSelection * {
+.targetSelection * {
   color : var(--nm-white) !important; 
 }
 
@@ -985,7 +996,7 @@ div.a2b table#short_info {
 /*green menu buttons*/
 button.textButtonV1.green {
   color: #dde6ed;
-  background-image: linear-gradient(to bottom, #689baf, #541375);
+  background-image: linear-gradient(to bottom, #3a6878, #541375);
   background-color: #8ca16b;
   border: 0px solid #283308;
   box-shadow: inset 2px 0 1px -1px #ffffffad, inset -2px 0 1px -1px #40d7bb, inset 0 3px 1px -1px #ffffff, inset 0 -3px 1px -1px rgb(95 225 195 / 47%) !important;
@@ -993,7 +1004,7 @@ button.textButtonV1.green {
 button.textButtonV1.green:hover {
   color: #dde6ed;
   filter: brightness(1.2) !important;
-  background-image: linear-gradient(to bottom, #689baf, #541375);
+  background-image: linear-gradient(to bottom, #3a6878, #541375);
   background-color: #8ca16b;
   border: 0px solid #283308;
   box-shadow: inset 2px 0 1px -1px #ffffffad, inset -2px 0 1px -1px #40d7bb, inset 0 3px 1px -1px #ffffff, inset 0 -3px 1px -1px rgb(95 225 195 / 47%) !important;
@@ -1002,14 +1013,14 @@ button.textButtonV1.green:hover {
 button.textButtonV1.purple {
   color: #f2f2f2;  
   filter: brightness(1.2) !important;
-  background-image: linear-gradient(to bottom, #6d77ee, #8514c7);
+  background-image: linear-gradient(to bottom, #4a53b8, #8514c7);
   background-color: #ad73c5;
   border: 0px solid #200532;
   box-shadow: inset 2px 0 1px -1px #bc82d5, inset -3px 0 1px -1px #87569b, inset 0 3px 1px -1px #d68ef6, inset 0 -3px 1px -1px rgba(66, 29, 83, .6);
 }
 button.textButtonV1.purple:hover {
   color: #f2f2f2;
-  background-image: linear-gradient(to bottom, #6d77ee, #8514c7);
+  background-image: linear-gradient(to bottom, #4a53b8, #8514c7);
   background-color: #ad73c5;
   border: 0px solid #200532;
   box-shadow: inset 2px 0 1px -1px #bc82d5, inset -3px 0 1px -1px #87569b, inset 0 3px 1px -1px #d68ef6, inset 0 -3px 1px -1px rgba(66, 29, 83, .6);
@@ -1923,7 +1934,7 @@ a.iconButton {
 }
 
 a.iconButton.active {
-  background-color: var(--nm-link) !important;
+  background-color: var(--nm-link-bg) !important;
 }
 
 .statisticsGeneral h4,
@@ -2102,7 +2113,7 @@ div.reports table#overview td.sub .messageStatusRead {
   color: var(--nm-gray) !important;
 }
 
-#overview > tbody > tr: > td.vil.fc > a {
+#overview > tbody > tr > td.vil.fc > a {
   color: var(--nm-link) !important;
 }
 
@@ -2261,7 +2272,7 @@ td.vil.fc {
 #dailyQuests .dailyQuest .tasks>div.completed,
 #dailyQuests .dailyQuest .tasks>div.completed:before {
   border-color: var(--nm-gold) !important;
-  background-color: var(--tw-c-purple) !important;
+  background-color: var(--nm-green-hdr) !important;
 }
 
 #dailyQuests .dailyQuest .tasks>div .laurelIcon use,
@@ -2341,7 +2352,7 @@ td.vil.fc {
 }
 
 #overview > tbody > tr > td.vil.fc > span {
-  color: var(--nm-base) !important;
+  color: var(--nm-white) !important;
 }
 
 #productionOverview > div > div > div > div.productionPerHour > h4 {
@@ -2374,6 +2385,16 @@ div.cropBalanceContainer .balanceTroops {
 #_r-can-build > div {
   background-color: var(--nm-elevated) !important;
   color: var(--nm-white) !important;
+}
+
+/* Reduced motion: drop the tab/link transitions set above */
+@media (prefers-reduced-motion: reduce) {
+  .contentNavi.subNavi .scrollingContainer .content a,
+  #heroV2 > div:nth-child(2) > div.contentNavi.subNavi.tabFavorWrapper > div > div > a,
+  #tasks > div > div:nth-child(2) > div.contentNavi.subNavi.tabFavorWrapper > div > div > a,
+  .dialogContainer #paymentWizard .tabItem {
+    transition: none !important;
+  }
 }
 `,
 };

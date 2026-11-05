@@ -16,7 +16,7 @@
 			/* Visual styling to match Travian's table cells. */
 			font-family: Arial, Helvetica, sans-serif !important;
 			font-size: 13px !important;
-			color: #e0e2e8 !important;
+			color: inherit !important;
 			cursor: default !important;
 		}
 	`;

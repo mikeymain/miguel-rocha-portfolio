@@ -12,7 +12,7 @@
 	--tlw-border-vis: rgba(255, 255, 255, 0.12);
 	--tlw-text-primary: #f0f0f2;
 	--tlw-text-secondary: #8b8b95;
-	--tlw-text-tertiary: #5a5a65;
+	--tlw-text-tertiary: #85858f;
 	--tlw-accent: #f5a623;
 	--tlw-accent-dim: rgba(245, 166, 35, 0.12);
 	--tlw-emerald: #34d399;
@@ -28,6 +28,8 @@
 	border-radius: 10px;
 	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
 	z-index: 999999;
+	max-height: calc(100vh - 20px);
+	overflow: auto;
 	font-family: Arial, sans-serif;
 	color: var(--tlw-text-primary);
 	font-size: 13px;
@@ -58,7 +60,8 @@
 	opacity: 0.7;
 	color: var(--tlw-accent);
 }
-.tlw-btn-icon:hover {
+.tlw-btn-icon:hover,
+.tlw-btn-icon:focus-visible {
 	opacity: 1;
 }
 
@@ -68,8 +71,31 @@
 	font-weight: bold;
 	color: var(--tlw-text-secondary);
 }
-.tlw-close:hover {
+.tlw-close:hover,
+.tlw-close:focus-visible {
 	color: var(--tlw-text-primary);
+}
+
+/* Header icon controls are real <button>s: reset Travian/UA button chrome */
+.tlw-header-actions button {
+	min-width: 24px;
+	min-height: 24px;
+	padding: 0 2px;
+	margin: 0;
+	border: none;
+	background: transparent;
+	font-family: inherit;
+	line-height: 1;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 4px;
+}
+
+#tlw-overlay button:focus-visible,
+#tlw-overlay input[type="checkbox"]:focus-visible {
+	outline: 2px solid var(--tlw-accent);
+	outline-offset: 1px;
 }
 
 .tlw-body {
@@ -113,6 +139,11 @@
 #tlw-overlay select:focus {
 	outline: none !important;
 	border-color: var(--tlw-accent) !important;
+}
+#tlw-overlay input[type="number"]:focus-visible,
+#tlw-overlay select:focus-visible {
+	outline: 2px solid var(--tlw-accent) !important;
+	outline-offset: 1px !important;
 }
 .tlw-group label {
 	color: var(--tlw-text-secondary);
@@ -265,13 +296,14 @@
 	gap: 3px;
 	margin-left: 25px;
 	font-size: 13px;
-	color: #333;
+	color: inherit;
 	font-family: Arial, Helvetica, sans-serif;
 }
 
-/* REPORT BADGE */
-.tlw-report-badge {
-	color: #333;
+/* REPORT BADGE (JS emits .tlw-auto-badge; .tlw-report-badge kept for compatibility) */
+.tlw-report-badge,
+.tlw-auto-badge {
+	color: inherit;
 	font-family: Arial, Helvetica, sans-serif !important;
 	font-size: 13px;
 	margin-left: 8px;
@@ -283,23 +315,25 @@
 	cursor: default;
 }
 
-.tlw-report-badge .tlw-badge-count {
+.tlw-report-badge .tlw-badge-count,
+.tlw-auto-badge .tlw-badge-count {
 	margin-left: 5px;
-	color: #333;
+	color: inherit;
 }
 
-.tlw-report-badge .tlw-badge-unit {
+.tlw-report-badge .tlw-badge-unit,
+.tlw-auto-badge .tlw-badge-unit {
 	margin-left: 4px;
-	color: #333;
+	color: inherit;
 }
 
 .tlw-badge-count {
 	margin-left: 5px;
-	color: #333;
+	color: inherit;
 }
 .tlw-badge-unit {
 	margin-left: 4px;
-	color: #333;
+	color: inherit;
 }
 
 .tlw-empty {
@@ -345,4 +379,12 @@
 	display: inline;
 	font-size: 11px;
 	color: #cecece;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	#tlw-overlay,
+	#tlw-overlay * {
+		transition: none !important;
+		animation: none !important;
+	}
 }

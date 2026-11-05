@@ -2,7 +2,7 @@
 
 Calculates troop resource requirements and assists with NPC allocation and hero transfers.
 
-**Version 3.1.2 · JavaScript · Manifest V3**
+**Version 3.1.3 · JavaScript · Manifest V3**
 
 [Usage guide](../../docs/USAGE.md#npc-automerchant) · [Installation](../../README.md#install-in-brave-chrome-or-edge) · [All extensions](../../README.md)
 

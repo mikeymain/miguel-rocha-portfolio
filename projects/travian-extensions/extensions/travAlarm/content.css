@@ -19,13 +19,13 @@
   --tw-accent: #f5a623;
   --tw-accent-glow: rgba(245, 166, 35, 0.12);
   --tw-timer: #34d399;
-  --tw-done: #ef4444;
+  --tw-done: #f87171;
 
   /* Alarm type hues */
   --tw-c-pink: #f472b6;
   --tw-c-purple: #a78bfa;
   --tw-c-gold: #f5a623;
-  --tw-c-red: #ef4444;
+  --tw-c-red: #f87171;
   --tw-c-cyan: #22d3ee;
   --tw-c-green: #34d399;
   --tw-c-emerald: #10b981;
@@ -48,7 +48,7 @@
     text-shadow: 0 0 10px rgba(230, 57, 70, 0.6);
   }
   50% {
-    color: #7f1d1d;
+    color: #dc2626;
     text-shadow: 0 0 3px rgba(230, 57, 70, 0.15);
   }
   100% {
@@ -114,7 +114,7 @@
   top: 146px;
   width: 224px;
   height: fit-content;
-  max-height: 750px;
+  max-height: min(750px, calc(100vh - 160px));
   z-index: 9999;
   background: var(--tw-bg);
   border-radius: 14px;
@@ -154,7 +154,7 @@
 
 .tw-alarm-count {
   font-family: "JetBrains Mono", monospace;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
   color: var(--tw-bg);
   background: var(--tw-accent);
@@ -180,8 +180,8 @@
 }
 
 .tw-icon-btn {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border: none;
   background: transparent;
   border-radius: 6px;
@@ -258,7 +258,7 @@
 
 .tw-ring-bg {
   fill: none;
-  stroke: var(--tw-border);
+  stroke: rgba(255, 255, 255, 0.18);
   stroke-width: 3;
 }
 .tw-ring-fill {
@@ -350,9 +350,9 @@
 
 .tw-section-label {
   font-family: verdana;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 1.5px;
+  letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--tw-text-dim);
   flex-shrink: 0;
@@ -374,9 +374,9 @@
    be wiped by a stray click while skimming collapsed headers. */
 .tw-section-clear {
   display: none;
-  margin-left: auto;
-  width: 18px;
-  height: 16px;
+  margin: -4px 0 -4px auto;
+  width: 24px;
+  height: 24px;
   border: none;
   background: transparent;
   border-radius: 6px;
@@ -392,7 +392,8 @@
   display: flex;
   visibility: hidden;
 }
-.tw-section:not(.is-collapsed) .tw-section-header:hover .tw-section-clear {
+.tw-section:not(.is-collapsed) .tw-section-header:hover .tw-section-clear,
+.tw-section:not(.is-collapsed) .tw-section-header:focus-within .tw-section-clear {
   visibility: visible;
 }
 .tw-section-clear .tw-ui-icon {
@@ -406,7 +407,7 @@
 }
 
 .tw-section-next-village {
-  font-size: 9px;
+  font-size: 10px;
   color: var(--tw-text-dim);
   font-weight: 400;
   letter-spacing: 0.2px;
@@ -533,7 +534,7 @@
 }
 
 .tw-alarm-village {
-  font-size: 9px;
+  font-size: 10px;
   color: var(--tw-text-dim);
   margin-top: 2px;
   font-weight: 400;
@@ -569,7 +570,7 @@
 
 .tw-alarm-finish {
   font-family: "JetBrains Mono", monospace;
-  font-size: 9px;
+  font-size: 10px;
   color: var(--tw-text-dim);
   margin-top: 2px;
   letter-spacing: 0.3px;
@@ -592,13 +593,14 @@
   transition: transform 0.15s ease;
   z-index: 5;
 }
-.tw-alarm:hover .tw-alarm-actions {
+.tw-alarm:hover .tw-alarm-actions,
+.tw-alarm:focus-within .tw-alarm-actions {
   transform: translateX(0);
 }
 
 .tw-alarm-actions button {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border: none;
   background: transparent;
   border-radius: 6px;
@@ -646,11 +648,11 @@
   color: var(--tw-done);
 }
 .tw-alarm.is-done.is-silenced .tw-alarm-timer .t {
-  color: #666;
+  color: #8b8b95;
   animation: none !important;
 }
 .tw-alarm.is-done.is-silenced .n {
-  color: #666 !important;
+  color: #8b8b95 !important;
   animation: none !important;
 }
 
@@ -686,10 +688,11 @@
   background: transparent;
   cursor: pointer;
   padding: 4px 8px;
+  min-height: 24px;
   border-radius: 6px;
   transition: all 0.12s ease;
   font-family: "JetBrains Mono", monospace;
-  font-size: 8px !important;
+  font-size: 10px !important;
   font-weight: 600;
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -754,7 +757,7 @@
 
 .tw-panel-header {
   font-family: "Cinzel", serif;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -770,10 +773,10 @@
 
 .tw-panel-close {
   position: absolute;
-  top: 6px;
-  right: 8px;
-  width: 18px;
-  height: 18px;
+  top: 3px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
   border: none;
   background: transparent;
   cursor: pointer;
@@ -841,7 +844,6 @@
 }
 .audio-cat-row.is-off .audio-cat-label {
   color: var(--tw-text-dim);
-  opacity: 0.6;
 }
 .tw-toggle {
   position: relative;
@@ -929,14 +931,23 @@
 .remove-shortcut,
 .edit-shortcut,
 .recurring-toggle {
-  opacity: 0.3;
+  opacity: 0.75;
   transition: all 0.15s ease;
-  margin-left: 5px;
+  margin: -5px 0 -5px 2px;
   font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  border-radius: 6px;
 }
 .remove-shortcut:hover,
 .edit-shortcut:hover,
-.recurring-toggle:hover {
+.recurring-toggle:hover,
+.remove-shortcut:focus-visible,
+.edit-shortcut:focus-visible,
+.recurring-toggle:focus-visible {
   opacity: 1;
   transform: scale(1.15);
 }
@@ -1024,17 +1035,11 @@
 .tw-type-teal {
   --alarm-color: var(--tw-c-teal);
 }
-.tw-type-teal .tw-alarm-accent {
-  background: var(--tw-c-teal);
-}
 .tw-type-teal .t {
   color: var(--tw-c-teal);
 }
 .tw-type-lime {
   --alarm-color: var(--tw-c-lime);
-}
-.tw-type-lime .tw-alarm-accent {
-  background: var(--tw-c-lime);
 }
 .tw-type-lime .t {
   color: var(--tw-c-lime);
@@ -1065,9 +1070,47 @@
 .tw-empty span {
   display: block;
   font-family: "Cinzel", serif;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 2px;
   text-transform: uppercase;
+}
+
+/* -----------------------------------------
+   KEYBOARD FOCUS, ACTIVE & DISABLED STATES
+   ----------------------------------------- */
+#_tw-w button:focus-visible,
+#_tw-w input:focus-visible,
+#_tw-w [role="button"]:focus-visible,
+#_tw-w [role="switch"]:focus-visible {
+  outline: 2px solid var(--tw-accent);
+  outline-offset: -2px;
+}
+#_tw-w .tw-section-label:focus-visible {
+  outline: none;
+}
+.tw-section-header:has(.tw-section-label:focus-visible) {
+  outline: 2px solid var(--tw-accent);
+  outline-offset: -2px;
+}
+#_tw-w .tw-ring:focus-visible {
+  outline-offset: 0;
+  border-radius: 50%;
+}
+.tw-icon-btn:active,
+.tw-tool-btn:active,
+.tw-panel-close:active,
+.tw-section-clear:active,
+.tw-alarm-actions button:active {
+  background: rgba(255, 255, 255, 0.1);
+}
+.tw-section-header:active,
+.dropdown-option:active,
+.audio-option:active {
+  background: var(--tw-surface-hover);
+}
+#_tw-w button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* -----------------------------------------
@@ -1110,4 +1153,20 @@ div#build div.action div.details ._w-nm {
   margin-bottom: -23px;
   color: rgb(153, 153, 153);
   font-size: 12px;
+}
+
+/* -----------------------------------------
+   REDUCED MOTION
+   ----------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  #_tw-w,
+  #_tw-w *,
+  .flashing-alarm {
+    animation: none !important;
+    transition: none !important;
+  }
+  #_tw-w .flashing-alarm,
+  .tw-section-header.is-all-done .tw-section-label {
+    color: var(--tw-done) !important;
+  }
 }

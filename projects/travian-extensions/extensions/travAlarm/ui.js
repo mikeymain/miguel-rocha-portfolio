@@ -21,6 +21,25 @@ function formatHMS(totalSeconds) {
     : `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+/**
+ * Lets a non-button element act as a button for keyboard users
+ * (focusable, Enter/Space trigger its click handler).
+ * @param {HTMLElement} el
+ * @param {string} [label] - accessible name for icon-only elements
+ */
+function makeKeyboardButton(el, label) {
+  el.setAttribute("role", "button");
+  el.tabIndex = 0;
+  if (label) el.setAttribute("aria-label", label);
+  el.addEventListener("keydown", (e) => {
+    if (e.target !== el) return;
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      el.click();
+    }
+  });
+}
+
 // ==========================================
 // ALARM CLASSIFICATION
 // ==========================================
@@ -366,7 +385,7 @@ function renderSoundCategoryToggles(root) {
     return `
       <div class="audio-option audio-cat-row" data-cat="${key}">
         <span class="audio-cat-label">${meta.label}</span>
-        <span class="tw-toggle is-on" role="switch" aria-checked="true">
+        <span class="tw-toggle is-on" role="switch" aria-checked="true" tabindex="0" aria-label="${meta.label} sound">
           <span class="tw-toggle-track"></span>
           <span class="tw-toggle-thumb"></span>
         </span>
@@ -375,6 +394,13 @@ function renderSoundCategoryToggles(root) {
   }).join("");
 
   host.querySelectorAll(".audio-cat-row").forEach((row) => {
+    const toggle = row.querySelector(".tw-toggle");
+    toggle?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        toggle.click();
+      }
+    });
     row.onclick = (e) => {
       e.stopPropagation();
       const cat = row.dataset.cat;
@@ -532,6 +558,12 @@ function rebuildUI() {
     }
 
     // Flash the section header when ALL alarms in this category are done
+    section
+      .querySelector(".tw-section-label")
+      ?.setAttribute(
+        "aria-expanded",
+        String(!section.classList.contains("is-collapsed")),
+      );
     const sectionHeader = section.querySelector(".tw-section-header");
     if (sectionHeader) {
       sectionHeader.classList.toggle(
@@ -622,7 +654,7 @@ function createSectionNode(type, meta) {
             <span class="tw-section-label" style="color: ${meta.color}">${meta.label}</span>
             <span class="tw-section-next-village"></span>
             <span class="tw-section-count">0</span>
-            <button type="button" class="tw-section-clear" title="Clear all ${meta.label} timers">${makeUiIcon("trash")}</button>
+            <button type="button" class="tw-section-clear" title="Clear all ${meta.label} timers" aria-label="Clear all ${meta.label} timers">${makeUiIcon("trash")}</button>
             <span class="tw-section-done-badge"></span>
             <span class="tw-section-soonest"></span>
         </div>
@@ -639,8 +671,17 @@ function createSectionNode(type, meta) {
   };
 
   const header = section.querySelector(".tw-section-header");
+  // The label is the keyboard toggle (the header holds the clear button, and
+  // interactive controls must not nest); its click bubbles to header.onclick.
+  const label = section.querySelector(".tw-section-label");
+  makeKeyboardButton(label);
+  label.setAttribute("aria-expanded", String(!collapsedSections.has(type)));
   header.onclick = () => {
     section.classList.toggle("is-collapsed");
+    label.setAttribute(
+      "aria-expanded",
+      String(!section.classList.contains("is-collapsed")),
+    );
     if (section.classList.contains("is-collapsed")) {
       collapsedSections.add(type);
       expandedSections.delete(type);
@@ -712,6 +753,7 @@ function updateRingStrip(groups) {
                     stroke-dashoffset="${dashOffset}"/>
                 <text class="tw-ring-count" x="14" y="14" fill="${meta.color}">${count}</text>
             </svg>`;
+      makeKeyboardButton(ring, `${meta.label}: ${count}`);
       ring.onclick = () => {
         const section = listContainer.querySelector(
           `.tw-section[data-type="${type}"]`,
@@ -732,6 +774,7 @@ function updateRingStrip(groups) {
         fillCircle.setAttribute("stroke", meta.color);
       }
       const countText = ring.querySelector(".tw-ring-count");
+      ring.setAttribute("aria-label", `${meta.label}: ${count}`);
       if (countText) {
         countText.textContent = count;
         countText.setAttribute("fill", meta.color);
@@ -834,7 +877,7 @@ function createAlarmNode(a, uniqueId) {
   div.dataset.uid = uniqueId;
 
   const editBtnHtml = isCustom
-    ? `<button class="tw-act-edit" title="Edit">${makeUiIcon("pencil")}</button>`
+    ? `<button type="button" class="tw-act-edit" title="Edit" aria-label="Edit">${makeUiIcon("pencil")}</button>`
     : "";
 
   div.innerHTML = `
@@ -851,9 +894,9 @@ function createAlarmNode(a, uniqueId) {
             </div>
         </div>
         <div class="tw-alarm-actions">
-            <button class="tw-act-pin ${a.isPinned ? "is-active" : ""}" title="Pin">${makeUiIcon("pin")}</button>
+            <button type="button" class="tw-act-pin ${a.isPinned ? "is-active" : ""}" title="Pin" aria-label="Pin" aria-pressed="${a.isPinned ? "true" : "false"}">${makeUiIcon("pin")}</button>
             ${editBtnHtml}
-            <button class="tw-act-delete" title="Delete">${makeUiIcon("trash")}</button>
+            <button type="button" class="tw-act-delete" title="Delete" aria-label="Delete">${makeUiIcon("trash")}</button>
         </div>`;
 
   const villageNode = div.querySelector(".tw-alarm-village");
@@ -886,7 +929,10 @@ function updateAlarmCard(card, a, uid) {
   }
 
   const pinBtn = card.querySelector(".tw-act-pin");
-  if (pinBtn) pinBtn.classList.toggle("is-active", !!a.isPinned);
+  if (pinBtn) {
+    pinBtn.classList.toggle("is-active", !!a.isPinned);
+    pinBtn.setAttribute("aria-pressed", String(!!a.isPinned));
+  }
   card.classList.toggle("is-pinned", !!a.isPinned);
 }
 
@@ -900,6 +946,10 @@ function setupAlarmListeners(node, a, uniqueId) {
     pinBtn.onclick = (e) => {
       e.stopPropagation();
       pinBtn.classList.toggle("is-active");
+      pinBtn.setAttribute(
+        "aria-pressed",
+        String(pinBtn.classList.contains("is-active")),
+      );
       node.classList.toggle("is-pinned");
       api.runtime
         .sendMessage({ type: "TOGGLE_PIN", id: a.id })
@@ -1042,7 +1092,10 @@ function setupAlarmListeners(node, a, uniqueId) {
   };
 
   const content = node.querySelector(".tw-alarm-content");
-  if (content) content.onclick = handleTriggerClick;
+  if (content) {
+    makeKeyboardButton(content);
+    content.onclick = handleTriggerClick;
+  }
 
   // Delete
   const deleteBtn = node.querySelector(".tw-act-delete");
@@ -1216,6 +1269,10 @@ function loadShortcuts() {
       }[mode];
 
       opt.innerHTML = `<span>${escapeHtml(s.label)}</span><div class="shortcut-actions"><span class="recurring-toggle ${recurringActiveClass} ${recurringModeClass}" title="${recurringTitle}">${recurringLabel}</span><span class="edit-shortcut" title="Edit Shortcut">✎</span><span class="remove-shortcut" title="Delete Shortcut">✕</span></div>`;
+      makeKeyboardButton(opt.firstElementChild);
+      opt
+        .querySelectorAll(".shortcut-actions > span")
+        .forEach((el) => makeKeyboardButton(el, el.title));
       opt.onclick = (e) => {
         e.stopPropagation();
         handleDropdownAction(
@@ -1333,18 +1390,33 @@ async function deleteShortcut(uid) {
 // ==========================================
 // PANEL MANAGEMENT
 // ==========================================
-function closePanels() {
+let panelOpener = null;
+
+/**
+ * @param {boolean} [restoreFocus] - return focus to the button that opened the panel
+ */
+function closePanels(restoreFocus = false) {
   document
     .querySelectorAll(".tw-panel")
     .forEach((p) => p.classList.remove("is-open"));
+  document
+    .querySelectorAll("#_tw-w [aria-controls]")
+    .forEach((b) => b.setAttribute("aria-expanded", "false"));
+  if (restoreFocus && panelOpener) panelOpener.focus();
+  panelOpener = null;
 }
 
-function togglePanel(panelId) {
+function togglePanel(panelId, opener) {
   const panel = document.getElementById(panelId);
   if (!panel) return;
   const isOpen = panel.classList.contains("is-open");
   closePanels();
-  if (!isOpen) panel.classList.add("is-open");
+  if (!isOpen) {
+    panel.classList.add("is-open");
+    panelOpener = opener || null;
+    if (opener) opener.setAttribute("aria-expanded", "true");
+    panel.querySelector(".tw-panel-close")?.focus();
+  }
 }
 
 // ==========================================
@@ -1356,7 +1428,7 @@ const WIDGET_HTML = `
         <span class="tw-title">TravAlarm</span>
         <span class="tw-alarm-count" id="_tw-cnt">0</span>
         <div class="tw-titlebar-actions">
-            <button id="_tw-mb" class="tw-icon-btn" title="Minimize">
+            <button type="button" id="_tw-mb" class="tw-icon-btn" title="Minimize" aria-label="Minimize">
                 ${makeUiIcon("minimize")}
             </button>
         </div>
@@ -1369,29 +1441,29 @@ const WIDGET_HTML = `
     </div>
 
     <div class="tw-toolbar" id="_tw-toolbar">
-        <button id="_tw-ti" class="tw-tool-btn" title="Add Custom Alarm">
+        <button type="button" id="_tw-ti" class="tw-tool-btn" title="Add Custom Alarm">
             ${makeUiIcon("plus")}<span>Add</span>
         </button>
-        <button id="_tw-db" class="tw-tool-btn" title="Quick Timers">
+        <button type="button" id="_tw-db" class="tw-tool-btn" title="Quick Timers" aria-controls="_tw-dm" aria-expanded="false">
             ${makeUiIcon("lightning")}<span>Presets</span>
         </button>
-        <button id="_tw-ab" class="tw-tool-btn" title="Sound Settings">
+        <button type="button" id="_tw-ab" class="tw-tool-btn" title="Sound Settings" aria-label="Sound Settings" aria-controls="_tw-am" aria-expanded="false">
             ${makeUiIcon("speaker")}
         </button>
-        <button id="_tw-ca" class="tw-tool-btn tw-tool-danger" title="Clear All">
+        <button type="button" id="_tw-ca" class="tw-tool-btn tw-tool-danger" title="Clear All" aria-label="Clear All">
             ${makeUiIcon("trash")}
         </button>
     </div>
 
-    <div class="tw-panel" id="_tw-dm">
-        <div class="tw-panel-header">Presets<button class="tw-panel-close" id="_tw-pc1">×</button></div>
+    <div class="tw-panel" id="_tw-dm" role="dialog" aria-label="Presets">
+        <div class="tw-panel-header">Presets<button type="button" class="tw-panel-close" id="_tw-pc1" aria-label="Close">×</button></div>
         <div id="_tw-da"></div>
-        <button class="tw-panel-add" id="_tw-cn">+ New Preset</button>
+        <button type="button" class="tw-panel-add" id="_tw-cn">+ New Preset</button>
     </div>
-    <div class="tw-panel" id="_tw-am">
-        <div class="tw-panel-header">Sound Settings<button class="tw-panel-close" id="_tw-pc2">×</button></div>
+    <div class="tw-panel" id="_tw-am" role="dialog" aria-label="Sound Settings">
+        <div class="tw-panel-header">Sound Settings<button type="button" class="tw-panel-close" id="_tw-pc2" aria-label="Close">×</button></div>
         <div class="audio-volume-row">
-            <label class="audio-volume-label">Vol</label>
+            <label class="audio-volume-label" for="_tw-vol">Vol</label>
             <input type="range" id="_tw-vol" class="audio-volume-slider" min="0" max="100" value="80">
             <span id="_tw-vol-val" class="audio-volume-val">80%</span>
         </div>
@@ -1416,22 +1488,24 @@ function createWidget() {
     div.classList.toggle("is-minimized");
     const isMin = div.classList.contains("is-minimized");
     minBtn.innerHTML = makeUiIcon(isMin ? "maximize" : "minimize");
+    minBtn.setAttribute("aria-label", isMin ? "Expand" : "Minimize");
+    minBtn.title = isMin ? "Expand" : "Minimize";
   };
 
   // Panel close buttons
   div.querySelector("#_tw-pc1").onclick = (e) => {
     e.stopPropagation();
-    closePanels();
+    closePanels(true);
   };
   div.querySelector("#_tw-pc2").onclick = (e) => {
     e.stopPropagation();
-    closePanels();
+    closePanels(true);
   };
 
   // Presets panel
   presetBtn.onclick = (e) => {
     e.stopPropagation();
-    togglePanel("_tw-dm");
+    togglePanel("_tw-dm", presetBtn);
   };
   div.querySelector("#_tw-cn").onclick = () =>
     handleDropdownAction("CREATE_NEW", "");
@@ -1439,7 +1513,7 @@ function createWidget() {
   // Audio panel
   audioBtn.onclick = (e) => {
     e.stopPropagation();
-    togglePanel("_tw-am");
+    togglePanel("_tw-am", audioBtn);
   };
   renderSoundCategoryToggles(div);
 
@@ -1463,6 +1537,13 @@ function createWidget() {
 
   // Close panels on outside click
   document.addEventListener("click", () => closePanels());
+
+  // Close panels with Escape and return focus to their opener
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    if (!div.querySelector(".tw-panel.is-open")) return;
+    closePanels(true);
+  });
 
   // Add custom alarm
   toggleBtn.onclick = () => {

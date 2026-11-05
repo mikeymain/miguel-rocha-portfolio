@@ -8,7 +8,9 @@ button._npc-lock-btn {
   vertical-align: middle !important;
   margin-left: 4px !important;
   padding: 2px 6px !important;
-  border: 1px solid #d8a93b !important;
+  min-height: 24px !important;
+  min-width: 24px !important;
+  border: 1px solid #a87a1a !important;
   background: #fff4d4 !important;
   color: #000 !important;
   border-radius: 4px !important;
@@ -174,13 +176,13 @@ input[name^="desired"][readonly] {
 }
 ._r-btn-primary {
   flex: 1;
-  background: linear-gradient(to bottom, #6aad2d, #4e8a1e);
+  background: linear-gradient(to bottom, #46801a, #3a6d12);
   color: #fff;
   border-color: #3a6d12;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 ._r-btn-primary:hover:not(:disabled) {
-  background: linear-gradient(to bottom, #7bbf3a, #5a9e2f);
+  background: linear-gradient(to bottom, #3a6d12, #2f5a0e);
 }
 ._r-btn-icon {
   width: 32px;
@@ -197,7 +199,7 @@ input[name^="desired"][readonly] {
 ._r-btn-small {
   padding: 4px 10px;
   background: #fff;
-  border: 1px solid #c5b88a;
+  border: 1px solid #8f7f55;
   color: #5a4d32;
 }
 ._r-btn-small:hover {
@@ -209,7 +211,7 @@ input[name^="desired"][readonly] {
 
 /* ---- States ---- */
 ._r-no-action {
-  color: #8a7d65;
+  color: #6b5f48;
   font-style: italic;
   text-align: center;
   padding: 14px 10px;
@@ -225,7 +227,7 @@ input[name^="desired"][readonly] {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #8a7d65;
+  color: #6b5f48;
   margin-bottom: 4px;
 }
 
@@ -266,7 +268,7 @@ input[name^="desired"][readonly] {
   padding: 5px 8px;
   font-size: 11px;
   font-family: inherit;
-  border: 1px solid #c5b88a;
+  border: 1px solid #8f7f55;
   border-radius: 4px;
   background: #fff;
   color: #4a3f2e;
@@ -280,7 +282,7 @@ input[name^="desired"][readonly] {
   padding: 5px 8px;
   font-size: 12px;
   font-family: inherit;
-  border: 1px solid #c5b88a;
+  border: 1px solid #8f7f55;
   border-radius: 4px;
   background: #fff;
   color: #4a3f2e;
@@ -301,7 +303,7 @@ input[name^="desired"][readonly] {
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  color: #8a7d65;
+  color: #6b5f48;
   margin-bottom: 4px;
 }
 ._r-cost-grid {
@@ -347,7 +349,7 @@ input[name^="desired"][readonly] {
   font-weight: 700;
 }
 ._r-highlight {
-  color: #228B22;
+  color: #1a6e1a;
   font-size: 12px;
 }
 
@@ -367,10 +369,10 @@ input[name^="desired"][readonly] {
   font-size: 11px;
 }
 ._r-ok {
-  color: #228B22;
+  color: #1a6e1a;
 }
 ._r-warn {
-  color: #c07020;
+  color: #9e5a16;
 }
 ._r-preview-row {
   display: flex;
@@ -389,9 +391,9 @@ input[name^="desired"][readonly] {
   font-weight: 500;
 }
 ._r-preview-need {
-  width: 60px;
+  min-width: 60px;
   text-align: right;
-  color: #8a7d65;
+  color: #6b5f48;
 }
 ._r-preview-warn {
   margin-top: 6px;
@@ -404,10 +406,12 @@ input[name^="desired"][readonly] {
 }
 /* ---- Copy button ---- */
 ._r-copy-btn {
+  min-width: 24px;
+  min-height: 24px;
   padding: 1px 5px;
   margin-left: 4px;
   background: #fff;
-  border: 1px solid #c5b88a;
+  border: 1px solid #8f7f55;
   border-radius: 3px;
   color: #7a6c4f;
   font-size: 12px;
@@ -424,11 +428,11 @@ input[name^="desired"][readonly] {
 ._r-copy-btn._r-copy-ok {
   background: #edf7dc;
   border-color: #5a9e2f;
-  color: #228B22;
+  color: #1a6e1a;
 }
 ._r-btn._r-send-ok {
-  background: linear-gradient(to bottom, #5cb85c, #3d8b3d);
-  border-color: #2e6b2e;
+  background: linear-gradient(to bottom, #357a35, #2a5f2a);
+  border-color: #245524;
   cursor: default;
 }
 
@@ -505,10 +509,40 @@ input[name^="desired"][readonly] {
   border-radius: 4px;
   margin-top: 6px;
   font-size: 11px;
-  color: #228B22;
+  color: #1a6e1a;
 }
 ._r-info-block.warn {
   background: #fff8ee;
   border-color: #e6c870;
   color: #8a6520;
+}
+
+/* ---- Keyboard focus ---- */
+._r-btn:focus-visible,
+._r-copy-btn:focus-visible,
+._r-select:focus-visible,
+._r-input:focus-visible {
+  outline: 2px solid #3a6d12;
+  outline-offset: 1px;
+}
+button._npc-lock-btn:focus-visible {
+  outline: 2px solid #3a6d12 !important;
+  outline-offset: 1px !important;
+}
+
+/* ---- Reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  ._r-resource,
+  ._r-tab,
+  ._r-btn,
+  ._r-copy-btn,
+  ._r-unit-item {
+    transition: none;
+  }
+  button._npc-lock-btn {
+    transition: none !important;
+  }
+  button._npc-lock-btn:hover {
+    transform: none;
+  }
 }

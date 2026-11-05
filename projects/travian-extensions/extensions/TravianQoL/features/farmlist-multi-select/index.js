@@ -40,7 +40,7 @@
 		[class*="slotRow"]:has(input[type="checkbox"]:checked) > *,
 		[class*="raidListEntry"]:has(input[type="checkbox"]:checked),
 		[class*="raidListEntry"]:has(input[type="checkbox"]:checked) > * {
-			background-color: #4e505c !important;
+			background-color: rgba(120, 140, 200, 0.25) !important;
 		}
 	`;
 	const MENU_CSS = `
@@ -48,6 +48,7 @@
 		._tqfl-menu[hidden] { display: none; }
 		._tqfl-menu button { display: block; width: 100%; padding: 8px 12px; border: 0; border-radius: 2px; background: transparent; color: #f4f4f6; text-align: left; cursor: pointer; }
 		._tqfl-menu button:hover, ._tqfl-menu button:focus { background: #4e505c; outline: none; }
+		._tqfl-menu button:focus-visible { outline: 2px solid #8ab4ff; outline-offset: -2px; }
 	`;
 
 	// Selector for any farm list container on the page. Used both to find the

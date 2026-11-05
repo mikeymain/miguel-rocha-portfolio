@@ -324,5 +324,5 @@ const UI_ICONS = {
 function makeUiIcon(key, cls = "") {
   const icon = UI_ICONS[key];
   if (!icon) return "";
-  return `<svg class="tw-ui-icon ${cls}" viewBox="${icon.viewBox}" xmlns="http://www.w3.org/2000/svg"><path d="${icon.path}"/></svg>`;
+  return `<svg class="tw-ui-icon ${cls}" aria-hidden="true" focusable="false" viewBox="${icon.viewBox}" xmlns="http://www.w3.org/2000/svg"><path d="${icon.path}"/></svg>`;
 }

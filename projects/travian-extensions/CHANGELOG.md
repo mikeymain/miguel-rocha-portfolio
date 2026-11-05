@@ -1,5 +1,16 @@
 # Changelog
 
+## Design and accessibility pass — 2026-11-05
+
+Oasis Finder 69.6, TravAlarm 3.30, Travian QoL 1.2.2, NPC AutoMerchant 3.1.3 and Night Mode 2.6 fix contrast, keyboard access and motion in the panels they add to game pages. Layout and colours stay the same apart from the contrast fixes.
+
+- **All five:** text that was below WCAG AA contrast is darker or lighter as needed, keyboard focus shows a visible outline, and animations and transitions stop when the system asks for reduced motion.
+- **Oasis Finder:** the DB and Errors window is a labelled dialog that closes with Escape and returns focus. Icon buttons, steppers and inputs have names, small controls are 24 px, footer text is at least 10 px, and the panel stays on screen in narrow windows.
+- **TravAlarm:** section headers, rings, alarm cards and sound switches work from the keyboard. Card actions also appear on keyboard focus, text is at least 10 px, buttons are 24 px, the alarm flash stays readable, and the widget fits short screens.
+- **Travian QoL:** the village resource total uses the game's text colour, so it is readable in the light theme. The selected farm-list row highlight works in both themes. Loot Calculator's settings and close icons are real buttons, and its window closes with Escape. To-do actions appear on keyboard focus and its buttons are 24 px.
+- **NPC AutoMerchant:** buttons, labels, the resource indicator and "needed" amounts meet contrast. Selects, copy buttons, the lock button and steppers have names. Preview amounts use thousands separators, and the pull progress message is announced.
+- **Night Mode:** link, input-border and button colours meet contrast. Rules that never applied because of typos (missing class dots, `tr:`, an undefined colour, a selector list cut by a comment) now work.
+
 ## Travian QoL 1.2.1 — 2026-10-22
 
 - **Loot Calculator** finds the lost-resources row on reports in any language, so net resources work outside English.

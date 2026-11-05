@@ -189,9 +189,10 @@
 			--bg-active: #3a3a40;
 			--text-primary: #e8e8ec;
 			--text-secondary: #a0a0a8;
-			--text-muted: #666670;
-			--accent-primary: #6366f1;
-			--accent-primary-hover: #7577f5;
+			--text-muted: #9494a0;
+			--accent-primary: #5458e0;
+			--accent-primary-hover: #4a4dd6;
+			--focus-ring: #818cf8;
 			--accent-success: #22c55e;
 			--accent-danger: #ef4444;
 			--accent-danger-hover: #f55555;
@@ -353,7 +354,8 @@
 			transition: opacity var(--transition-fast);
 			flex-shrink: 0;
 		}
-		.task-row:hover .task-actions { opacity: 1; }
+		.task-row:hover .task-actions,
+		.task-row:focus-within .task-actions { opacity: 1; }
 
 		.btn-icon {
 			padding: 3px 4px;
@@ -363,8 +365,13 @@
 			cursor: pointer;
 			border-radius: 3px;
 			transition: all var(--transition-fast);
-			font-size: 10px;
+			font-size: 12px;
 			line-height: 1;
+			min-width: 24px;
+			min-height: 24px;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
 		}
 		.btn-icon:hover { background: var(--bg-active); color: var(--text-primary); }
 		.btn-icon.danger:hover { color: var(--accent-danger); }
@@ -406,6 +413,21 @@
 			flex-shrink: 0;
 		}
 		.btn-primary:hover { background: var(--accent-primary-hover); }
+
+		button:focus-visible,
+		.input:focus-visible,
+		.task-edit-input:focus-visible {
+			outline: 2px solid var(--focus-ring);
+			outline-offset: 1px;
+		}
+		.btn-toggle { min-width: 24px; min-height: 24px; }
+
+		@media (prefers-reduced-motion: reduce) {
+			*, *::before, *::after {
+				transition: none !important;
+				animation: none !important;
+			}
+		}
 	`;
 
 	/* =====================================================================
@@ -439,12 +461,12 @@
 						<h1 id="village-title">${this._escapeHTML(this._village.name)}</h1>
 						<span class="active-badge">Active Village</span>
 					</div>
-					<button class="btn-toggle" id="toggle-btn" aria-label="Toggle list visibility" title="Collapse / Expand">_</button>
+					<button type="button" class="btn-toggle" id="toggle-btn" aria-label="Toggle list visibility" aria-expanded="true" title="Collapse / Expand">_</button>
 				</div>
 				<div id="list-body">
 					<div class="task-list" id="task-list"></div>
 					<div class="input-group">
-						<input type="text" class="input" id="task-input"
+						<input type="text" class="input" id="task-input" aria-label="New task"
 									 placeholder="Add a task…" autocomplete="off"
 									 maxlength="${MAX_TASK_LEN}" />
 						<button class="btn-primary" id="add-btn">Add</button>
@@ -600,6 +622,7 @@
 		_toggleCollapse() {
 			const collapsed = this._listBody.classList.toggle('hidden');
 			this._toggleBtn.textContent = collapsed ? '+' : '_';
+			this._toggleBtn.setAttribute('aria-expanded', String(!collapsed));
 			this._cb.onToggle?.(collapsed);
 			return collapsed;
 		}
@@ -607,6 +630,7 @@
 		setCollapsed(collapsed) {
 			this._listBody.classList.toggle('hidden', collapsed);
 			this._toggleBtn.textContent = collapsed ? '+' : '_';
+			this._toggleBtn.setAttribute('aria-expanded', String(!collapsed));
 		}
 
 		render(tasks) {
@@ -747,7 +771,7 @@
 			const host = document.createElement('div');
 			host.id = ROOT_ID;
 			host.style.cssText =
-				'position: fixed; top: 151px; left: 8px; z-index: 1; display: none;';
+				'position: fixed; top: 151px; left: 8px; z-index: 100; display: none;';
 			document.body.appendChild(host);
 			this._host = host;
 

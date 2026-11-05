@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Travian Best Oasis Finder",
-  "version": "69.5",
+  "version": "69.6",
   "description": "Oasis scoring and farm-list sorting for Travian.",
   "icons": { "48": "icon.png", "128": "icon.png" },
   "permissions": ["storage"],

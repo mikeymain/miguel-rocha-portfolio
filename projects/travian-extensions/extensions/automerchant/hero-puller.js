@@ -362,6 +362,8 @@ NPC.HeroPuller = {
 		if (!el) {
 			el = document.createElement("div");
 			el.id = "_npc-pull-progress";
+			el.setAttribute("role", "status");
+			el.setAttribute("aria-live", "polite");
 			// Non-blocking toast: pinned bottom-right, no overlay, pointer-events
 			// off the wrapper so the page underneath stays fully interactive.
 			el.style.cssText =

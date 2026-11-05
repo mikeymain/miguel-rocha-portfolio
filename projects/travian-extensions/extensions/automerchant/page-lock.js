@@ -126,6 +126,8 @@
 			if (btn.__npcLockBound) continue;
 			btn.__npcLockBound = true;
 			btn.title = 'Lock this value — Distribute will not change it';
+			btn.setAttribute('aria-label', 'Lock value');
+			btn.setAttribute('aria-pressed', input.__npcLocked ? 'true' : 'false');
 			btn.addEventListener('click', (e) => {
 				e.preventDefault();
 				e.stopPropagation();
@@ -135,6 +137,7 @@
 					input.readOnly = false;
 					btn.textContent = '🔓';
 					btn.classList.remove('_npc-lock-on');
+					btn.setAttribute('aria-pressed', 'false');
 					btn.title = 'Lock this value — Distribute will not change it';
 				} else {
 					input.__npcLocked = true;
@@ -142,6 +145,7 @@
 					input.readOnly = true;
 					btn.textContent = '🔒';
 					btn.classList.add('_npc-lock-on');
+					btn.setAttribute('aria-pressed', 'true');
 					btn.title = 'Unlock — value is currently held at ' + input.__npcLockedValue;
 				}
 				// Don't redistribute on lock toggle — the desired inputs hold

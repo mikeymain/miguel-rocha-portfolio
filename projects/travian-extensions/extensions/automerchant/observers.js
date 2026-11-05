@@ -142,7 +142,7 @@ NPC.HeroPageObserver = {
 
     const INDICATOR_STYLE =
       `position:fixed;${POS_STYLE}` +
-      "background:linear-gradient(135deg,#5a9e2f,#3a6d12);color:#fff;" +
+      "background:linear-gradient(135deg,#3a6d12,#2a520c);color:#fff;" +
       "padding:12px 16px;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.25);" +
       "z-index:10000;font-family:Verdana,sans-serif;font-size:12px;max-width:260px;" +
       "user-select:none;";
@@ -151,7 +151,7 @@ NPC.HeroPageObserver = {
       "background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);" +
       "border-radius:4px;color:#fff;cursor:pointer;width:100%;font-size:11px;font-family:inherit;";
     const STEPPER_BTN_STYLE =
-      "padding:1px 8px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.35);" +
+      "min-width:24px;min-height:24px;padding:1px 8px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.35);" +
       "border-radius:3px;color:#fff;cursor:pointer;font-size:14px;line-height:1.4;font-family:inherit;";
 
     // Randomise internal IDs per-session so scanners can't target stable selectors
@@ -176,7 +176,7 @@ NPC.HeroPageObserver = {
     const village = NPC.PullDialogObserver.loadNeededVillage();
 
     const COPY_BTN_STYLE =
-      "padding:1px 6px;margin-left:6px;background:rgba(255,255,255,0.15);" +
+      "min-width:24px;min-height:24px;padding:1px 6px;margin-left:6px;background:rgba(255,255,255,0.15);" +
       "border:1px solid rgba(255,255,255,0.35);border-radius:3px;color:#fff;" +
       "cursor:pointer;font-size:11px;line-height:1.4;font-family:inherit;";
 
@@ -195,19 +195,19 @@ NPC.HeroPageObserver = {
       // mousedown listener checks via closest(). cursor:move telegraphs it.
       let html = `<div class="_npc-drag" title="Drag to move" style="font-weight:700;cursor:move;margin-bottom:${village?.name ? 2 : 6}px;">⠿ Resources Needed</div>`;
       if (village?.name) {
-        html += `<div style="font-size:10px;opacity:0.75;margin-bottom:6px;">for ${villageName} (${total})</div>`;
+        html += `<div style="font-size:10px;opacity:0.85;margin-bottom:6px;">for ${villageName} (${total})</div>`;
       }
       neededList.forEach((item) => {
         const per = split > 1 ? Math.floor(item.amount / split) : item.amount;
         const perStr =
           split > 1
-            ? `<span style="opacity:0.6;font-size:10px;margin-left:4px;">× ${split} = ${item.amount}</span>`
+            ? `<span style="opacity:0.85;font-size:10px;margin-left:4px;">× ${split} = ${NPC.Utils.formatNumber(item.amount)}</span>`
             : "";
         html += `<div style="display:flex;align-items:center;margin:3px 0;">
 					<span style="margin-right:5px;">${item.icon}</span>
 					<span style="flex:1;">${item.name}</span>
-					<span style="font-weight:700;">+ ${per}${perStr}</span>
-					<button class="_npc-copy" data-val="${per}" style="${COPY_BTN_STYLE}">&#x2398;</button>
+					<span style="font-weight:700;">+ ${NPC.Utils.formatNumber(per)}${perStr}</span>
+					<button type="button" class="_npc-copy" data-val="${per}" aria-label="Copy ${item.name.toLowerCase()} amount" style="${COPY_BTN_STYLE}">&#x2398;</button>
 				</div>`;
       });
 
@@ -217,9 +217,9 @@ NPC.HeroPageObserver = {
         `margin-top:8px;padding-top:7px;border-top:1px solid rgba(255,255,255,0.2);">` +
         `<span style="font-size:10px;opacity:0.8;">Deliveries:</span>` +
         `<div style="display:flex;align-items:center;gap:6px;">` +
-        `<button id="${ID.dec}" style="${STEPPER_BTN_STYLE}" ${split <= 1 ? "disabled" : ""}>−</button>` +
+        `<button type="button" id="${ID.dec}" aria-label="Fewer deliveries" style="${STEPPER_BTN_STYLE}" ${split <= 1 ? "disabled" : ""}>−</button>` +
         `<span id="${ID.val}" style="font-weight:700;min-width:14px;text-align:center;">${split}</span>` +
-        `<button id="${ID.inc}" style="${STEPPER_BTN_STYLE}" ${split >= 9 ? "disabled" : ""}>+</button>` +
+        `<button type="button" id="${ID.inc}" aria-label="More deliveries" style="${STEPPER_BTN_STYLE}" ${split >= 9 ? "disabled" : ""}>+</button>` +
         `</div></div>`;
 
       // Pull buttons — drive the hero inventory popups directly
@@ -443,7 +443,7 @@ NPC.TransferDialogObserver = {
       );
       if (sel === shown) return;
       shown = sel;
-      const color = sel >= neededTotal ? "#228B22" : "#888";
+      const color = sel >= neededTotal ? "#1a6e1a" : "#666";
       totalsEl.innerHTML =
         `<span>Needed: <b>${fmt(neededTotal)}</b></span>` +
         `<span style="color:${color};">Selected: <b>${fmt(sel)}</b></span>`;
@@ -490,7 +490,7 @@ NPC.TransferDialogObserver = {
         const need = document.createElement("span");
         need.className = "_npc-need";
         need.textContent = `(${fmt(targets[i])})`;
-        need.style.cssText = "color:#d9a441;font-weight:700;margin:0 4px;";
+        need.style.cssText = "color:#9a6a10;font-weight:700;margin:0 4px;";
         green.after(need);
       });
     }
