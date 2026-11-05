@@ -1,6 +1,6 @@
 # Build Lab
 
-[Portfolio](../../README.md) · [Usage guide](docs/USAGE.md) · [Accuracy notes](#accuracy)
+[Portfolio](../../README.md) · [Usage guide](docs/USAGE.md) · [Accuracy notes](#accuracy) · [Attribution](ATTRIBUTION.md)
 
 React application for NBA 2K27 player planning, with linked attributes, budget constraints and saved-build comparisons.
 
@@ -52,6 +52,6 @@ Unit tests cover linked rules, cap projections, cost curves, locks, share links 
 
 ## Accuracy
 
-This is an unofficial planner using externally sourced rules and datasets. It is not a fully verified reproduction of the game. See [feature parity](feature-parity.md), [dataset provenance](research/nba2k27-builder-dataset/README.md) and [attribution](../../ATTRIBUTION.md). The linked-attribute table records its provenance in `src/engine/linked-attributes.json`.
+This is an unofficial planner using externally sourced rules and datasets. It is not a fully verified reproduction of the game. See [feature parity](feature-parity.md), [dataset provenance](research/nba2k27-builder-dataset/README.md) and [attribution](ATTRIBUTION.md) (see also the [repository attribution](../../ATTRIBUTION.md)). The linked-attribute table records its provenance in `src/engine/linked-attributes.json`.
 
 Build Lab is not affiliated with or endorsed by 2K or Take-Two Interactive. NBA 2K names and game imagery belong to their respective owners.
