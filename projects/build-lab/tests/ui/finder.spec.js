@@ -141,12 +141,19 @@ test("finder shows closest builds when no build reaches every Must target", asyn
   await page.getByRole("combobox", { name: "From height" }).selectOption("77");
   await page.getByRole("combobox", { name: "To height" }).selectOption("77");
   await page.getByLabel("Cap breakers available").fill("5");
-  for (const [name, value] of [
-    ["Driving Dunk", "99"],
-    ["Three-Point Shot", "91"],
-    ["Block", "80"],
+  // Must targets are clamped to what one body can reach, so ask for more than the
+  // overall budget allows instead.
+  for (const name of [
+    "Driving Dunk",
+    "Three-Point Shot",
+    "Block",
+    "Ball Handle",
+    "Speed",
+    "Steal",
+    "Pass Accuracy",
+    "Perimeter Defense",
   ]) {
-    await page.getByLabel(`Desired ${name} after caps`).fill(value);
+    await page.getByLabel(`Desired ${name} after caps`).fill("99");
     await page.getByLabel(`Desired ${name} after caps`).blur();
   }
   await page.getByRole("button", { name: "Find builds", exact: true }).click();

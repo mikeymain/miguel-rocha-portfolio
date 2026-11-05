@@ -18,14 +18,14 @@ React application for NBA 2K27 player planning, with linked attributes, budget c
 
 ## Run locally
 
-Requires Node.js and npm. Run from this directory:
+Requires Node.js 22 (the CI version) and npm. Run from this directory:
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Open `http://127.0.0.1:4173`. `npm run build` writes the production site to `dist/client/`.
+Open `http://localhost:4173`. `npm run build` writes the production site to `dist/client/`.
 
 ## Source guide
 
@@ -46,8 +46,12 @@ npm run build
 npm run test:ui
 ```
 
+Linting and formatting are configured at the repository root; run `npm run lint` and `npm run format:check` there.
+
 Unit tests cover linked rules, cap projections, cost curves, locks, share links and configuration search. Playwright covers editing, saved builds and layout at several widths. Browser tests require Playwright's browser installation; see `playwright.config.js` for configuration.
 
 ## Accuracy
 
 This is an unofficial planner using externally sourced rules and datasets. It is not a fully verified reproduction of the game. See [feature parity](feature-parity.md), [dataset provenance](research/nba2k27-builder-dataset/README.md) and [attribution](../../ATTRIBUTION.md). The linked-attribute table records its provenance in `src/engine/linked-attributes.json`.
+
+Build Lab is not affiliated with or endorsed by 2K or Take-Two Interactive. NBA 2K names and game imagery belong to their respective owners.

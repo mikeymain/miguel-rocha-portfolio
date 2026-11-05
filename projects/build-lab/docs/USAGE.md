@@ -19,7 +19,7 @@ Target limits follow the other Must targets; the latest edit takes precedence. O
 
 ## Import a screenshot
 
-Use **Import** with a screenshot of the in-game MyCareer Attribute Upgrades screen. Full, cropped and resized screenshots are supported. Tesseract.js reads body settings and ratings in the browser. Review the detected values before loading the build and its matching cap breakers.
+Use **Import** with a screenshot of the in-game MyCareer Attribute Upgrades screen. Full, cropped and resized screenshots are supported. Tesseract.js reads body settings and ratings in the browser; the screenshot is not uploaded. The first import downloads the OCR engine and English language data from the jsDelivr CDN. Review the detected values before loading the build and its matching cap breakers.
 
 ## Interpretation
 

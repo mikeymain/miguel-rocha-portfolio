@@ -195,6 +195,7 @@ export function BuildFinder({ referenceBuild, onBack, onOpenBuild }) {
       (attribute) => limited.ratings[attribute.id] < targetRatings[attribute.id],
     );
     if (!lowered.length) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- re-clamps targets when Must limits shrink
     setTargetRatings(limited.ratings);
     setBadgeNote(
       `Lowered to fit your other Musts: ${lowered.map((attribute) => `${attribute.name} ${targetRatings[attribute.id]} → ${limited.ratings[attribute.id]}`).join(", ")}.`,

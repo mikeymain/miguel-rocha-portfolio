@@ -85,7 +85,10 @@ test("URL updates as ratings change and the original b format imports", async ({
   const body = page.locator(".body-controls");
   await expect(body).toContainText("Wingspan6′9″");
   await page.getByRole("button", { name: "Share build", exact: true }).click();
-  await page.getByRole("button", { name: "Import a build", exact: true }).click();
+  await page
+    .getByRole("dialog", { name: "Share your build" })
+    .getByRole("button", { name: "Import a build", exact: true })
+    .click();
   await page
     .getByRole("textbox", { name: "Build link", exact: true })
     .fill(
