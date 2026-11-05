@@ -4,6 +4,10 @@
     <meta charset="utf-8" />
     <title>PC Remote</title>
     <meta
+      name="description"
+      content="Control a Windows PC from a phone: trackpad, keyboard, hotkeys, media, volume and power."
+    />
+    <meta
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
     />
@@ -68,9 +72,10 @@
           <svg viewBox="0 0 24 24" class="ico solid"><use href="#i-cursor" /></svg>
         </div>
         <h1>PC Remote</h1>
-        <p id="pinHint">Enter the PIN shown in the server window.</p>
+        <p id="pinHint" aria-live="polite">Enter the PIN shown in the server window.</p>
         <input
           id="pinInput"
+          aria-label="PIN"
           type="tel"
           inputmode="numeric"
           pattern="[0-9]*"
@@ -93,6 +98,7 @@
             <input
               class="type-field"
               type="text"
+              aria-label="Text to type on the PC"
               placeholder="Type here — it goes straight to the PC"
               autocomplete="off"
               autocapitalize="sentences"
@@ -164,6 +170,7 @@
             <input
               class="type-field"
               type="text"
+              aria-label="Text to type on the PC"
               placeholder="Type here — it goes straight to the PC"
               autocomplete="off"
               autocapitalize="sentences"
@@ -350,7 +357,7 @@
       </div>
     </div>
 
-    <div id="toast" class="toast"></div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
     <script src="/app.js"></script>
   </body>

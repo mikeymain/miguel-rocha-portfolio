@@ -4,7 +4,7 @@ Serves the web UI over HTTP and accepts commands over a WebSocket on the same
 port. Run it, open the printed URL on the phone and pair it with the PIN.
 
 Anything that gets through here can type on this PC, so every request passes
-these checks (README.md, "Security", explains the reasoning):
+these checks (docs/SECURITY.md explains the reasoning):
 
 * The Host header must name this PC, so a web page that points its own domain
   at the PC (DNS rebinding) is refused.

@@ -5,11 +5,11 @@
   --surface: #faf9f6;
   --sunken: #e8e5da;
   --ink: #23211e;
-  --ink-muted: #6e6a61;
+  --ink-muted: #65615a;
   --hairline: #dfdace;
   --hairline-strong: #cdc6b6;
-  --accent: #c15f3c;
-  --accent-soft: rgba(193, 95, 60, 0.1);
+  --accent: #a64f2f;
+  --accent-soft: rgba(166, 79, 47, 0.1);
   --on-accent: #fdfbf7;
   --ok: #5f7d4f;
   /* Deliberately redder than the clay accent so destructive controls never
@@ -38,8 +38,8 @@
     --ink-muted: #9b958a;
     --hairline: #35332d;
     --hairline-strong: #46433b;
-    --accent: #d97757;
-    --accent-soft: rgba(217, 119, 87, 0.15);
+    --accent: #e28566;
+    --accent-soft: rgba(226, 133, 102, 0.15);
     --on-accent: #1b1a17;
     --ok: #8fb07a;
     --danger: #e08a72;
@@ -221,6 +221,7 @@ button {
 }
 
 .btn-quiet {
+  min-height: 44px;
   padding: 10px 16px;
   background: var(--surface);
   border: 1px solid var(--hairline);
@@ -241,6 +242,7 @@ button {
 }
 
 .btn-danger {
+  min-height: 44px;
   padding: 10px 16px;
   background: var(--danger-soft);
   border: 1px solid transparent;
@@ -250,6 +252,8 @@ button {
 }
 
 .icon-btn {
+  min-width: 44px;
+  min-height: 44px;
   display: grid;
   place-items: center;
   padding: 6px;
@@ -477,6 +481,7 @@ button {
 }
 
 .settings-row .speed {
+  min-height: 44px;
   display: flex;
   align-items: center;
   gap: 9px;
@@ -489,6 +494,7 @@ button {
 }
 
 .settings-row .checkbox {
+  min-height: 44px;
   display: flex;
   align-items: center;
   gap: 7px;
@@ -669,6 +675,7 @@ input[type="range"]::-webkit-slider-thumb {
 .page-tab {
   flex: 1 1 auto;
   min-width: 0;
+  min-height: 44px;
   padding: 7px 4px;
   background: transparent;
   border: 1px solid var(--hairline-strong);
@@ -688,6 +695,8 @@ input[type="range"]::-webkit-slider-thumb {
 
 .pill-btn {
   flex: 0 0 auto;
+  min-width: 44px;
+  min-height: 44px;
   padding: 7px 11px;
   background: var(--surface);
   border: 1px solid var(--hairline);

@@ -2,7 +2,7 @@
 
 const $ = (id) => document.getElementById(id);
 // Pairing with the PIN hands this phone a device token, and only the token is
-// kept. A server from before device tokens still gets the PIN, stored as before.
+// kept. A PIN saved by an older version is used once to pair, then removed.
 const TOKEN_KEY = "pcremote.token";
 const PIN_KEY = "pcremote.pin";
 
@@ -101,8 +101,6 @@ function connect() {
         localStorage.setItem(TOKEN_KEY, token);
         localStorage.removeItem(PIN_KEY);
         pin = "";
-      } else if (!usedToken) {
-        localStorage.setItem(PIN_KEY, pin);
       }
       $("pinScreen").classList.add("hidden");
       $("app").classList.remove("hidden");

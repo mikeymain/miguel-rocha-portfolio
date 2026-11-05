@@ -13,3 +13,6 @@ __pycache__/
 # paired phones (token hashes)
 devices.json
 .pytest_cache/
+
+# left behind if the server stops mid-write; may hold the PIN or token hashes
+*.json.tmp

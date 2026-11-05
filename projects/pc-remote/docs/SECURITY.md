@@ -27,3 +27,8 @@ A paired device can control the PC. The server implements the following checks:
 - Keep the firewall rule scoped to `LocalSubnet`.
 - Software already running as your Windows user can read `config.json`. That
   is outside what the server can protect against.
+- The phone keeps its device token in the browser's `localStorage`, where
+  script on the page could read it. The page loads only its own scripts (CSP
+  `script-src 'self'`) and renders user text as text, not HTML. Anyone with
+  the phone unlocked can use the remote; use _Disconnect remote_ or change the
+  PIN to revoke it.
