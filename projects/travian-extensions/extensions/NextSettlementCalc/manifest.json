@@ -3,7 +3,7 @@
 	"name": "Travian Next Settlement Calc",
 	"version": "2.4.0",
 	"description": "Forecasts settlement culture-point targets from observed production and planned celebrations.",
-	"author": "miguelrocha1511@gmail.com",
+	"author": "Miguel Rocha",
 	"minimum_chrome_version": "116",
 	"permissions": ["storage", "notifications", "alarms", "offscreen"],
 	"host_permissions": [

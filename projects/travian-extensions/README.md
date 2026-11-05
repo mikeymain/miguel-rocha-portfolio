@@ -35,7 +35,7 @@ Each extension declares its entry points and permissions in `manifest.json`. See
 
 Used in desktop Brave; Chrome and Edge compatibility requires feedback. Domain support varies by manifest. The portfolio does not run automated extension tests; live page compatibility, notifications and data accuracy require manual verification.
 
-These are unofficial tools, unaffiliated with Travian Games. Account penalties remain possible. See [data and permissions](docs/USAGE.md#data-and-permissions) before use.
+These are unofficial tools, unaffiliated with Travian Games. Travian's game rules restrict bots and automated actions, and some features act for you: NPC AutoMerchant's hero transfer clicks the game's transfer controls, and TravAlarm requests game pages in the background to refresh timers. Using them may break those rules and can lead to account penalties. See [data and permissions](docs/USAGE.md#data-and-permissions) before use.
 
 ## Attribution and feedback
 

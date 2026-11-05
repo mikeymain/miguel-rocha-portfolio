@@ -1,30 +1,16 @@
 // Skip Ads (ex-TravianSkipAds, by DUDSS).
 //
-// 2026-08 update: Travian moved the video-feature player. It used to be a
-// third-party ad iframe (media.oadts.com/.../afv.php) that we had to reach
-// into; today gpack main.js loads https://video.traviangames.com/v1/video.js
-// into the MAIN page and calls
-//   Traviangames.video.playInPageAd({ htmlVideoDivId: 'videoArea' })
-// which renders the <video> straight into `#videoArea` inside the
-// `#videoFeature` dialog. The SDK's fallback player listens for the video's
-// own `ended` event, then POSTs /fallback/v1/reward and fires onRewarded,
-// which Travian turns into `videofeature/ends`.
-//
-// 2026-10 update: the fallback player now tracks real watched time (capped
-// at 1x) and pauses while its tab is hidden. On `ended` it rejects
-// playbackRate > 1 or watched time short of the duration: it flashes the
-// video grey, resets and replays it. Seeking to the end therefore loops
-// forever and never rewards, so on the main page we no longer seek.
-// Instead, for every video-feature ad (adventure, builder, daily quest...):
-//   - mute it and park its dialog in the bottom-right corner, dropping the
-//     full-screen overlay so the page stays clickable;
-//   - keep the ad's page alive: Travian pages are full page loads and a new
-//     tab would hide (and so pause) the ad, so links and forms open in a
-//     same-origin "game frame" laid over the page instead;
-//   - announce when the ad has finished, with a button back to the game.
-// The ad always plays at normal speed: nothing seeks or skips it. 1.2.0
-// removed the legacy media.oadts.com path, which seeked to the end, and the
-// ad queue, which started queued ads later without a click.
+// Travian's video-feature ads (adventure, builder, daily quest...) are played
+// by Travian's own video SDK inside the `#videoFeature` dialog after the user
+// clicks "Watch video". This feature makes that wait less disruptive:
+//   - it mutes the ad and moves its dialog to the bottom-right corner,
+//     dropping the full-screen overlay so the page stays usable;
+//   - links and forms open in a same-origin "game frame" laid over the page,
+//     because leaving the page would stop the ad;
+//   - it announces when the ad has finished, with a button back to the game.
+// The ad always plays in full at normal speed: nothing seeks, skips or
+// speeds it up. 1.2.0 removed an older path that jumped to the end of the
+// video and an ad queue that started queued ads later without a click.
 //
 // Settings are stored in chrome.storage.local under namespaced `skipAds.*`
 // keys (not the legacy unprefixed `enabled`/`debug`/etc. names, which

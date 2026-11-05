@@ -3,7 +3,7 @@
 	"name": "Travian Night Mode",
 	"version": "2.5",
 	"description": "A polished dark theme overlay for Travian: Legends. Persistent on/off toggle via popup.",
-	"author": "miguelrocha1511@gmail.com",
+	"author": "Miguel Rocha",
 	"icons": {
 		"48": "icon.png",
 		"96": "icon.png"

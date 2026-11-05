@@ -56,8 +56,8 @@
 
 ## TravianQoL 1.2.0 — 2026-10-16
 
-- Skip Ads: removed the ad queue. Queued ads used to be fetched, checked every 30 s and started later in a hidden frame without a click. Clicking a video-ad button while another ad plays now goes straight to the game, and any queue saved by an older version is deleted.
-- Skip Ads: removed the legacy `media.oadts.com` path, which skipped the ad video to its end. The extension no longer has access to that site. Ads always play at normal speed.
+- Skip Ads: removed the ad queue, which started queued ads later without a click. Clicking a video-ad button while another ad plays now goes straight to the game, and any queue saved by an older version is deleted.
+- Skip Ads: removed the legacy `media.oadts.com` path, which jumped to the end of the ad video. The extension no longer has access to that site. Ads always play in full at normal speed.
 - Skip Ads settings: removed the unused "Min playtime" and "Video lookup poll" options. The remaining ad check interval has a minimum of 100 ms.
 
 ## TravianQoL 1.1.4 — 2026-10-16
@@ -72,8 +72,7 @@
 ## TravAlarm 3.29 — 2026-10-16
 
 - Background refresh cooldowns (training, warehouse, celebrations, hero, production, attack check) now persist across page loads and are shared by all tabs of a server. Moving between pages no longer fires a fresh burst of requests each time.
-- Each background refresh is scheduled with a new random delay, so requests no longer follow a fixed rhythm.
-- Village switches during multi-village checks are spaced 1–2.3 s apart at random instead of exactly 1.5 s.
+- Background refreshes and village switches during multi-village checks are spread further apart (village switches 1–2.3 s instead of 1.5 s), so tabs no longer send requests in bursts.
 
 ## TravAlarm 3.28 — 2026-10-16
 
