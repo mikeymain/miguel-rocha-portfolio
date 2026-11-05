@@ -1,4 +1,4 @@
-# Travian Rank Tracker v5.0 — Refactor Changelog
+# Rank Tracker changelog
 
 ## Rank Tracker 4.8.5 — 2026-10-21
 

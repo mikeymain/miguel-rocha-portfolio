@@ -1215,7 +1215,7 @@ function loadShortcuts() {
         off: "↺",
       }[mode];
 
-      opt.innerHTML = `<span>${s.label}</span><div class="shortcut-actions"><span class="recurring-toggle ${recurringActiveClass} ${recurringModeClass}" title="${recurringTitle}">${recurringLabel}</span><span class="edit-shortcut" title="Edit Shortcut">✎</span><span class="remove-shortcut" title="Delete Shortcut">✕</span></div>`;
+      opt.innerHTML = `<span>${escapeHtml(s.label)}</span><div class="shortcut-actions"><span class="recurring-toggle ${recurringActiveClass} ${recurringModeClass}" title="${recurringTitle}">${recurringLabel}</span><span class="edit-shortcut" title="Edit Shortcut">✎</span><span class="remove-shortcut" title="Delete Shortcut">✕</span></div>`;
       opt.onclick = (e) => {
         e.stopPropagation();
         handleDropdownAction(

@@ -29,7 +29,7 @@ Scope: shared parsing/persistence, popup startup, Current comparisons, History g
 
 ## Verification and limits
 
-- JavaScript syntax checks, diff whitespace checks, independent static review, and checkout hash comparison. Tests and live-browser checks were not run under the repository instruction to run tests only when requested.
+- JavaScript syntax checks, diff whitespace checks, independent static review, and checkout hash comparison. Automated and live-browser tests were not run.
 - No new game endpoints, polling, or game-state actions were added. Changes concern parsing, local storage, existing collection paths, and extension UI.
 - Weekly HTML tables still cannot be parsed by the background service worker. Opening the popup refreshes them; the weekly section tooltip reports its observation time.
 - Previously deleted observations and wholly unobserved resets cannot be reconstructed. Recorded gains are estimates across gaps.

@@ -15,7 +15,7 @@ No build step is required. Game features requiring a paid Travian option still r
 
 **Browsers:** desktop Chromium. Used in Brave; Chrome and Edge compatibility needs feedback. Firefox installation is not covered.
 
-**Domains:** Oasis Finder, TravAlarm, Next Settlement Calc, and NPC AutoMerchant target `*.travian.com`. Rank Tracker also supports `.org`, `.net`, `.us`, and `.de`. QoL and Night Mode support multiple regional domains; see their manifests.
+**Domains:** Oasis Finder, TravAlarm, and NPC AutoMerchant target `*.travian.com`. Rank Tracker also supports `.org`, `.net`, `.us`, and `.de`. Next Settlement Calc, QoL, and Night Mode support multiple regional domains; see their manifests.
 
 ### Updating and keeping your settings
 
