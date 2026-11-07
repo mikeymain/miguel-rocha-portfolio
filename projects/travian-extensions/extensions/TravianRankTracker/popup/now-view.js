@@ -356,7 +356,7 @@ function renderGeneral(data, deltaCells) {
 	add("Prod / Hour", "rankProd", "valProd");
 	add("Prod So Far", "rankProdSoFar", "valProdSoFar",
 		data.valBounty != null && data.valProdSoFar != null
-			? { main: fmtNum(data.valBounty), sub: `${fmtNum(data.valProdSoFar)} prod`, title: "Bounty / production so far" }
+			? { main: fmtNum(data.valProdSoFar), sub: `${fmtNum(data.valProdSoFar - data.valBounty)} fields`, title: "Total / field production so far" }
 			: null);
 	add("CP / Day", "rankCp", "cpProd");
 	add("CP So Far", "rankCpSoFar", "valCpSoFar");

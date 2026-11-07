@@ -1,5 +1,9 @@
 # Changelog
 
+## Rank Tracker 5.0.1 — 2026-11-07
+
+- Prod So Far shows total production on top and field production (total minus bounty) below.
+
 ## Rank Tracker 5.0.0 — 2026-11-07
 
 New popup, rebuilt from scratch. Data collection, history, storage and backups are unchanged; saved data, metric visibility and groups carry over.
