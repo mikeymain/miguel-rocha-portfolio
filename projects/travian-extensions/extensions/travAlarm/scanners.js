@@ -480,7 +480,9 @@ function scanBuildings(activeVillage) {
   let unreadableTimer = false;
   rows.forEach((row) => {
     const t = row.querySelector(".timer");
-    if (!t || row.classList.contains("masterBuilder")) return;
+    // Master builder rows count down to "Start of construction" (waiting for
+    // resources) inside .buildStart; they are not builds in progress.
+    if (!t || row.classList.contains("masterBuilder") || t.closest(".buildStart")) return;
     // A timer without a numeric value used to become a 1.7 s "finished"
     // alarm. Skip the row, and skip cleanup below so its alarm survives.
     const seconds = parseInt(t.getAttribute("value"), 10);

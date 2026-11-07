@@ -1,5 +1,9 @@
 # Changelog
 
+## TravAlarm 3.31 — 2026-11-07
+
+- Master builder entries waiting for resources ("Start of construction in …") no longer set a building alarm.
+
 ## Rank Tracker 5.0.1 — 2026-11-07
 
 - Prod So Far shows total production on top and field production (total minus bounty) below.
