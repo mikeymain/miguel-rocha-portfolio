@@ -1,5 +1,9 @@
 # Changelog
 
+## TravAlarm 3.35 — 2026-11-07
+
+- A finished building alarm is no longer deleted when you open the game while the next level of the same building is queued (e.g. Cranny lvl 5 done, lvl 6 building). Finished alarms are only cleared after you acknowledge them.
+
 ## TravAlarm 3.33 — 2026-11-07
 
 - Two same-named builds finishing within seconds of each other (e.g. two Cranny lvl 1) keep separate alarms. The build still running is matched to the alarm closest to its finish time, so the other alarm is no longer deleted.

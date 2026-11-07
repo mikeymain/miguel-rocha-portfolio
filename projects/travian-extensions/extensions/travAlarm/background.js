@@ -473,6 +473,9 @@ function handleMessage(msg, sender, sendResponse) {
               // different fields (e.g. leveling crops one-by-one) — keep them
               // until the user clears them, instead of letting a new same-named
               // build evict the earlier one.
+              // Only evict alarms the user has acknowledged (silenced). A fired
+              // but unacknowledged alarm (e.g. Cranny lvl 5 done while lvl 6 is
+              // queued) must stay until the user clears it.
               const baseId = (n) => n.replace(/ #\d+$/, "");
               const newBaseId = baseId(newB.name);
               for (let i = alarms.length - 1; i >= 0; i--) {
@@ -484,7 +487,7 @@ function handleMessage(msg, sender, sendResponse) {
                   baseId(a.name) !== newBaseId &&
                   a.name.includes(`(${villagePart})`) &&
                   a.name.includes(serverTagPart) &&
-                  (a.scheduledTime <= now || a.silenced === true)
+                  a.silenced === true
                 ) {
                   alarms.splice(i, 1);
                 }
