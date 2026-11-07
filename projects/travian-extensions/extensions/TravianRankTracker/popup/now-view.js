@@ -83,13 +83,24 @@ function bountyOf(snapshot) {
  * Each part reads its value from any snapshot so deltas work per part.
  */
 const NOW_BREAKDOWNS = {
-	"PvE of the week": [{ name: "Resources", read: pveResourcesOf }],
-	"Robbers of the week": [{ name: "Raiding", read: raidingOf }],
 	rankProdSoFar: [
 		{ name: "Fields", read: fieldsSoFarOf },
 		{ name: "Bounty", read: bountyOf },
 	],
 };
+
+/** Extra value shown beneath a weekly row's value, keyed by weekly label. */
+const NOW_WEEKLY_SUBS = {
+	"PvE of the week": { name: "Resources", read: pveResourcesOf },
+	"Robbers of the week": { name: "Raiding", read: raidingOf },
+};
+
+/** "Name: value" beneath a weekly value, or undefined when not available. */
+function weeklySub(data, label) {
+	const part = NOW_WEEKLY_SUBS[label];
+	const value = part?.read(data);
+	return Number.isFinite(value) ? `${part.name}: ${fmtNum(value)}` : undefined;
+}
 
 /**
  * Describe a change (current minus earlier) for one table cell.
@@ -435,6 +446,7 @@ function renderWeekly(data, deltaCells) {
 			rank: item.rank,
 			totalPlayers: data.totalPlayers,
 			main: Number.isFinite(valClean) ? fmtNum(valClean) : (item.val || "0"),
+			sub: weeklySub(data, item.label),
 			cells: deltaCells(
 				item.rank,
 				valClean,
@@ -443,7 +455,7 @@ function renderWeekly(data, deltaCells) {
 				true,
 			),
 		});
-		rows.push(...collapsible(parent, item.label, breakdownRows(data, item.label, deltaCells, true)));
+		rows.push(parent);
 	}
 	body.replaceChildren(...rows);
 }

@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.11 — 2026-11-07
+
+- Now: PvE and Robbers are no longer collapsible. Their extra values show beneath the main value as "Resources: …" and "Raiding: …". Only Prod So Far keeps its breakdown.
+
 ## Rank Tracker 5.0.10 — 2026-11-07
 
 - Now: when an expanded breakdown would push rows out of view, the table switches to denser rows so every metric stays visible.
