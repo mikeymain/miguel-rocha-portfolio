@@ -217,7 +217,7 @@ function breakdownRow(name, value, cells) {
 	const tr = h("tr", "row row--part");
 	const th = h("th", "metric");
 	th.scope = "row";
-	th.append(h("span", "metric-name", `${name}:`));
+	th.append(h("span", "metric-name", name));
 	const valueTd = h("td", "value");
 	valueTd.append(h("span", "value-main", fmtNum(value)));
 	tr.append(th, h("td", "rank"), valueTd);
@@ -399,7 +399,7 @@ function renderUI(data, history) {
 	renderGeneral(data, deltaCells);
 
 	const playersEl = document.getElementById("players");
-	if (playersEl) playersEl.textContent = data.totalPlayers != null ? `Total players ${data.totalPlayers.toLocaleString()}` : "";
+	if (playersEl) playersEl.textContent = data.totalPlayers != null ? `Total players: ${data.totalPlayers.toLocaleString()}` : "";
 
 	if (data.timestamp) setStatus(`Last refresh ${clockTime(data.timestamp)}`, "ok");
 }

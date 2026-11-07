@@ -1,5 +1,12 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.6 — 2026-11-07
+
+- Header chips read "Total players: …" and "Playtime: …"; breakdown labels drop the colon.
+- "Avg rank" label is 2px smaller.
+- Collapsible rows no longer show a box on hover; the row highlight stays.
+- The metrics table fills the panel: rows share spare height when breakdowns are collapsed and the table scrolls when they do not fit.
+
 ## Rank Tracker 5.0.5 — 2026-11-07
 
 - Header: History tab renamed to Graph; playtime chip reads "Playtime …"; brand text and server chip removed.

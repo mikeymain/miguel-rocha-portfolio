@@ -236,7 +236,7 @@ svg {
 .hero[data-empty] .hero-rank, .hero[data-empty] .hero-side, .hero[data-empty] .hero-deltas { opacity: 0.35; }
 .hero-main { display: flex; align-items: center; gap: 12px; }
 .hero-label { writing-mode: vertical-rl; transform: rotate(180deg); }
-.hero-label { color: var(--muted); font: 600 10.5px/1 var(--font-num); letter-spacing: 0.14em; text-transform: uppercase; }
+.hero-label { color: var(--muted); font: 600 8.5px/1 var(--font-num); letter-spacing: 0.14em; text-transform: uppercase; }
 .hero-rank { display: flex; gap: 3px; perspective: 300px; min-height: 44px; }
 
 .flap {
@@ -302,7 +302,8 @@ svg {
 .table-wrap {
 	flex: 1;
 	min-height: 0;
-	overflow: hidden;
+	overflow-x: hidden;
+	overflow-y: auto;
 	border: 1px solid var(--line);
 	border-radius: var(--radius-lg);
 	background: var(--surface);
@@ -312,6 +313,8 @@ svg {
 
 .metrics {
 	width: 100%;
+	/* Fill the panel: rows share spare height when breakdowns are collapsed. */
+	height: 100%;
 	border-collapse: separate;
 	border-spacing: 0;
 	table-layout: fixed;
@@ -340,7 +343,7 @@ svg {
 .group-name { color: var(--accent); font: 600 11px/1 var(--font-num); letter-spacing: 0.14em; text-transform: uppercase; }
 .group-meta { margin-left: 10px; color: var(--faint); font: 11px/1 var(--font-num); }
 .metrics tr.row { transition: background-color var(--dur-fast) ease; }
-.metrics tr.row > * { height: 34px; padding: 2px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.metrics tr.row > * { height: 28px; padding: 2px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
 .metrics tbody:last-child tr.row:last-child > * { border-bottom: 0; }
 .metric { padding-left: 14px !important; text-align: left; font-weight: 500; }
 
@@ -368,7 +371,6 @@ svg {
 	cursor: pointer;
 }
 .metrics tr.row--parent { cursor: pointer; }
-.metrics tr.row--parent:hover .metric-toggle { background: rgba(255, 244, 225, 0.06); }
 .metric-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .metric-caret {
 	width: 0;
@@ -379,7 +381,7 @@ svg {
 	transition: transform var(--dur-fast) ease;
 }
 .metric-toggle[aria-expanded="true"] .metric-caret { transform: rotate(90deg); border-left-color: var(--accent); }
-.metrics tr.row--part > * { height: 26px; background: rgba(255, 244, 225, 0.02); }
+.metrics tr.row--part > * { height: 22px; background: rgba(255, 244, 225, 0.02); }
 .metrics tr.row--part .metric { padding-left: 32px !important; }
 .metrics tr.row--part .metric-name { color: var(--muted); font-size: 12px; }
 .metrics tr.row--part .value-main { font-size: 12px; color: var(--muted); }

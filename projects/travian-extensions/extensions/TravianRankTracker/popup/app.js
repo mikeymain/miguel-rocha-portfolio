@@ -196,7 +196,7 @@ async function updatePlaytime(serverOrigin) {
 		return;
 	}
 	const elapsed = Date.now() - anchor;
-	el.textContent = `Playtime ${formatDuration(elapsed)} · ${Math.floor(elapsed / 3600000)}h`;
+	el.textContent = `Playtime: ${formatDuration(elapsed)} · ${Math.floor(elapsed / 3600000)}h`;
 }
 
 /* ── Tabs ────────────────────────────────────────────────────────────── */
