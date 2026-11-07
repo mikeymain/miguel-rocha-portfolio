@@ -237,6 +237,18 @@ function breakdownRow(name, value, cells) {
  * @param {Array<HTMLTableRowElement>} parts
  * @returns {Array<HTMLTableRowElement>} Parent followed by its parts.
  */
+/**
+ * Switch the metrics table to dense rows when its rows overflow the panel,
+ * so expanded breakdowns do not push the last rows out of view.
+ */
+function fitMetricsTable() {
+	const table = document.getElementById("metrics-table");
+	const wrap = table?.parentElement;
+	if (!wrap) return;
+	table.classList.remove("is-dense");
+	if (wrap.scrollHeight > wrap.clientHeight) table.classList.add("is-dense");
+}
+
 function collapsible(parent, key, parts) {
 	if (parts.length === 0) return [parent];
 	const nameEl = parent.querySelector(".metric-name");
@@ -249,6 +261,7 @@ function collapsible(parent, key, parts) {
 	const setOpen = (open) => {
 		button.setAttribute("aria-expanded", String(open));
 		for (const part of parts) part.hidden = !open;
+		fitMetricsTable();
 	};
 	setOpen(expandedRows.has(key));
 	// The whole row toggles; button clicks (mouse or keyboard) bubble here.
@@ -397,6 +410,7 @@ function renderUI(data, history) {
 	renderHero(data, generalRefs);
 	renderWeekly(data, deltaCells);
 	renderGeneral(data, deltaCells);
+	fitMetricsTable();
 
 	const playersEl = document.getElementById("players");
 	if (playersEl) playersEl.textContent = data.totalPlayers != null ? `Total players: ${data.totalPlayers.toLocaleString()}` : "";
