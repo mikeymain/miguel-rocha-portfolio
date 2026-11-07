@@ -18,6 +18,24 @@ function getVillageNameFromRow(row) {
 const NPC_MSG_STYLE =
   "display: inline-block; font-family: Arial, Helvetica, Verdana, sans-serif; font-size: 12px; color: #777777; font-weight: bold; margin-left: 10px; white-space: nowrap;";
 
+/** Ignore Rank Tracker's raid income when its last sample is older than this. */
+const RAID_INCOME_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Average farming income per hour published by Rank Tracker
+ * (raid-income-bridge.js), or 0 when missing or stale.
+ */
+function raidIncomePerHour() {
+  try {
+    const data = JSON.parse(localStorage.getItem("_rt_ri") || "null");
+    if (!data || !Number.isFinite(data.perHour) || data.perHour < 0) return 0;
+    if (!(Date.now() - data.updatedAt < RAID_INCOME_MAX_AGE_MS)) return 0;
+    return data.perHour;
+  } catch {
+    return 0;
+  }
+}
+
 function isResourcesPage() {
   const href = window.location.href;
   const search = window.location.search;
@@ -231,12 +249,13 @@ function scanNPCBuild(activeVillage) {
     if (!prodTotalRaw) {
       msg = "NPC: Fetching Prod...";
       isFetching = true;
-    } else if (prodTotal <= 0) {
-      if (prodTotal === 0) msg = "NPC: Visit 'Resources' tab";
-      else msg = "NPC: Negative Prod";
+    } else if (prodTotal === 0) {
+      msg = "NPC: Visit 'Resources' tab";
+    } else if (prodTotal + raidIncomePerHour() <= 0) {
+      msg = "NPC: Negative Prod";
     } else {
       const missing = costTotal - currentTotal;
-      const hours = missing / prodTotal;
+      const hours = missing / (prodTotal + raidIncomePerHour());
       const seconds = Math.ceil(hours * 3600);
       const now = new Date();
       const doneTime = new Date(now.getTime() + seconds * 1000);
@@ -245,7 +264,7 @@ function scanNPCBuild(activeVillage) {
         minute: "2-digit",
         hour12: false,
       });
-      msg = `NPC: ${timeStr}`;
+      msg = `FNPC: ${timeStr}`;
     }
     if (!msg) return;
 
