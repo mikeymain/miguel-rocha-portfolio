@@ -48,7 +48,6 @@ async function startPopup() {
 	}
 
 	popupState.activeServerOrigin = serverOrigin;
-	appSetText("server-host", appHostOf(serverOrigin));
 	const storageKey = appHistoryKey(serverOrigin);
 
 	await loadBaseline(serverOrigin);
@@ -197,7 +196,7 @@ async function updatePlaytime(serverOrigin) {
 		return;
 	}
 	const elapsed = Date.now() - anchor;
-	el.textContent = `${formatDuration(elapsed)} · ${Math.floor(elapsed / 3600000)}h`;
+	el.textContent = `Playtime ${formatDuration(elapsed)} · ${Math.floor(elapsed / 3600000)}h`;
 }
 
 /* ── Tabs ────────────────────────────────────────────────────────────── */
@@ -337,13 +336,6 @@ function appHistoryKey(origin) {
 	return `history_${origin}`;
 }
 
-function appHostOf(origin) {
-	try {
-		return new URL(origin).hostname;
-	} catch (_) {
-		return "";
-	}
-}
 
 function appSetText(id, text) {
 	const el = document.getElementById(id);

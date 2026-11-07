@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.5 — 2026-11-07
+
+- Header: History tab renamed to Graph; playtime chip reads "Playtime …"; brand text and server chip removed.
+
 ## Rank Tracker 5.0.4 — 2026-11-07
 
 - Robbers breakdown shows Raiding only; the PvE part is removed.
