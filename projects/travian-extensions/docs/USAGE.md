@@ -50,7 +50,7 @@ Unknown-age or incomplete readings are excluded. **View DB** shows stored target
 1. Open Travian and visit the relevant game pages to populate timers. Expand a category to view its alarms.
 2. Click **Add** for a custom reminder. Durations: `15` = 15 minutes, `1:30` = 1 minute 30 seconds, `0:45:00` = 45 minutes. `10pm` schedules the next occurrence on your computer's clock.
 3. Use **Presets** for reusable reminders. Pin or delete timers with their controls.
-4. Set volume and enabled categories under **Sound Settings**. Allow browser notifications for desktop alerts.
+4. Set volume, enabled categories and the **All sounds** mute under **Sound Settings**. Allow browser notifications for desktop alerts.
 
 Timers depend on available game data. Browser shutdown, computer sleep, expired sessions, and muted audio can affect alerts.
 

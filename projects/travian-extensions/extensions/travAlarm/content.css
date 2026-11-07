@@ -845,6 +845,12 @@
 .audio-cat-row.is-off .audio-cat-label {
   color: var(--tw-text-dim);
 }
+.audio-master-row {
+  border-bottom: 1px solid var(--tw-border);
+}
+#_tw-cat-toggles.is-muted .audio-cat-row[data-cat] {
+  opacity: 0.5;
+}
 .tw-toggle {
   position: relative;
   display: inline-block;

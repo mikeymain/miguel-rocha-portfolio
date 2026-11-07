@@ -136,7 +136,7 @@ function startLoops(firstAlarms) {
   let syncTimer = 0;
   api.storage.onChanged.addListener((changes, area) => {
     if (area !== "local" || syncTimer) return;
-    if (!changes._w4a && !changes._w4sc_snd && !changes._w4vol) return;
+    if (!changes._w4a && !changes._w4sc_snd && !changes._w4vol && !changes._w4snd_on) return;
     syncTimer = setTimeout(() => {
       syncTimer = 0;
       syncState();

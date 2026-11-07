@@ -309,7 +309,7 @@ async function syncState(prefetched) {
   }
 
   // Update audio button & volume slider state
-  updateAudioState(res.soundCategories || {});
+  updateAudioState(res.soundCategories || {}, res.soundEnabled !== false);
   const volSlider = document.getElementById("_tw-vol");
   const volVal = document.getElementById("_tw-vol-val");
   if (volSlider && res.volume != null && !volSlider.dataset.dragging) {
@@ -376,22 +376,28 @@ const SOUND_CATEGORY_ORDER = [
 ];
 
 let currentSoundCategories = null;
+let currentSoundEnabled = true;
 
-function renderSoundCategoryToggles(root) {
-  const host = root.querySelector("#_tw-cat-toggles");
-  if (!host) return;
-  host.innerHTML = SOUND_CATEGORY_ORDER.map((key) => {
-    const meta = SECTION_META[key] || { label: key };
-    return `
-      <div class="audio-option audio-cat-row" data-cat="${key}">
-        <span class="audio-cat-label">${meta.label}</span>
-        <span class="tw-toggle is-on" role="switch" aria-checked="true" tabindex="0" aria-label="${meta.label} sound">
+function soundToggleRow(attrs, label) {
+  return `
+      <div class="audio-option audio-cat-row" ${attrs}>
+        <span class="audio-cat-label">${label}</span>
+        <span class="tw-toggle is-on" role="switch" aria-checked="true" tabindex="0" aria-label="${label} sound">
           <span class="tw-toggle-track"></span>
           <span class="tw-toggle-thumb"></span>
         </span>
       </div>
     `;
-  }).join("");
+}
+
+function renderSoundCategoryToggles(root) {
+  const host = root.querySelector("#_tw-cat-toggles");
+  if (!host) return;
+  host.innerHTML =
+    soundToggleRow('data-master="1"', "All sounds").replace("audio-cat-row", "audio-cat-row audio-master-row") +
+    SOUND_CATEGORY_ORDER.map((key) =>
+      soundToggleRow(`data-cat="${key}"`, (SECTION_META[key] || { label: key }).label),
+    ).join("");
 
   host.querySelectorAll(".audio-cat-row").forEach((row) => {
     const toggle = row.querySelector(".tw-toggle");
@@ -403,6 +409,15 @@ function renderSoundCategoryToggles(root) {
     });
     row.onclick = (e) => {
       e.stopPropagation();
+      if (row.dataset.master) {
+        currentSoundEnabled = !currentSoundEnabled;
+        applyMasterVisual(host);
+        updateAudioButtonIcon();
+        api.runtime
+          .sendMessage({ type: "SET_SOUND_ENABLED", enabled: currentSoundEnabled })
+          .catch(() => {});
+        return;
+      }
       const cat = row.dataset.cat;
       const next = currentSoundCategories
         ? currentSoundCategories[cat] === false
@@ -417,6 +432,13 @@ function renderSoundCategoryToggles(root) {
   });
 }
 
+function applyMasterVisual(host) {
+  if (!host) return;
+  const row = host.querySelector(".audio-master-row");
+  if (row) applyToggleVisual(row, currentSoundEnabled);
+  host.classList.toggle("is-muted", !currentSoundEnabled);
+}
+
 function applyToggleVisual(row, enabled) {
   const toggle = row.querySelector(".tw-toggle");
   if (toggle) {
@@ -429,15 +451,17 @@ function applyToggleVisual(row, enabled) {
 function updateAudioButtonIcon() {
   const btn = document.getElementById("_tw-ab");
   if (!btn) return;
-  const anyOn = currentSoundCategories
+  const anyOn = currentSoundEnabled && (currentSoundCategories
     ? SOUND_CATEGORY_ORDER.some((k) => currentSoundCategories[k] !== false)
-    : true;
+    : true);
   btn.innerHTML = makeUiIcon(anyOn ? "speaker" : "speakerOff");
 }
 
-function updateAudioState(cats) {
+function updateAudioState(cats, enabled = true) {
   currentSoundCategories = { ...(cats || {}) };
-  const rows = document.querySelectorAll(".audio-cat-row");
+  currentSoundEnabled = enabled;
+  applyMasterVisual(document.getElementById("_tw-cat-toggles"));
+  const rows = document.querySelectorAll(".audio-cat-row[data-cat]");
   rows.forEach((row) => {
     const cat = row.dataset.cat;
     applyToggleVisual(row, currentSoundCategories[cat] !== false);

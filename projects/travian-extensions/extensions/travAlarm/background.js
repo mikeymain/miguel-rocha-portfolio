@@ -27,6 +27,7 @@ const DEFAULT_SOUND_CATEGORIES = {
 };
 let soundCategories = { ...DEFAULT_SOUND_CATEGORIES };
 let volume = 80;
+let soundEnabled = true;
 let _stateLoaded = false;
 
 const STORAGE_KEYS = {
@@ -34,6 +35,7 @@ const STORAGE_KEYS = {
   SOUND_CATEGORIES: "_w4sc_snd",
   DISMISSED_ATTACKS: "_w4ad",
   VOLUME: "_w4vol",
+  SOUND_ENABLED: "_w4snd_on",
 };
 const ALARM_TICK = "_w4tick";
 
@@ -166,10 +168,15 @@ function classifyAlarmCategory(a) {
   return "building";
 }
 
+// The master switch mutes every category without changing its own setting.
+function isCategoryAudible(category) {
+  return soundEnabled && soundCategories[category] !== false;
+}
+
 function syncAlarmSound(attackEvents, normal) {
   const message = {
     type: "SYNC_SOUND", normal, volume, attackEvents,
-    activeAttackIds: soundCategories.attack === false ? [] : alarms
+    activeAttackIds: !isCategoryAudible("attack") ? [] : alarms
       .filter(a => a.customType === "attack" && !a.silenced && !a.noSound && a.impactAt > Date.now())
       .map(a => a.id),
   };
@@ -183,13 +190,13 @@ function syncAlarmSound(attackEvents, normal) {
     if (normal || attackEvents.length) await ensureOffscreen();
     // State may have changed while the document was opening. Never deliver a
     // queued cue for an attack that has since been dismissed, muted or landed.
-    const eligible = new Set(soundCategories.attack === false ? [] : alarms
+    const eligible = new Set(!isCategoryAudible("attack") ? [] : alarms
       .filter(a => a.customType === "attack" && !a.silenced && !a.noSound && a.impactAt > Date.now())
       .map(a => a.id));
     message.activeAttackIds = message.activeAttackIds.filter(id => eligible.has(id));
     message.attackEvents = message.attackEvents.filter(event => eligible.has(event.id));
     message.normal &&= alarms.some(a => a.customType !== "attack" && !a.silenced &&
-      !a.noSound && a.scheduledTime <= Date.now() && soundCategories[classifyAlarmCategory(a)] !== false);
+      !a.noSound && a.scheduledTime <= Date.now() && isCategoryAudible(classifyAlarmCategory(a)));
     message.volume = volume;
     try {
       await chrome.runtime.sendMessage(message);
@@ -224,6 +231,7 @@ chrome.storage.local
     STORAGE_KEYS.SOUND_CATEGORIES,
     STORAGE_KEYS.DISMISSED_ATTACKS,
     STORAGE_KEYS.VOLUME,
+    STORAGE_KEYS.SOUND_ENABLED,
   ])
   .then((res) => {
     // One malformed stored record must not stop the whole load: until it
@@ -272,6 +280,7 @@ chrome.storage.local
       };
     }
     if (res[STORAGE_KEYS.VOLUME] != null) volume = res[STORAGE_KEYS.VOLUME];
+    if (res[STORAGE_KEYS.SOUND_ENABLED] === false) soundEnabled = false;
 
     dismissedAttacks = AttackState.prune(
       res[STORAGE_KEYS.DISMISSED_ATTACKS] || [], Date.now());
@@ -296,6 +305,7 @@ function saveState() {
     [STORAGE_KEYS.SOUND_CATEGORIES]: soundCategories,
     [STORAGE_KEYS.DISMISSED_ATTACKS]: dismissedAttacks,
     [STORAGE_KEYS.VOLUME]: volume,
+    [STORAGE_KEYS.SOUND_ENABLED]: soundEnabled,
   });
 }
 
@@ -316,7 +326,7 @@ function runAlarmTick() {
   });
   for (const a of alarms) {
     if (a.silenced || a.scheduledTime > now) continue;
-    const audible = !a.noSound && soundCategories[classifyAlarmCategory(a)] !== false;
+    const audible = !a.noSound && isCategoryAudible(classifyAlarmCategory(a));
     if (a.customType === "attack") {
       if (!a.notified && audible) {
         attackEvents.push({ id: a.id, expiresAt: a.impactAt, phase: a.attackPhase });
@@ -501,7 +511,7 @@ function handleMessage(msg, sender, sendResponse) {
       return true;
 
     case "GET_ACTIVE_ALARMS":
-      sendResponse({ alarms, soundCategories, volume });
+      sendResponse({ alarms, soundCategories, soundEnabled, volume });
       return true;
 
     case "STOP_SOUND_ONLY":
@@ -612,6 +622,12 @@ function handleMessage(msg, sender, sendResponse) {
       // re-evaluate alarms to see if sound should repeat.
       runAlarmTick();
       break;
+
+    case "SET_SOUND_ENABLED":
+      soundEnabled = !!msg.enabled;
+      runAlarmTick();
+      sendResponse({ soundEnabled });
+      return true;
 
     case "SET_SOUND_CATEGORY":
       if (

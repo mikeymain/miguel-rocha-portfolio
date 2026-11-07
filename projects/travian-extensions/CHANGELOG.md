@@ -1,5 +1,9 @@
 # Changelog
 
+## TravAlarm 3.32 — 2026-11-07
+
+- Sound Settings has an **All sounds** switch. It mutes every alarm sound and keeps the per-category choices for when sound is turned back on.
+
 ## TravAlarm 3.31 — 2026-11-07
 
 - Master builder entries waiting for resources ("Start of construction in …") no longer set a building alarm.

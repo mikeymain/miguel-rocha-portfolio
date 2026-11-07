@@ -1,8 +1,8 @@
 # TravAlarm
 
-Groups game timers and custom reminders with browser notifications and category sound settings.
+Groups game timers and custom reminders with browser notifications, category sound settings and an all-sounds mute.
 
-**Version 3.31 · JavaScript · Manifest V3**
+**Version 3.32 · JavaScript · Manifest V3**
 
 [Usage guide](../../docs/USAGE.md#travalarm) · [Installation](../../README.md#install-in-brave-chrome-or-edge) · [All extensions](../../README.md)
 
