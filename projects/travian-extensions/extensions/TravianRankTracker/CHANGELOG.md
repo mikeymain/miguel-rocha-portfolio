@@ -1,5 +1,11 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.3 — 2026-11-07
+
+- PvE, Robbers and Prod So Far rows are collapsible. Expanded rows show a breakdown with its own change columns:
+  PvE → Resources; Robbers → Raiding (excluding PvE) and PvE; Prod So Far → Fields and Bounty.
+- Expanded rows are remembered between popup opens.
+
 ## Rank Tracker 5.0.2 — 2026-11-07
 
 - Robbers shows total raided on top and raiding excluding PvE below, labelled "raiding".

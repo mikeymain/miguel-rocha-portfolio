@@ -24,6 +24,76 @@ const NOW_DELTA_TAGS = ["Open", "1h", "3h", "1d", "7d"];
 /** Average rank shown by the previous renderUI call in this popup session. */
 let lastHeroRank = null;
 
+/** Resources credited per animal killed in the PvE weekly counter. */
+const NOW_RES_PER_ANIMAL = 160;
+
+/** localStorage key holding the expanded breakdown rows. */
+const NOW_EXPANDED_KEY = "rankTracker.expandedRows";
+
+/** Read the expanded breakdown keys; storage may be unavailable. */
+function readExpanded() {
+	try {
+		const list = JSON.parse(localStorage.getItem(NOW_EXPANDED_KEY) || "[]");
+		return new Set(Array.isArray(list) ? list.filter((k) => typeof k === "string") : []);
+	} catch {
+		return new Set();
+	}
+}
+
+/** Persist the expanded breakdown keys. */
+function writeExpanded(set) {
+	try {
+		localStorage.setItem(NOW_EXPANDED_KEY, JSON.stringify([...set]));
+	} catch {
+		// Storage unavailable: state lasts for this popup only.
+	}
+}
+
+/** Breakdown rows expanded by the user, kept across re-renders. */
+const expandedRows = readExpanded();
+
+/** Difference of two values, or null when either is missing. */
+function subtractOrNull(a, b) {
+	return Number.isFinite(a) && Number.isFinite(b) ? a - b : null;
+}
+
+/** PvE resources in a snapshot: animals killed × 160. */
+function pveResourcesOf(snapshot) {
+	const kills = top10Value(snapshot, "PvE of the week");
+	return Number.isFinite(kills) ? kills * NOW_RES_PER_ANIMAL : null;
+}
+
+/** Robbers resources excluding PvE in a snapshot. */
+function raidingOf(snapshot) {
+	return subtractOrNull(top10Value(snapshot, "Robbers of the week"), pveResourcesOf(snapshot));
+}
+
+/** Field production so far in a snapshot: total minus bounty. */
+function fieldsSoFarOf(snapshot) {
+	return subtractOrNull(snapshot?.valProdSoFar, snapshot?.valBounty);
+}
+
+/** Bounty so far in a snapshot. */
+function bountyOf(snapshot) {
+	return Number.isFinite(snapshot?.valBounty) ? snapshot.valBounty : null;
+}
+
+/**
+ * Breakdown rows for a metric, keyed by weekly label or general rank key.
+ * Each part reads its value from any snapshot so deltas work per part.
+ */
+const NOW_BREAKDOWNS = {
+	"PvE of the week": [{ name: "Resources", read: pveResourcesOf }],
+	"Robbers of the week": [
+		{ name: "Raiding", read: raidingOf },
+		{ name: "PvE", read: pveResourcesOf },
+	],
+	rankProdSoFar: [
+		{ name: "Fields", read: fieldsSoFarOf },
+		{ name: "Bounty", read: bountyOf },
+	],
+};
+
 /**
  * Describe a change (current minus earlier) for one table cell.
  * Ranks improve when they decrease; values improve when they increase.
@@ -138,6 +208,62 @@ function metricRow({ name, rank, totalPlayers, main, sub, valueTitle, cells }) {
 	return tr;
 }
 
+/**
+ * Build one breakdown row: no rank, value and value deltas only.
+ *
+ * @param {string} name
+ * @param {number|null} value
+ * @param {Array<{rank: object, val: object|null}>} cells
+ * @returns {HTMLTableRowElement}
+ */
+function breakdownRow(name, value, cells) {
+	const tr = h("tr", "row row--part");
+	const th = h("th", "metric");
+	th.scope = "row";
+	th.append(h("span", "metric-name", name));
+	const valueTd = h("td", "value");
+	valueTd.append(h("span", "value-main", fmtNum(value)));
+	tr.append(th, h("td", "rank"), valueTd);
+	for (const cell of cells) {
+		const td = h("td", "delta");
+		td.append(deltaSpan("d-rank", cell.val || describeDelta(null, false)));
+		tr.append(td);
+	}
+	return tr;
+}
+
+/**
+ * Make a metric row collapsible over its breakdown rows.
+ *
+ * @param {HTMLTableRowElement} parent
+ * @param {string} key - Breakdown key, stored when expanded.
+ * @param {Array<HTMLTableRowElement>} parts
+ * @returns {Array<HTMLTableRowElement>} Parent followed by its parts.
+ */
+function collapsible(parent, key, parts) {
+	if (parts.length === 0) return [parent];
+	const nameEl = parent.querySelector(".metric-name");
+	const button = h("button", "metric-toggle");
+	button.type = "button";
+	button.append(h("span", "metric-caret"), h("span", "", nameEl.textContent));
+	nameEl.replaceChildren(button);
+	parent.classList.add("row--parent");
+
+	const setOpen = (open) => {
+		button.setAttribute("aria-expanded", String(open));
+		for (const part of parts) part.hidden = !open;
+	};
+	setOpen(expandedRows.has(key));
+	button.addEventListener("click", () => {
+		const open = button.getAttribute("aria-expanded") !== "true";
+		if (open) expandedRows.add(key);
+		else expandedRows.delete(key);
+		writeExpanded(expandedRows);
+		setOpen(open);
+	});
+	return [parent, ...parts];
+}
+
 /** A single message row spanning the table. */
 function stateRow(kind, message) {
 	const tr = h("tr", "state-row");
@@ -245,7 +371,7 @@ function renderUI(data, history) {
 	const weeklyRefs = [baseline, ...offsets.map((t) => getHistoryPoint(weeklyHistory, t))];
 
 	/** Five cells of rank/value deltas for one metric. */
-	const deltaCells = (currRank, currVal, readRank, readVal, isTop10, label) =>
+	const deltaCells = (currRank, currVal, readRank, readVal, isTop10) =>
 		(isTop10 ? weeklyRefs : generalRefs).map((snapshot) => {
 			const oldRank = readRank(snapshot);
 			const rank = describeDelta(currRank == null || oldRank == null ? null : currRank - oldRank, true);
@@ -262,7 +388,7 @@ function renderUI(data, history) {
 					const samples = [start, ...history
 						.filter((point) => point.timestamp > start.timestamp && point.timestamp < data.timestamp)
 						.sort((a, b) => a.timestamp - b.timestamp), data];
-					const totals = counterTotals(samples, (point) => top10Value(point, label));
+					const totals = counterTotals(samples, readVal);
 					diff = totals[0] == null || totals[totals.length - 1] == null
 						? null : totals[totals.length - 1] - totals[0];
 				}
@@ -289,48 +415,41 @@ function renderWeekly(data, deltaCells) {
 	const title = data.weeklyTimestamp ? `Weekly data observed: ${new Date(data.weeklyTimestamp).toLocaleString()}` : "";
 	const rows = [groupRow("Weekly", meta, title)];
 
-	// Raw animal-kill count and raided resources for the derived values.
-	const pveItem = items.find((i) => i.label === "PvE of the week");
-	const robItem = items.find((i) => i.label === "Robbers of the week");
-	const pveKills = pveItem ? cleanSmartNum(pveItem.val) : null;
-	const robRaw = robItem ? cleanSmartNum(robItem.val) : null;
-	const pveResources = pveKills != null ? pveKills * 160 : null;
-	const robExcludingPve = robRaw != null && pveResources != null ? robRaw - pveResources : null;
-
 	if (items.length === 0) rows.push(stateRow("empty", "No weekly data yet."));
 	for (const item of items) {
 		const valClean = cleanSmartNum(item.val);
-		let main = item.val ? item.val.toLocaleString() : "0";
-		let sub = "";
-		let valueTitle = "";
-		if (item.label === "PvE of the week" && pveResources != null) {
-			main = fmtNum(valClean);
-			sub = `${fmtNum(pveResources)} res`;
-			valueTitle = "Animals killed / resources";
-		}
-		if (item.label === "Robbers of the week" && robExcludingPve != null && robRaw != null) {
-			main = fmtNum(robRaw);
-			sub = `raiding ${fmtNum(robExcludingPve)}`;
-			valueTitle = "Raided / raided excluding PvE";
-		}
-		rows.push(metricRow({
+		const parent = metricRow({
 			name: NOW_WEEKLY_NAMES[item.label] || item.label,
 			rank: item.rank,
 			totalPlayers: data.totalPlayers,
-			main,
-			sub,
-			valueTitle,
+			main: Number.isFinite(valClean) ? fmtNum(valClean) : (item.val || "0"),
 			cells: deltaCells(
 				item.rank,
 				valClean,
 				(s) => s?.top10?.find((entry) => entry.label === item.label)?.rank,
 				(s) => top10Value(s, item.label),
 				true,
-				item.label,
 			),
-		}));
+		});
+		rows.push(...collapsible(parent, item.label, breakdownRows(data, item.label, deltaCells, true)));
 	}
 	body.replaceChildren(...rows);
+}
+
+/**
+ * Breakdown rows for one metric; parts without a current value are skipped.
+ *
+ * @param {object} data - Latest snapshot.
+ * @param {string} key - NOW_BREAKDOWNS key.
+ * @param {Function} deltaCells
+ * @param {boolean} isTop10
+ * @returns {Array<HTMLTableRowElement>}
+ */
+function breakdownRows(data, key, deltaCells, isTop10) {
+	return (NOW_BREAKDOWNS[key] || [])
+		.map((part) => ({ part, value: part.read(data) }))
+		.filter(({ value }) => value != null)
+		.map(({ part, value }) => breakdownRow(part.name, value, deltaCells(null, value, () => null, part.read, isTop10)));
 }
 
 /** General ranking rows. */
@@ -338,26 +457,22 @@ function renderGeneral(data, deltaCells) {
 	const body = document.getElementById("general-body");
 	if (!body) return;
 	const rows = [groupRow("General")];
-	const add = (name, keyRank, keyVal, display) => {
+	const add = (name, keyRank, keyVal) => {
 		const rank = data[keyRank];
 		const points = data[keyVal];
-		rows.push(metricRow({
+		const parent = metricRow({
 			name,
 			rank,
 			totalPlayers: data.totalPlayers,
-			main: display?.main ?? (points != null ? fmtNum(points) : "—"),
-			sub: display?.sub,
-			valueTitle: display?.title,
-			cells: deltaCells(rank, points, (s) => s?.[keyRank], (s) => s?.[keyVal], false, ""),
-		}));
+			main: points != null ? fmtNum(points) : "—",
+			cells: deltaCells(rank, points, (s) => s?.[keyRank], (s) => s?.[keyVal], false),
+		});
+		rows.push(...collapsible(parent, keyRank, breakdownRows(data, keyRank, deltaCells, false)));
 	};
 
 	add("Population", "rankPop", "valPop");
 	add("Prod / Hour", "rankProd", "valProd");
-	add("Prod So Far", "rankProdSoFar", "valProdSoFar",
-		data.valBounty != null && data.valProdSoFar != null
-			? { main: fmtNum(data.valProdSoFar), sub: `fields ${fmtNum(data.valProdSoFar - data.valBounty)}`, title: "Total / field production so far" }
-			: null);
+	add("Prod So Far", "rankProdSoFar", "valProdSoFar");
 	add("CP / Day", "rankCp", "cpProd");
 	add("CP So Far", "rankCpSoFar", "valCpSoFar");
 	add("Offensive Strength", "rankOff", "pointsOff");
