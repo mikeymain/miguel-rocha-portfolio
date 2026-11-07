@@ -1,5 +1,11 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.4 — 2026-11-07
+
+- Robbers breakdown shows Raiding only; the PvE part is removed.
+- Clicking anywhere on a collapsible row expands or collapses it.
+- Breakdown labels end with a colon: "Raiding:".
+
 ## Rank Tracker 5.0.3 — 2026-11-07
 
 - PvE, Robbers and Prod So Far rows are collapsible. Expanded rows show a breakdown with its own change columns:

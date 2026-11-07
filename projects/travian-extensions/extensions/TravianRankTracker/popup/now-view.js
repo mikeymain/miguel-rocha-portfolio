@@ -84,10 +84,7 @@ function bountyOf(snapshot) {
  */
 const NOW_BREAKDOWNS = {
 	"PvE of the week": [{ name: "Resources", read: pveResourcesOf }],
-	"Robbers of the week": [
-		{ name: "Raiding", read: raidingOf },
-		{ name: "PvE", read: pveResourcesOf },
-	],
+	"Robbers of the week": [{ name: "Raiding", read: raidingOf }],
 	rankProdSoFar: [
 		{ name: "Fields", read: fieldsSoFarOf },
 		{ name: "Bounty", read: bountyOf },
@@ -220,7 +217,7 @@ function breakdownRow(name, value, cells) {
 	const tr = h("tr", "row row--part");
 	const th = h("th", "metric");
 	th.scope = "row";
-	th.append(h("span", "metric-name", name));
+	th.append(h("span", "metric-name", `${name}:`));
 	const valueTd = h("td", "value");
 	valueTd.append(h("span", "value-main", fmtNum(value)));
 	tr.append(th, h("td", "rank"), valueTd);
@@ -254,7 +251,8 @@ function collapsible(parent, key, parts) {
 		for (const part of parts) part.hidden = !open;
 	};
 	setOpen(expandedRows.has(key));
-	button.addEventListener("click", () => {
+	// The whole row toggles; button clicks (mouse or keyboard) bubble here.
+	parent.addEventListener("click", () => {
 		const open = button.getAttribute("aria-expanded") !== "true";
 		if (open) expandedRows.add(key);
 		else expandedRows.delete(key);
@@ -401,9 +399,9 @@ function renderUI(data, history) {
 	renderGeneral(data, deltaCells);
 
 	const playersEl = document.getElementById("players");
-	if (playersEl) playersEl.textContent = data.totalPlayers != null ? data.totalPlayers.toLocaleString() : "";
+	if (playersEl) playersEl.textContent = data.totalPlayers != null ? `Total players ${data.totalPlayers.toLocaleString()}` : "";
 
-	if (data.timestamp) setStatus(`Updated ${clockTime(data.timestamp)}`, "ok");
+	if (data.timestamp) setStatus(`Last refresh ${clockTime(data.timestamp)}`, "ok");
 }
 
 /** Weekly Top 10 rows. */

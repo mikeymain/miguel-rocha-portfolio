@@ -367,7 +367,8 @@ svg {
 	font: inherit;
 	cursor: pointer;
 }
-.metric-toggle:hover { background: rgba(255, 244, 225, 0.06); }
+.metrics tr.row--parent { cursor: pointer; }
+.metrics tr.row--parent:hover .metric-toggle { background: rgba(255, 244, 225, 0.06); }
 .metric-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .metric-caret {
 	width: 0;
