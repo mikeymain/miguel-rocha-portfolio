@@ -83,14 +83,14 @@ The farm-list screenshot uses a sample table with the extension's selection high
 
 <a href="images/rank-tracker.png"><img src="images/rank-tracker.png" alt="Rank Tracker current statistics" width="520" /></a>
 
-**Features:** weekly Top 10/general rankings; population, production, CP, attack/defense, raid/PvE statistics; percentile tiers; historical deltas; average rank; graphs with raw data/daily peaks, absolute values/hourly velocity, metric groups, visibility controls, zoom, and point comparisons; multiple servers; JSON export/import.
+**Features:** weekly Top 10 and general rankings; population, production, CP, attack/defense, raid/PvE statistics; average rank with percentile tier; changes since last open and over 1h, 3h, 1d and 7d; history graphs with raw data/daily peaks, absolute values/per-hour rates, metric sections, saved groups, zoom, and point comparisons; multiple servers; JSON export/import.
 
 **Usage:**
 
 1. Open a logged-in Travian tab and click the extension icon to register the server and collect statistics.
-2. Use **Current** for rankings and deltas. Check the update status. Background collection runs approximately every 30 minutes while the browser and session are available. Weekly tables refresh when the popup is opened; hover the weekly section to see its observation time. Cached weekly values are not recorded as new history.
-3. Use **History** to select metrics, compare points, and zoom. **Daily Peaks** aggregates observations; **Velocity** shows change per hour. Weekly statistics reset; value deltas and hourly rates bridge observed resets rather than reporting the old total as a loss. Gains during missing observations cannot be recovered.
-4. Use the save icon to export data. The folder icon imports a backup and writes saved tracker data; export existing data before importing.
+2. Use **Now** for rankings and changes. The status in the top bar shows the last update. Background collection runs approximately every 30 minutes while the browser and session are available. Weekly tables refresh when the popup is opened; the Weekly header shows when they were observed. Cached weekly values are not recorded as new history.
+3. Use **History** to pick metrics in the sidebar, drag across the chart to compare two points, and scroll on the chart to zoom (Shift + scroll pans). **Daily peaks** aggregates observations; **Per hour** shows change per hour. **Save group** stores the visible metrics; **Clear** hides all. Weekly statistics reset; value changes and hourly rates bridge observed resets rather than reporting the old total as a loss. Gains during missing observations cannot be recovered.
+4. Use the export icon (arrow down) to save data. The import icon (arrow up) restores a backup and asks before deleting data the backup does not contain; export existing data before importing. The star icon lists the rank tiers.
 
 For expired sessions, log in and reopen the popup. Missing observations cannot be reconstructed.
 

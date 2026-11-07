@@ -1,175 +1,121 @@
 <!doctype html>
-<html>
+<html lang="en">
 	<head>
 		<meta charset="utf-8" />
-		<link rel="stylesheet" href="style.css" />
+		<title>Rank Tracker</title>
+		<link rel="stylesheet" href="popup.css" />
 		<script src="chart.js"></script>
 		<script src="utils.js"></script>
+		<script src="popup/format.js"></script>
+		<script src="popup/now-view.js"></script>
+		<script src="popup/metrics.js"></script>
+		<script src="popup/history-view.js"></script>
+		<script src="popup/backup.js"></script>
+		<script src="popup/app.js"></script>
 	</head>
 	<body>
-		<div class="header">
-			<h2>🏆 Travian Tracker</h2>
-			<div class="header-actions">
-				<span
-					id="active-players"
-					title="Active players (accounts with at least 1 village) — excludes deleted and never-settled avatars"
-				></span>
-				<span id="playtime" title="Time since tracking started"></span>
-				<div id="last-update"></div>
-				<button id="btn-backup" class="icon-btn" title="Export All Data">
-					💾
+		<header class="topbar">
+			<div class="brand">
+				<svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V13h4v7M10 20V6h4v14M16 20v-9h4v9" /></svg>
+				<span class="brand-name">Ranks</span>
+			</div>
+			<nav class="tabs" role="tablist" aria-label="Views">
+				<button class="tab" id="tab-now" role="tab" type="button" aria-selected="true" aria-controls="view-now">Now</button>
+				<button class="tab" id="tab-hist" role="tab" type="button" aria-selected="false" aria-controls="view-hist">History</button>
+				<span class="tabs-indicator" aria-hidden="true"></span>
+			</nav>
+			<span class="meta-chip" id="server-host" title="Server"></span>
+			<span class="meta-chip" id="players" title="Active players"></span>
+			<span class="meta-chip" id="playtime" title="Time since server start"></span>
+			<div class="status" id="status" data-state="idle" role="status" aria-live="polite">
+				<span class="status-dot" aria-hidden="true"></span>
+				<span class="status-text" id="status-text"></span>
+			</div>
+			<div class="topbar-actions">
+				<button class="icon-btn" id="btn-backup" type="button" title="Export data" aria-label="Export data">
+					<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4-4m4 4l4-4M5 19h14" /></svg>
 				</button>
-				<button id="btn-restore" class="icon-btn" title="Import Data">
-					📂
+				<button class="icon-btn" id="btn-restore" type="button" title="Import data" aria-label="Import data">
+					<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4m0 0L8 8m4-4l4 4M5 19h14" /></svg>
 				</button>
-				<button id="btn-rank-info" class="icon-btn" title="Rank Tier Info">
-					ℹ️
+				<button class="icon-btn" id="btn-tiers" type="button" title="Rank tiers" aria-label="Rank tiers">
+					<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6-4.5-4.2 6.1-.7z" /></svg>
 				</button>
-				<input
-					type="file"
-					id="file-input"
-					class="hidden"
-					accept=".json"
-				/>
+				<input type="file" id="file-input" accept=".json" hidden />
 			</div>
-		</div>
+		</header>
 
-		<div id="rank-info-modal" class="hidden">
-			<div class="modal-title">Rank Tiers</div>
-			<div class="rank-info-body">
-				<div class="rank-info-note">
-					Tiers are based on your percentile across the server's total
-					active players (accounts with villages).
+		<main class="views">
+			<section class="view view-now" id="view-now" role="tabpanel" aria-labelledby="tab-now" tabindex="0">
+				<div class="hero" id="hero">
+					<div class="hero-main">
+						<span class="hero-label">Avg rank</span>
+						<div class="hero-rank" id="hero-rank" aria-live="off"></div>
+					</div>
+					<div class="hero-side">
+						<span class="hero-tier" id="hero-tier"></span>
+						<span class="hero-pct" id="hero-pct"></span>
+					</div>
+					<div class="hero-deltas" id="hero-deltas"></div>
 				</div>
-				<div class="rank-info-row">
-					<span class="rank-swatch rank-top10-swatch">★</span>
-					<span class="rank-info-label">Top 10</span>
-					<span class="rank-info-pct">rank ≤ 10 (shimmer)</span>
+				<div class="table-wrap">
+					<table class="metrics" id="metrics-table">
+						<thead>
+							<tr>
+								<th scope="col" class="col-metric">Metric</th>
+								<th scope="col" class="col-rank">Rank</th>
+								<th scope="col" class="col-value">Value</th>
+								<th scope="col" class="col-delta" title="Since last open">Open</th>
+								<th scope="col" class="col-delta">1h</th>
+								<th scope="col" class="col-delta">3h</th>
+								<th scope="col" class="col-delta">1d</th>
+								<th scope="col" class="col-delta">7d</th>
+							</tr>
+						</thead>
+						<tbody id="weekly-body"></tbody>
+						<tbody id="general-body"></tbody>
+					</table>
 				</div>
-				<div class="rank-info-row">
-					<span class="rank-swatch" style="background:#a50512"></span>
-					<span class="rank-info-label rank-immortal">Immortal</span>
-					<span class="rank-info-pct">top 0.45% (red aura)</span>
-				</div>
-				<div class="rank-info-row">
-					<span class="rank-swatch" style="background:#e668a5"></span>
-					<span class="rank-info-label" style="color:#e668a5">Ascended</span>
-					<span class="rank-info-pct">top 0.9%</span>
-				</div>
-				<div class="rank-info-row">
-					<span class="rank-swatch" style="background:hsl(250, 71%, 66%)"></span>
-					<span class="rank-info-label" style="color:hsl(250, 71%, 66%)">Diamond</span>
-					<span class="rank-info-pct">top 2%</span>
-				</div>
-				<div class="rank-info-row">
-					<span class="rank-swatch" style="background:#13b958"></span>
-					<span class="rank-info-label" style="color:#13b958">Emerald</span>
-					<span class="rank-info-pct">top 3%</span>
-				</div>
-				<div class="rank-info-row">
-					<span class="rank-swatch" style="background:#7ac3e0"></span>
-					<span class="rank-info-label" style="color:#7ac3e0">Platinum</span>
-					<span class="rank-info-pct">top 6%</span>
-				</div>
-				<div class="rank-info-row">
-					<span class="rank-swatch" style="background:#ffb020"></span>
-					<span class="rank-info-label" style="color:#ffb020">Gold</span>
-					<span class="rank-info-pct">top 14%</span>
-				</div>
-				<div class="rank-info-row">
-					<span class="rank-swatch" style="background:#acacac"></span>
-					<span class="rank-info-label" style="color:#acacac">Silver</span>
-					<span class="rank-info-pct">top 20%</span>
-				</div>
-				<div class="rank-info-row">
-					<span class="rank-swatch" style="background:#cd7f32"></span>
-					<span class="rank-info-label" style="color:#cd7f32">Bronze</span>
-					<span class="rank-info-pct">top 30%</span>
-				</div>
-				<div class="rank-info-row">
-					<span class="rank-swatch" style="background:#ffffff"></span>
-					<span class="rank-info-label" style="color:#ffffff">Iron</span>
-					<span class="rank-info-pct">rest</span>
-				</div>
-			</div>
-			<div class="modal-actions">
-				<button id="btn-close-rank-info" class="c-btn c-btn--modal c-btn--primary">
-					Close
-				</button>
-			</div>
-		</div>
+			</section>
 
-		<div class="tabs">
-			<button class="tab-btn active" id="tab-curr">Current</button>
-			<button class="tab-btn" id="tab-hist">History</button>
-		</div>
-
-		<div id="view-curr">
-			<div class="section-title">Weekly Top 10</div>
-			<div class="stat-box" id="top10-list">
-				<div class="loading">Checking...</div>
-			</div>
-
-			<div class="section-title">General Rankings</div>
-			<div class="stat-box" id="stats-list">
-				<div class="loading">Loading...</div>
-			</div>
-		</div>
-
-		<div id="view-hist" class="hidden">
-			<div class="chart-controls">
-				<button class="c-btn active" data-f="all">Raw Data</button>
-				<button class="c-btn" data-f="daily">Daily Peaks</button>
-				<button class="c-btn hidden" id="btn-zoom-reset">Reset Zoom</button>
-				<div class="chart-controls-spacer"></div>
-				<button class="c-btn" id="btn-velocity">Absolute</button>
-			</div>
-
-			<div class="group-controls">
-				<div class="group-controls-label">Groups:</div>
-				<button id="btn-group-none" class="c-btn c-btn--sm c-btn--danger">
-					None
-				</button>
-
-				<div id="custom-groups-list"></div>
-				<button
-					id="btn-add-group"
-					class="icon-btn"
-					title="Create Custom Group"
-				>
-					+
-				</button>
-			</div>
-
-			<div id="group-modal" class="hidden">
-				<div class="modal-title">Create Custom Group</div>
-				<input
-					type="text"
-					id="group-name-input"
-					placeholder="e.g., All Ranks"
-				/>
-				<div id="group-items-list"></div>
-				<div class="modal-actions">
-					<button id="btn-cancel-group" class="c-btn c-btn--modal">
-						Cancel
-					</button>
-					<button
-						id="btn-save-group"
-						class="c-btn c-btn--modal c-btn--primary"
-					>
-						Save
-					</button>
+			<section class="view view-hist" id="view-hist" role="tabpanel" aria-labelledby="tab-hist" tabindex="0" hidden>
+				<div class="hist-toolbar">
+					<div class="seg" id="seg-filter" role="group" aria-label="Data">
+						<button class="seg-btn" type="button" data-f="all" aria-pressed="true">Raw</button>
+						<button class="seg-btn" type="button" data-f="daily" aria-pressed="false">Daily peaks</button>
+					</div>
+					<div class="seg" id="seg-mode" role="group" aria-label="Scale">
+						<button class="seg-btn" type="button" data-mode="abs" aria-pressed="true">Absolute</button>
+						<button class="seg-btn" type="button" data-mode="rate" aria-pressed="false">Per hour</button>
+					</div>
+					<button class="ghost-btn" id="btn-zoom-reset" type="button" hidden>Reset zoom</button>
+					<div class="toolbar-spacer"></div>
+					<div class="group-bar">
+						<button class="ghost-btn" id="btn-group-none" type="button">Clear</button>
+						<div class="group-list" id="group-list"></div>
+						<button class="ghost-btn" id="btn-group-save" type="button">Save group</button>
+					</div>
 				</div>
-			</div>
+				<form class="group-form" id="group-form" hidden>
+					<input type="text" id="group-name" maxlength="40" placeholder="Group name" aria-label="Group name" required />
+					<button class="primary-btn" type="submit">Save</button>
+					<button class="ghost-btn" type="button" id="btn-group-cancel">Cancel</button>
+				</form>
+				<div class="hist-body">
+				<div class="metric-picker" id="metric-picker"></div>
+				<div class="chart-wrap">
+					<canvas id="rankChart"></canvas>
+					<div class="compare-box" id="compare-box" data-open="false"></div>
+					<p class="chart-empty" id="chart-empty" hidden>No history yet. Open the popup on a Travian tab to record a point.</p>
+				</div>
+				</div>
+			</section>
+		</main>
 
-			<div id="chart-legend" class="chart-legend"></div>
-
-			<div class="chart-container">
-				<canvas id="rankChart"></canvas>
-				<div id="compare-box"></div>
-			</div>
-		</div>
-
-		<script src="popup.js"></script>
+		<dialog class="tiers-dialog" id="tiers-dialog" aria-labelledby="tiers-title">
+			<h2 class="tiers-title" id="tiers-title">Rank tiers</h2>
+			<ul class="tiers-list" id="tiers-list"></ul>
+			<button class="ghost-btn" id="btn-tiers-close" type="button">Close</button>
+		</dialog>
 	</body>
 </html>

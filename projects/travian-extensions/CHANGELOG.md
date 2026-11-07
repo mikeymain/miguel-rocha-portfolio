@@ -1,5 +1,14 @@
 # Changelog
 
+## Rank Tracker 5.0.0 — 2026-11-07
+
+New popup, rebuilt from scratch. Data collection, history, storage and backups are unchanged; saved data, metric visibility and groups carry over.
+
+- Each view fits the 800 × 600 popup with no scrolling. The Now and History tabs sit in the top bar.
+- **Now:** average rank on a flip-digit board with tier, percentile and changes; all weekly and general rankings in one table with rank and value changes per column.
+- **History:** metrics grouped by section in a sidebar beside the chart; segmented Raw / Daily peaks and Absolute / Per hour controls; Save group stores the visible metrics.
+- New icon.
+
 ## Design and accessibility pass — 2026-11-05
 
 Oasis Finder 69.6, TravAlarm 3.30, Travian QoL 1.2.2, NPC AutoMerchant 3.1.3 and Night Mode 2.6 fix contrast, keyboard access and motion in the panels they add to game pages. Layout and colours stay the same apart from the contrast fixes.

@@ -1,5 +1,15 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.0 — 2026-11-07
+
+New popup, rebuilt from scratch. Data collection, history, storage and backups are unchanged; saved data, metric visibility and groups carry over.
+
+- One 800 × 600 screen per view with no scrolling. The Now and History tabs sit in the top bar next to the server, player count, playtime and update status.
+- Now: the average rank is shown on a flip-digit board with its tier, percentile and Open, 1h, 3h, 1d and 7d changes. All weekly and general rankings are in one table with rank and value changes in each column. The Weekly header shows when weekly data was observed.
+- History: metrics are listed by section (Weekly, Raids, Population, Production, Culture, Military) in a sidebar beside the chart. **Raw / Daily peaks** and **Absolute / Per hour** are segmented controls. **Save group** stores the visible metrics under a name; **Clear** hides all.
+- The comparison box, tooltips and chart colours were redrawn. Export, import and rank tier buttons use icons, and the tier list is built from the tier thresholds.
+- New icon.
+
 ## Rank Tracker 4.8.5 — 2026-10-21
 
 - The 1h, 3h, D and W changes now show "-" when no saved point lies within half that window, instead of comparing against the current value or a much older point.

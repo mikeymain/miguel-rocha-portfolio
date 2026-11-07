@@ -1,8 +1,8 @@
 {
 	"manifest_version": 3,
 	"name": "Travian Rank Tracker",
-	"version": "4.8.5",
-	"description": "Tracks Top 10 ranks, General stats, and Village Strength.",
+	"version": "5.0.0",
+	"description": "Tracks weekly Top 10, general rankings and history graphs.",
 	"permissions": [
 		"storage",
 		"alarms",
@@ -24,7 +24,7 @@
 	},
 	"action": {
 		"default_popup": "popup.html",
-		"default_title": "Check Ranks",
+		"default_title": "Rank Tracker",
 		"default_icon": {
 			"16": "icon128.png",
 			"32": "icon128.png",
