@@ -16,6 +16,7 @@ const {
 	forecastInputs,
 	forecastEntry,
 	appendForecastLog,
+	parseInbox,
 } = TSP;
 
 // All read/modify/write operations run here, in order, across every context.
@@ -222,6 +223,34 @@ async function fetchPage(origin, pathname) {
 	const scan = parsePage(await response.text(), origin, observedAt);
 	return scan.hasData ? scan : null;
 }
+/**
+ * Account start: date of the oldest system message in the inbox (sent when
+ * the account joins the server). Looked up once; the result is kept.
+ */
+async function fetchAccountStart(origin) {
+	const key = storageKey(origin);
+	if ((await api.storage.local.get(key))[key]?.accountStart) return;
+	const load = async (page) => {
+		const response = await fetch(
+			`${origin}/messages/inbox${page > 1 ? `?page=${page}` : ""}`,
+			{ credentials: "include", signal: AbortSignal.timeout(15000) },
+		);
+		if (!response.ok || (response.url && serverOrigin(response.url) !== origin))
+			return null;
+		const html = await response.text();
+		return html.includes('name="login"') ? null : parseInbox(html);
+	};
+	let inbox = await load(1);
+	if (inbox && inbox.lastPage > 1) inbox = await load(inbox.lastPage);
+	if (!inbox?.oldest) return;
+	await serialize(async () => {
+		const stored = await api.storage.local.get(key);
+		if (!stored[key] || stored[key].accountStart) return;
+		await api.storage.local.set({
+			[key]: { ...stored[key], accountStart: inbox.oldest },
+		});
+	});
+}
 function fetchServerData(origin) {
 	if (pendingFetches.has(origin)) return pendingFetches.get(origin);
 	const work = (async () => {
@@ -252,6 +281,10 @@ function fetchServerData(origin) {
 					},
 				});
 			});
+			if (success)
+				await fetchAccountStart(origin).catch((error) =>
+					console.warn("Next Settlement Calc: account start:", error.message),
+				);
 			return success;
 		} finally {
 			pendingFetches.delete(origin);

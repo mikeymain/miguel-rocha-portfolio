@@ -27,6 +27,9 @@
 		muted = false,
 		refreshing = false,
 		interval;
+	let etaLog = [],
+		etaOpen = false,
+		etaSignature = "";
 	let copyFeedbackUntil = 0,
 		copyFeedback = "",
 		errorMessage = "";
@@ -84,6 +87,7 @@
 		if (dom.statusNote) dom.statusNote.textContent = "";
 		if (dom.forecastDetails) dom.forecastDetails.textContent = "";
 		if (dom.forecastLabel) dom.forecastLabel.textContent = "CP forecast";
+		if (dom.totalRow) dom.totalRow.hidden = true;
 	}
 	async function selectServer(origin) {
 		server = origin;
@@ -101,9 +105,12 @@
 		const stored = await api.storage.local.get([
 			storageKey(selected),
 			targetCpKey(selected),
+			logKey(selected),
 		]);
 		if (selected !== server || version !== readVersion) return;
 		data = stored[storageKey(selected)] || null;
+		etaLog = stored[logKey(selected)] || [];
+		etaSignature = "";
 		if (!data) {
 			clearDisplay("Open Village Overview → Culture Points to load data.");
 			return;
@@ -283,6 +290,45 @@
 				remaining > 0 ? ` ⏱ ${formatHMS(Math.ceil(remaining))}` : " Available";
 		}
 	}
+	/** Chart of the planned ETA for the selected target across logged samples. */
+	function renderEtaHistory() {
+		dom.etaHistory.hidden = !etaOpen;
+		dom.etaHistoryToggle.setAttribute("aria-pressed", String(etaOpen));
+		if (!etaOpen) return;
+		const target = Number(dom.targetSlot.value);
+		const series = TSP.etaSeries(etaLog, target);
+		const signature = `${target}:${series.length}:${series.at(-1)?.join()}`;
+		if (signature === etaSignature) return;
+		etaSignature = signature;
+		const summary = TSP.renderEtaChart(dom.etaChart, series);
+		dom.etaEmpty.hidden = !!summary;
+		for (const id of ["etaMax", "etaMin", "etaFrom", "etaTo", "etaChange"])
+			dom[id].textContent = "";
+		dom.etaChange.className = "eta-change";
+		if (!summary) return;
+		dom.etaMax.textContent = TSP.shortDate(summary.max);
+		dom.etaMin.textContent = TSP.shortDate(summary.min);
+		dom.etaFrom.textContent = TSP.shortDate(summary.firstSample);
+		dom.etaTo.textContent = TSP.shortDate(summary.lastSample);
+		const shift = (summary.latest - summary.first) / 1000;
+		if (Math.abs(shift) >= 60) {
+			dom.etaChange.textContent = `${shift < 0 ? "−" : "+"}${formatDuration(Math.abs(shift))}`;
+			dom.etaChange.classList.add(shift < 0 ? "earlier" : "later");
+			dom.etaChange.title = shift < 0 ? "ETA moved earlier" : "ETA moved later";
+		}
+	}
+	/** Elapsed time from the account and server start to the settle moment. */
+	function renderTotals(settleAt) {
+		const since = (start) =>
+			start > 0 && Number.isFinite(settleAt) && settleAt >= start
+				? formatDuration((settleAt - start) / 1000)
+				: "—";
+		const account = since(data?.accountStart),
+			world = since(data?.worldStart);
+		dom.totalAccount.textContent = account;
+		dom.totalServer.textContent = world;
+		dom.totalRow.hidden = account === "—" && world === "—";
+	}
 	function calculate() {
 		if (!data) return;
 		const now = Date.now();
@@ -295,6 +341,7 @@
 					? "Using an older reading. Refresh to update the estimate."
 					: "");
 		if (!Number.isFinite(data.totalCp) || !data.lastUpdate) {
+			renderTotals(NaN);
 			dom.timeRemaining.textContent = "Need CP data";
 			dom.targetDate.textContent = "Open your Travian statistics";
 			targetDate = null;
@@ -331,6 +378,14 @@
 			result.ratePerDay,
 		).toLocaleString();
 		dom.progressFill.style.width = `${target ? Math.min(100, (result.currentCp / target) * 100) : 0}%`;
+		const settleAt =
+			target > 0 && result.currentCp >= target
+				? now
+				: Number.isFinite(result.seconds) && target
+					? now + result.seconds * 1000
+					: NaN;
+		renderTotals(settleAt);
+		renderEtaHistory();
 		if (result.currentCp >= target && target > 0) {
 			dom.timeRemaining.textContent = "Ready!";
 			dom.targetDate.textContent = "Right now";
@@ -427,7 +482,6 @@
 	}
 	document.addEventListener("DOMContentLoaded", async () => {
 		for (const id of [
-			"serverSelect",
 			"speed-display",
 			"cpDisplay",
 			"targetSlot",
@@ -443,6 +497,18 @@
 			"statusNote",
 			"forecastDetails",
 			"forecastLabel",
+			"totalRow",
+			"totalAccount",
+			"totalServer",
+			"etaHistoryToggle",
+			"etaHistory",
+			"etaChart",
+			"etaChange",
+			"etaMax",
+			"etaMin",
+			"etaFrom",
+			"etaTo",
+			"etaEmpty",
 		])
 			dom[id] = document.getElementById(id);
 		try {
@@ -451,11 +517,14 @@
 				"tsp_last_viewed",
 				"tsp_is_muted",
 				"tsp_zoom",
+				"tsp_eta_history_open",
 			]);
 			const servers = (
 				Array.isArray(meta.tsp_servers) ? meta.tsp_servers : []
 			).filter(serverOrigin);
 			muted = !!meta.tsp_is_muted;
+			etaOpen = !!meta.tsp_eta_history_open;
+			renderEtaHistory();
 			updateMuteIcon();
 			zoom = Math.max(0.5, Math.min(2, nonNegative(meta.tsp_zoom, 1) || 1));
 			applyZoom();
@@ -466,19 +535,6 @@
 				: servers.includes(meta.tsp_last_viewed)
 					? meta.tsp_last_viewed
 					: servers[0] || null;
-			dom.serverSelect.replaceChildren(
-				...servers.map((origin) => {
-					const opt = make("option", "", new URL(origin).hostname);
-					opt.value = origin;
-					return opt;
-				}),
-			);
-			dom.serverSelect.style.display = servers.length > 1 ? "block" : "none";
-			dom.serverSelect.parentElement.classList.toggle("multi-server", servers.length > 1);
-			dom.serverSelect.value = server || "";
-			dom.serverSelect.addEventListener("change", (event) =>
-				selectServer(event.target.value).catch(report),
-			);
 			api.storage.onChanged.addListener((changes, area) => {
 				if (area !== "local") return;
 				if (changes.tsp_is_muted) {
@@ -487,7 +543,9 @@
 				}
 				if (
 					server &&
-					(changes[storageKey(server)] || changes[targetCpKey(server)])
+					(changes[storageKey(server)] ||
+						changes[targetCpKey(server)] ||
+						changes[logKey(server)])
 				)
 					loadServerData().catch(report);
 			});
@@ -504,6 +562,14 @@
 				request("SET_MUTED", { muted }).catch(report);
 			});
 			dom.exportLog.addEventListener("click", () => exportLog().catch(report));
+			dom.etaHistoryToggle.addEventListener("click", () => {
+				etaOpen = !etaOpen;
+				etaSignature = "";
+				renderEtaHistory();
+				api.storage.local
+					.set({ tsp_eta_history_open: etaOpen })
+					.catch(report);
+			});
 			dom.dateRow.addEventListener("click", copyTime);
 			dom.dateRow.addEventListener("keydown", (event) => {
 				if (event.key === "Enter" || event.key === " ") {
@@ -570,7 +636,7 @@
 			interval = setInterval(calculate, 1000);
 			if (server) {
 				await selectServer(server);
-				refreshServers(servers).catch(report);
+				refreshServers([server]).catch(report);
 			} else
 				clearDisplay(
 					"Open a Travian game page to start tracking culture points.",

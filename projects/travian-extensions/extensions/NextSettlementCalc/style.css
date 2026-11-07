@@ -95,43 +95,11 @@ body {
 	flex-shrink: 0;
 }
 
-.multi-server .brand-title {
-	display: none; /* the server picker needs the room */
-}
-
 .brand-title {
 	font-size: 13px;
 	font-weight: 600;
 	color: var(--text-secondary);
 	white-space: nowrap;
-}
-
-.server-select {
-	display: none; /* shown via JS when multi-server */
-	background: var(--bg-raised);
-	color: var(--text-primary);
-	border: 1px solid var(--border-subtle);
-	border-radius: 6px;
-	padding: 2px 22px 2px 8px;
-	font-size: 11px;
-	font-family: inherit;
-	max-width: 125px;
-	min-width: 0;
-	outline: none;
-	cursor: pointer;
-	appearance: none;
-	text-overflow: ellipsis;
-	background-image: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%238b8b95" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>');
-	background-repeat: no-repeat;
-	background-position: right 6px center;
-	background-size: 12px;
-	transition: border 0.15s ease;
-}
-.server-select:hover {
-	border-color: var(--border-visible);
-}
-.server-select:focus {
-	border-color: var(--border-visible);
 }
 
 .speed-badge {
@@ -643,10 +611,106 @@ select:focus-visible,
 	text-align: left;
 	white-space: pre-line;
 }
+.total-row[hidden] {
+	display: none;
+}
+.total-value {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--text-secondary);
+	font-variant-numeric: tabular-nums;
+}
 .forecast-label {
 	margin-bottom: 10px;
 }
 .check-container input:focus-visible + .checkmark {
 	outline: 2px solid var(--accent-emerald);
 	outline-offset: 2px;
+}
+
+.eta-history {
+	margin: 0 0 10px;
+	padding: 10px 12px;
+	background: var(--bg-raised);
+	border: 1px solid var(--border-subtle);
+	border-radius: 10px;
+}
+.eta-history[hidden],
+.eta-history [hidden] {
+	display: none;
+}
+.eta-head,
+.eta-axis {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+}
+.eta-change {
+	font-size: 11px;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	color: var(--text-secondary);
+}
+.eta-change.earlier {
+	color: #34d399;
+}
+.eta-change.later {
+	color: #f59e0b;
+}
+.eta-plot {
+	position: relative;
+	margin: 8px 0 12px;
+}
+.eta-chart {
+	display: block;
+	width: 100%;
+	height: 96px;
+	overflow: visible;
+}
+.eta-grid {
+	stroke: var(--border-subtle);
+	stroke-dasharray: 3 3;
+	vector-effect: non-scaling-stroke;
+}
+.eta-line {
+	fill: none;
+	stroke: #f59e0b;
+	stroke-width: 1.5;
+	stroke-linejoin: round;
+	vector-effect: non-scaling-stroke;
+}
+.eta-dot {
+	fill: #f59e0b;
+	opacity: 0.55;
+}
+.eta-dot.last {
+	opacity: 1;
+}
+.eta-ylabel {
+	position: absolute;
+	right: 0;
+	font-size: 9px;
+	color: var(--text-tertiary);
+	background: var(--bg-raised);
+	padding: 0 2px;
+	pointer-events: none;
+}
+.eta-ylabel.top {
+	top: -4px;
+}
+.eta-ylabel.bottom {
+	bottom: -4px;
+}
+.eta-axis {
+	font-size: 9px;
+	color: var(--text-tertiary);
+}
+.eta-empty {
+	margin: 6px 0 0;
+	font-size: 11px;
+	color: var(--text-secondary);
+}
+#etaHistoryToggle[aria-pressed="true"] {
+	color: var(--text-primary);
+	background: var(--bg-raised);
 }

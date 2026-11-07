@@ -6,6 +6,7 @@ Object.assign(
 		const {
 			extractJson,
 			extractProgression,
+			extractWorldStart,
 			computeRateSlope,
 			parseGameNumber,
 			normalizeSpeed,
@@ -141,6 +142,8 @@ Object.assign(
 			if (validNumber(totalCp)) scan.totalCp = totalCp;
 			if (validNumber(actualDailyCp)) scan.actualDailyCp = actualDailyCp;
 			if (villages) scan.villages = villages;
+			const worldStart = extractWorldStart(html);
+			if (worldStart) scan.worldStart = worldStart;
 			if (Array.isArray(progression))
 				scan.passiveAccel = computeRateSlope(progression);
 			scan.hasData =
@@ -175,6 +178,8 @@ Object.assign(
 			);
 			const observedAt = nonNegative(scan.observedAt);
 			if (scan.speed) next.speed = normalizeSpeed(scan.speed);
+			if (validNumber(scan.worldStart) && scan.worldStart > 0)
+				next.worldStart = scan.worldStart;
 			if (
 				validNumber(scan.totalCp) &&
 				observedAt >= nonNegative(previous.lastUpdate)

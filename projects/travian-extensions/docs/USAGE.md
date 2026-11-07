@@ -100,16 +100,18 @@ For expired sessions, log in and reopen the popup. Missing observations cannot b
 
 <a href="images/cp-planner.png"><img src="images/cp-planner.png" alt="Next Settlement Calc forecast and celebration controls" width="300" /></a>
 
-**Features:** measured CP totals/production, settlement targets and ETA, per-village Town Hall levels, small/large celebration plans, cooldowns, repeated celebration queues, passive-growth projection, baseline forecast, readiness alarm/mute, multiple servers, refresh, and forecast-log export.
+**Features:** measured CP totals/production, settlement targets and ETA, per-village Town Hall levels, small/large celebration plans, cooldowns, repeated celebration queues, passive-growth projection, baseline forecast, readiness alarm/mute, total time from your account start and the server start to the ETA, ETA history chart, refresh, and forecast-log export.
 
 **Usage:**
 
-1. Open a logged-in game tab and **Next Settlement Calc**. Select the server and settlement target; click **Refresh** for current data.
+1. Open a logged-in game tab and **Next Settlement Calc**. It uses the active tab's server (otherwise the last one viewed). Select the settlement target; click **Refresh** for current data.
 2. Check village production and Town Hall levels. Select planned small/large celebrations. Selecting both models small-then-large with cooldowns.
 3. Compare the planned ETA with the baseline. You must supply resources and start the planned parties yourself. A running celebration's CP was paid at its start and is not counted again at completion.
 4. Passive-growth estimates require observations spanning at least 12 hours. The readiness alarm uses observed/passive CP and plays its sound even with no game tab open; click the notification to dismiss it. Settling also requires settlers and a free expansion slot.
 
-Refreshes when you open the popup or click **Refresh**; there are no background requests. Failed refreshes retain the last snapshot. Export the forecast log when reporting an incorrect ETA.
+Click the chart button to show how the planned ETA for the selected target changed across logged forecasts; hover a point for its time and ETA.
+
+Refreshes when you open the popup or click **Refresh**; there are no background requests. The account start is read once from the oldest system message in your inbox. Failed refreshes retain the last snapshot. Export the forecast log when reporting an incorrect ETA.
 
 ## NPC AutoMerchant
 

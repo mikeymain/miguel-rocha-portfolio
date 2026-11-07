@@ -222,6 +222,63 @@ globalThis.TSP = (() => {
 		);
 	}
 
+	/** Server start (ms) from the statistics page's world-progress timeline. */
+	function extractWorldStart(html) {
+		const start = extractJson(html, "timeLine")?.worldProgress?.find?.(
+			(entry) => entry?.id === "start",
+		);
+		const seconds = Number(start?.rawData?.time);
+		return seconds > 0 ? seconds * 1000 : null;
+	}
+
+	/**
+	 * Message-list date label to ms, in local time.
+	 * Handles "today, 17:09", "yesterday, 17:09" and "dd.mm.yy(yy), 17:09".
+	 */
+	function parseMessageDate(text, now = Date.now()) {
+		const time = /(\d{1,2}):(\d{2})/.exec(text || "");
+		if (!time || +time[1] > 23 || +time[2] > 59) return null;
+		const date = new Date(now);
+		date.setHours(+time[1], +time[2], 0, 0);
+		if (/today/i.test(text)) return date.getTime();
+		if (/yesterday/i.test(text)) {
+			date.setDate(date.getDate() - 1);
+			return date.getTime();
+		}
+		const day = /(\d{1,2})[./](\d{1,2})[./](\d{2,4})/.exec(text);
+		if (!day) return null;
+		const year = +day[3] < 100 ? 2000 + +day[3] : +day[3];
+		const parsed = new Date(year, day[2] - 1, +day[1], +time[1], +time[2]);
+		return parsed.getDate() === +day[1] && parsed.getMonth() === day[2] - 1
+			? parsed.getTime()
+			: null;
+	}
+
+	/**
+	 * Read an inbox page: the highest page number linked, and the date of the
+	 * last (oldest) system message on it. Regex-based so the worker can use it.
+	 */
+	function parseInbox(html, now = Date.now()) {
+		const text = (cell) => (cell || "").replace(/<[^>]*>/g, "").trim();
+		let lastPage = 1;
+		for (const match of html.matchAll(
+			/messages\/inbox[^"'<>]*?[?&](?:amp;)?page=(\d+)/g,
+		))
+			lastPage = Math.max(lastPage, Number(match[1]));
+		let oldest = null;
+		for (const row of html.split(/<tr\b/i).slice(1)) {
+			const support = /^[^>]*class="[^"]*\bsupport\b/i.test(row);
+			const sender = text(
+				/<td[^>]*class="[^"]*\bsend\b[^"]*"[^>]*>([\s\S]*?)<\/td>/i.exec(row)?.[1],
+			);
+			if (!support && !/travian|tg support/i.test(sender)) continue;
+			const dat = /<td[^>]*class="[^"]*\bdat\b[^"]*"[^>]*>([\s\S]*?)<\/td>/i.exec(row);
+			const at = parseMessageDate(text(dat?.[1]), now);
+			if (at != null) oldest = at;
+		}
+		return { lastPage, oldest };
+	}
+
 	function computeRateSlope(progression) {
 		if (!Array.isArray(progression)) return 0;
 		const byDay = new Map();
@@ -469,6 +526,9 @@ globalThis.TSP = (() => {
 		parseGameNumber,
 		extractJson,
 		extractProgression,
+		extractWorldStart,
+		parseMessageDate,
+		parseInbox,
 		TREND,
 		computeRateSlope,
 		measuredRateSlope,
