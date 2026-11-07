@@ -49,6 +49,7 @@ async function startPopup() {
 
 	popupState.activeServerOrigin = serverOrigin;
 	const storageKey = appHistoryKey(serverOrigin);
+	updatePlaytime(serverOrigin, false).catch(() => {});
 
 	await loadBaseline(serverOrigin);
 
@@ -171,20 +172,33 @@ async function loadFromStorage(storageKey, serverOrigin) {
 }
 
 /**
- * Show time since the server started. Anchors, in order: first system
- * message in the inbox, first-seen time, oldest history entry.
+ * Show time since the server started (statistics timeline) and time since
+ * you joined. Join anchors, in order: first system message in the inbox,
+ * first-seen time, oldest history entry.
+ * `allowFetch` false draws from storage only, so the chip shows at open
+ * instead of waiting for the network refresh and inbox fetch.
  */
-async function updatePlaytime(serverOrigin) {
+async function updatePlaytime(serverOrigin, allowFetch = true) {
 	const el = document.getElementById("playtime");
 	if (!el || !serverOrigin) return;
 
 	const gameStartKey = `gameStart_${serverOrigin}`;
 	const firstSeenKey = `firstSeen_${serverOrigin}`;
+	const serverStartKey = `serverStart_${serverOrigin}`;
 	const histKey = appHistoryKey(serverOrigin);
-	const res = await api.storage.local.get([gameStartKey, firstSeenKey, histKey]);
+	const res = await api.storage.local.get([gameStartKey, firstSeenKey, serverStartKey, histKey]);
+
+	const serverEl = document.getElementById("servertime");
+	if (serverEl) {
+		const serverStart = res[serverStartKey];
+		const serverElapsed = Date.now() - serverStart;
+		serverEl.textContent = serverStart > 0 && serverElapsed > 0
+			? `Server: ${formatDuration(serverElapsed)} · ${Math.floor(serverElapsed / 3600000)}h`
+			: "";
+	}
 
 	let anchor = res[gameStartKey];
-	if (anchor == null) anchor = await fetchGameStart(serverOrigin, api);
+	if (anchor == null && allowFetch) anchor = await fetchGameStart(serverOrigin, api);
 	if (anchor == null) anchor = res[firstSeenKey];
 	if (anchor == null) {
 		const hist = res[histKey] || [];

@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.7 — 2026-11-07
+
+- Header adds a "Server: …" chip with the time since the server started, read from the statistics page.
+
 ## Rank Tracker 5.0.6 — 2026-11-07
 
 - Header chips read "Total players: …" and "Playtime: …"; breakdown labels drop the colon.

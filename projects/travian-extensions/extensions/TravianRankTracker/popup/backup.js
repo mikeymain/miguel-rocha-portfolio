@@ -30,7 +30,7 @@ function validateBackup(data) {
 	requireValid(object(data) && origin(data.serverUrl));
 	let hasSnapshots = false;
 	for (const [key, value] of Object.entries(data)) {
-		const match = /^(history|latest|baseline|firstSeen|gameStart|lastFetchStatus)_(.+)$/.exec(key);
+		const match = /^(history|latest|baseline|firstSeen|gameStart|serverStart|lastFetchStatus)_(.+)$/.exec(key);
 		if (match) {
 			requireValid(origin(match[2]));
 			if (match[1] === "history") {

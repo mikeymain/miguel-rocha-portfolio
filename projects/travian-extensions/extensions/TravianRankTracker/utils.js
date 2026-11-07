@@ -153,6 +153,13 @@ function extractReactData(html) {
 		const data = JSON.parse(html.substring(jsonStart, jsonEnd));
 		const res = {};
 
+		// Server start (world-progress timeline, seconds)
+		const startEntry = data.serverProgression?.timeLine?.worldProgress?.find?.(
+			(entry) => entry?.id === "start",
+		);
+		const startSec = Number(startEntry?.rawData?.time);
+		if (startSec > 0) res.serverStart = startSec * 1000;
+
 		// Population rank
 		const popRanks = data.populationRank?.serverRank;
 		if (popRanks?.length) {
@@ -736,6 +743,12 @@ async function processHtmlData(
 	];
 	const jsonData = extractReactData(html);
 	if (jsonData) mergeFields(merged, jsonData, reactFields);
+	if (jsonData?.serverStart) {
+		const serverStartKey = `serverStart_${serverOrigin}`;
+		const stored = await api.storage.local.get(serverStartKey);
+		if (stored[serverStartKey] !== jsonData.serverStart)
+			await api.storage.local.set({ [serverStartKey]: jsonData.serverStart });
+	}
 
 	// Layer 2: DOM scraping (gracefully skipped in service-worker)
 	const domFields = [
