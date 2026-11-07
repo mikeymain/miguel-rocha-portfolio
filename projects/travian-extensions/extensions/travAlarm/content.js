@@ -187,6 +187,9 @@ function startLoops(firstAlarms) {
 
 const { timerWidget, listContainer, toggleBtn, audioBtn } = createWidget();
 loadShortcuts();
+loadWorldTimers().catch((err) =>
+  console.warn("[TravAlarm] world timers unavailable:", err),
+);
 // Request the alarms while the saved UI state loads, so the first render
 // waits on one round trip instead of two.
 const firstAlarms = api.runtime

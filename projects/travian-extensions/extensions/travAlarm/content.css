@@ -1176,3 +1176,37 @@ div#build div.action div.details ._w-nm {
     color: var(--tw-done) !important;
   }
 }
+
+/* -----------------------------------------
+   GAME WORLD TIMERS (bottom)
+   ----------------------------------------- */
+.tw-world {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 5px 10px 6px;
+  background: var(--tw-surface);
+  border-top: 1px solid var(--tw-border);
+  flex-shrink: 0;
+}
+.tw-world[hidden],
+.is-minimized .tw-world {
+  display: none;
+}
+.tw-world-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 10px;
+  line-height: 14px;
+}
+.tw-world-label {
+  color: var(--tw-text-dim);
+}
+.tw-world-time {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 600;
+  color: var(--tw-timer);
+  font-variant-numeric: tabular-nums;
+}

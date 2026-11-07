@@ -174,9 +174,9 @@ function updateSectionHeights(container) {
   const sections = container.querySelectorAll(".tw-section");
   const expanded = [];
 
-  // Measure chrome (titlebar + ring strip + toolbar)
+  // Measure chrome (titlebar + ring strip + toolbar + world timers)
   let chromeH = 0;
-  for (const sel of [".tw-titlebar", ".tw-ring-strip", ".tw-toolbar"]) {
+  for (const sel of [".tw-titlebar", ".tw-ring-strip", ".tw-toolbar", ".tw-world"]) {
     const el = widget.querySelector(sel);
     if (el) chromeH += el.getBoundingClientRect().height;
   }
@@ -1200,6 +1200,7 @@ function tick() {
     }
   }
   updateRingStrip(groups);
+  renderWorldTimers(now);
 
   currentAlarms.forEach((a) => {
     const uniqueId = a.id || a.name;
@@ -1477,6 +1478,10 @@ const WIDGET_HTML = `
         <button type="button" id="_tw-ca" class="tw-tool-btn tw-tool-danger" title="Clear All" aria-label="Clear All">
             ${makeUiIcon("trash")}
         </button>
+    </div>
+
+    <div class="tw-world" id="_tw-world" hidden>
+        <div class="tw-world-row"><span class="tw-world-label">Oasis respawn</span><span class="tw-world-time"></span></div>
     </div>
 
     <div class="tw-panel" id="_tw-dm" role="dialog" aria-label="Presets">

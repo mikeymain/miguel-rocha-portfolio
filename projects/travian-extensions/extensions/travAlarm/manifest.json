@@ -30,6 +30,7 @@
 				"helpers.js",
 				"fetchers.js",
 				"scanners.js",
+				"world-timers.js",
 				"ui.js",
 				"content.js"
 			],

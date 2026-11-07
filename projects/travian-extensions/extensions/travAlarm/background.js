@@ -379,6 +379,39 @@ function filterStaleAlarms(
 }
 
 // ==========================================
+// GAME WORLD CALENDAR
+// ==========================================
+const WORLD_CALENDAR_URL = "https://lobby.legends.travian.com/api/calendar";
+
+/**
+ * Looks up a game world's start (unix seconds) and speed by its hostname.
+ * @param {string} host - e.g. ts21.x2.international.travian.com
+ * @returns {Promise<{start: number, speed: number|null}|null>}
+ */
+async function fetchWorldStart(host, fetchImpl = fetch) {
+  if (typeof host !== "string" || !host.endsWith(".travian.com")) return null;
+  const res = await fetchImpl(WORLD_CALENDAR_URL, { credentials: "omit" });
+  if (!res.ok) throw new Error(`calendar HTTP ${res.status}`);
+  const worlds = await res.json();
+  if (!Array.isArray(worlds)) return null;
+  // Only worlds that already started: a host can list its next round
+  // while the current one is still running.
+  const nowSec = Date.now() / 1000;
+  const match = worlds.find((w) => {
+    if (!(Number(w?.start) <= nowSec)) return false;
+    try {
+      return new URL(w?.metadata?.url).hostname === host;
+    } catch {
+      return false;
+    }
+  });
+  const start = Number(match?.start);
+  if (!Number.isFinite(start) || start <= 0) return null;
+  const speed = Number(match.metadata.speed);
+  return { start, speed: Number.isFinite(speed) ? speed : null };
+}
+
+// ==========================================
 // MESSAGE LISTENER
 // ==========================================
 function handleMessage(msg, sender, sendResponse) {
@@ -641,6 +674,12 @@ function handleMessage(msg, sender, sendResponse) {
         runAlarmTick();
       }
       sendResponse({ soundCategories });
+      return true;
+
+    case "GET_WORLD_START":
+      fetchWorldStart(msg.host)
+        .then((world) => sendResponse({ world }))
+        .catch((error) => sendResponse({ world: null, error: String(error) }));
       return true;
 
     case "SET_VOLUME":

@@ -43,7 +43,7 @@ Unknown-age or incomplete readings are excluded. **View DB** shows stored target
 
 <a href="images/travalarm.png"><img src="images/travalarm.png" alt="TravAlarm grouped timer dashboard" width="224" /></a>
 
-**Features:** grouped timers for attacks, hero movements, construction, training, storage, celebrations, and farm lists; village labels/colors; custom reminders; recurring/daily presets; countdowns; pin/delete controls; draggable/collapsible panel; category sound settings; volume; browser alarms and notifications.
+**Features:** grouped timers for attacks, hero movements, construction, training, storage, celebrations, and farm lists; village labels/colors; custom reminders; recurring/daily presets; countdowns; pin/delete controls; draggable/collapsible panel; category sound settings; volume; browser alarms and notifications; an **Oasis respawn** countdown to the end of the world's starting beginner protection, when oasis animals begin to respawn.
 
 **Usage:**
 
@@ -144,7 +144,7 @@ Refreshes when you open the popup or click **Refresh**; there are no background 
 
 Preferences, timers, histories, and caches use extension storage. Some helpers use page local/session storage for context and transfer state. QoL feature toggles use browser sync storage when available.
 
-Statistics tools use your existing game session. Some tools open tabs, show notifications, or prepare resource transfers. Inspect each manifest for permissions. Oasis Finder answers read-only requests for its stored oasis coordinates and scan results from one other extension, identified by ID under `externally_connectable` in its manifest. That ID belongs to an unpublished companion extension (FarmList Pro); websites and other extensions cannot connect. Delete the `externally_connectable` block to turn this off. Styles can load Google Fonts and a Travian-hosted button asset. No project-operated account or analytics service is included.
+Statistics tools use your existing game session. Some tools open tabs, show notifications, or prepare resource transfers. Inspect each manifest for permissions. Oasis Finder answers read-only requests for its stored oasis coordinates and scan results from one other extension, identified by ID under `externally_connectable` in its manifest. That ID belongs to an unpublished companion extension (FarmList Pro); websites and other extensions cannot connect. Delete the `externally_connectable` block to turn this off. TravAlarm reads the public game world calendar at `lobby.legends.travian.com` to get the world start date for the oasis respawn countdown. Styles can load Google Fonts and a Travian-hosted button asset. No project-operated account or analytics service is included.
 
 ## Troubleshooting
 
