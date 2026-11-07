@@ -64,13 +64,58 @@ function fmtCompact(n) {
 	return `${sign}${trim(abs / 1e9, 2)}B`;
 }
 
+/** Counters that can drop on a weekly reset; never interpolated across a drop. */
+const INTERPOLATION_RESET_KEYS = new Set(["valRob", "valPve", "valPveResources", "valRobExcludingPve", "valBounty"]);
+
+/** Linear value between `a` and `b`, or null when either is missing. */
+function lerp(a, b, ratio) {
+	return Number.isFinite(a) && Number.isFinite(b) ? Math.round(a + (b - a) * ratio) : null;
+}
+
+/** Interpolate weekly Top 10 rows by label; a dropped value counts as a reset. */
+function interpolateTop10(before, after, ratio) {
+	if (!before?.top10?.length || !after?.top10?.length) return undefined;
+	const rows = [];
+	for (const item of before.top10) {
+		const next = after.top10.find((entry) => entry.label === item.label);
+		if (!next) continue;
+		const rank = lerp(item.rank, next.rank, ratio);
+		const from = top10Value(before, item.label);
+		const to = top10Value(after, item.label);
+		const val = Number.isFinite(from) && Number.isFinite(to) && to >= from ? lerp(from, to, ratio) : null;
+		rows.push({ ...item, rank, val: val == null ? null : String(val) });
+	}
+	return rows.length ? rows : undefined;
+}
+
 /**
- * Find the history entry closest to `targetTime`, or null when none lies within
- * half the comparison window (so "1h" never compares against now or a day ago).
+ * Simulate a snapshot at `targetTime` from the saved points either side of it.
+ * Numeric fields are linear; reset counters that dropped are left out.
+ */
+function interpolateSnapshot(before, after, targetTime) {
+	const ratio = (targetTime - before.timestamp) / (after.timestamp - before.timestamp);
+	const point = { timestamp: targetTime, simulated: true };
+	for (const key of Object.keys(before)) {
+		if (key === "timestamp" || typeof before[key] !== "number") continue;
+		if (INTERPOLATION_RESET_KEYS.has(key) && after[key] < before[key]) continue;
+		const value = lerp(before[key], after[key], ratio);
+		if (value != null) point[key] = value;
+	}
+	const top10 = interpolateTop10(before, after, ratio);
+	if (top10) point.top10 = top10;
+	return point;
+}
+
+/**
+ * Find the history entry closest to `targetTime` within half the comparison
+ * window (so "1h" never compares against now or a day ago). When no saved
+ * point lies in that window, simulate one from the points either side of it.
  */
 function getHistoryPoint(history, targetTime, now = Date.now()) {
 	if (!history?.length || targetTime < history.reduce((oldest, point) => Math.min(oldest, point.timestamp), Infinity)) return null;
 	let closest = null;
+	let before = null;
+	let after = null;
 	let minDiff = (now - targetTime) / 2;
 	for (const item of history) {
 		const diff = Math.abs(item.timestamp - targetTime);
@@ -78,8 +123,11 @@ function getHistoryPoint(history, targetTime, now = Date.now()) {
 			minDiff = diff;
 			closest = item;
 		}
+		if (item.timestamp <= targetTime && (!before || item.timestamp > before.timestamp)) before = item;
+		if (item.timestamp > targetTime && (!after || item.timestamp < after.timestamp)) after = item;
 	}
-	return closest;
+	if (closest) return closest;
+	return before && after ? interpolateSnapshot(before, after, targetTime) : null;
 }
 
 /**

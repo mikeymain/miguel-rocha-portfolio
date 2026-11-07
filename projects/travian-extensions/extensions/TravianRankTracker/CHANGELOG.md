@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.9 — 2026-11-07
+
+- The 1h, 3h, D and W changes no longer show "-" after time with no saved points (browser closed or asleep). A snapshot for the missed time is simulated from the saved points either side of it. Weekly counters that reset in the gap are left out.
+
 ## Rank Tracker 5.0.8 — 2026-11-07
 
 - Hovering the Server chip shows how long after the server start you joined.
