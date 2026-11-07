@@ -309,9 +309,9 @@ function renderWeekly(data, deltaCells) {
 			valueTitle = "Animals killed / resources";
 		}
 		if (item.label === "Robbers of the week" && robExcludingPve != null && robRaw != null) {
-			main = fmtNum(robExcludingPve);
-			sub = `of ${fmtNum(robRaw)}`;
-			valueTitle = "Raided excluding PvE / raided";
+			main = fmtNum(robRaw);
+			sub = `raiding ${fmtNum(robExcludingPve)}`;
+			valueTitle = "Raided / raided excluding PvE";
 		}
 		rows.push(metricRow({
 			name: NOW_WEEKLY_NAMES[item.label] || item.label,
@@ -356,7 +356,7 @@ function renderGeneral(data, deltaCells) {
 	add("Prod / Hour", "rankProd", "valProd");
 	add("Prod So Far", "rankProdSoFar", "valProdSoFar",
 		data.valBounty != null && data.valProdSoFar != null
-			? { main: fmtNum(data.valProdSoFar), sub: `${fmtNum(data.valProdSoFar - data.valBounty)} fields`, title: "Total / field production so far" }
+			? { main: fmtNum(data.valProdSoFar), sub: `fields ${fmtNum(data.valProdSoFar - data.valBounty)}`, title: "Total / field production so far" }
 			: null);
 	add("CP / Day", "rankCp", "cpProd");
 	add("CP So Far", "rankCpSoFar", "valCpSoFar");

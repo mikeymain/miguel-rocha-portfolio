@@ -1,5 +1,10 @@
 # Changelog
 
+## Rank Tracker 5.0.2 — 2026-11-07
+
+- Robbers shows total raided on top and raiding excluding PvE below, labelled "raiding".
+- Prod So Far puts the label before the number: "fields 17,419".
+
 ## TravAlarm 3.32 — 2026-11-07
 
 - Sound Settings has an **All sounds** switch. It mutes every alarm sound and keeps the per-category choices for when sound is turned back on.

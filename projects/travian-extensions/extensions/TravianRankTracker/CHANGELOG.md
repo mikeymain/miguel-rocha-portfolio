@@ -1,5 +1,10 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.2 — 2026-11-07
+
+- Robbers shows total raided on top and raiding excluding PvE below, labelled "raiding".
+- Prod So Far puts the label before the number: "fields 17,419".
+
 ## Rank Tracker 5.0.1 — 2026-11-07
 
 - Prod So Far shows total production on top and field production (total minus bounty) below.
