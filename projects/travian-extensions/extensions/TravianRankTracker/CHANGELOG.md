@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.8 — 2026-11-07
+
+- Hovering the Server chip shows how long after the server start you joined.
+
 ## Rank Tracker 5.0.7 — 2026-11-07
 
 - Header adds a "Server: …" chip with the time since the server started, read from the statistics page.

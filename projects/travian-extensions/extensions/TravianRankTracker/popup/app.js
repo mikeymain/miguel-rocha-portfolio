@@ -189,13 +189,19 @@ async function updatePlaytime(serverOrigin, allowFetch = true) {
 	const res = await api.storage.local.get([gameStartKey, firstSeenKey, serverStartKey, histKey]);
 
 	const serverEl = document.getElementById("servertime");
-	if (serverEl) {
-		const serverStart = res[serverStartKey];
+	const serverStart = res[serverStartKey];
+	const showServer = (joinedAt) => {
+		if (!serverEl) return;
 		const serverElapsed = Date.now() - serverStart;
 		serverEl.textContent = serverStart > 0 && serverElapsed > 0
 			? `Server: ${formatDuration(serverElapsed)} · ${Math.floor(serverElapsed / 3600000)}h`
 			: "";
-	}
+		const gap = joinedAt - serverStart;
+		serverEl.title = serverStart > 0 && Number.isFinite(gap)
+			? `Joined ${formatDuration(Math.abs(gap))} ${gap < 0 ? "before" : "after"} server start`
+			: "Time since server start";
+	};
+	showServer(NaN);
 
 	let anchor = res[gameStartKey];
 	if (anchor == null && allowFetch) anchor = await fetchGameStart(serverOrigin, api);
@@ -209,6 +215,7 @@ async function updatePlaytime(serverOrigin, allowFetch = true) {
 		el.textContent = "";
 		return;
 	}
+	showServer(anchor);
 	const elapsed = Date.now() - anchor;
 	el.textContent = `Playtime: ${formatDuration(elapsed)} · ${Math.floor(elapsed / 3600000)}h`;
 }
