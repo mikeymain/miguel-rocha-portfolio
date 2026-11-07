@@ -519,16 +519,24 @@ function scanBuildings(activeVillage) {
   const matchedIds = new Set();
   const usedAlarmIds = new Set();
   processedBuildings.forEach((pb) => {
-    const bestMatch = currentAlarms.find((a) => {
-      if (usedAlarmIds.has(a.id || a.name)) return false;
+    // Same-named builds finishing seconds apart (e.g. two Cranny lvl 1) all
+    // fall inside the window; take the closest finish time, not the first
+    // listed, so one build cannot claim the other's alarm and get it deleted.
+    let bestMatch = null;
+    let bestDiff = Infinity;
+    currentAlarms.forEach((a) => {
+      if (usedAlarmIds.has(a.id || a.name)) return;
       const timeDiff = Math.abs(a.scheduledTime - pb.scheduledTime);
-      if (timeDiff > 20000) return false;
-      if (a.name.startsWith(pb.baseName)) return true;
+      if (timeDiff > 20000 || timeDiff >= bestDiff) return;
       const looseStart = `${pb.bName} lvl `;
       const looseEnd = `(${activeVillage}) ${serverTag}`;
-      if (a.name.startsWith(looseStart) && a.name.includes(looseEnd))
-        return true;
-      return false;
+      if (
+        a.name.startsWith(pb.baseName) ||
+        (a.name.startsWith(looseStart) && a.name.includes(looseEnd))
+      ) {
+        bestMatch = a;
+        bestDiff = timeDiff;
+      }
     });
     if (bestMatch) {
       const uid = bestMatch.id || bestMatch.name;

@@ -1,5 +1,9 @@
 # Changelog
 
+## TravAlarm 3.33 — 2026-11-07
+
+- Two same-named builds finishing within seconds of each other (e.g. two Cranny lvl 1) keep separate alarms. The build still running is matched to the alarm closest to its finish time, so the other alarm is no longer deleted.
+
 ## Rank Tracker 5.0.2 — 2026-11-07
 
 - Robbers shows total raided on top and raiding excluding PvE below, labelled "raiding".
