@@ -464,11 +464,11 @@ Object.assign(
 			function showTip(point, fraction) {
 				const rows = [tipRow("Sample", shortDate(point.t))];
 				if (state.mode === "eta") {
-					rows.push(tipRow("Planned", shortDate(point.value)));
 					if (point.baseline !== null)
-						rows.push(tipRow("Baseline", shortDate(point.baseline)));
+						rows.push(tipRow("No parties", shortDate(point.baseline)));
+					rows.push(tipRow("With parties", shortDate(point.value)));
 					if (point.growth !== null)
-						rows.push(tipRow("Growth", shortDate(point.growth)));
+						rows.push(tipRow("Parties + growth", shortDate(point.growth)));
 				}
 				if (point.cp !== null)
 					rows.push(tipRow("CP", Math.round(point.cp).toLocaleString()));

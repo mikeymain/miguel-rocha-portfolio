@@ -1,5 +1,10 @@
 # Changelog
 
+## Next Settlement Calc 2.6.4 — 2026-11-10
+
+- ETA history tooltip lists **No parties**, **With parties** and **Parties + growth**, in that order; the overlay buttons use the same names.
+- Samples pinned to the chart edge no longer draw dots.
+
 ## TravAlarm 3.37 — 2026-11-10
 
 - New alarms **Oasis respawn in 45 min** and **Beginner's protection ends**, timed from the world's starting beginner protection (base days for the world speed). An extended personal protection is not detected.

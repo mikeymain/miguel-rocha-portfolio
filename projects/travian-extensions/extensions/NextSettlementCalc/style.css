@@ -872,11 +872,9 @@ body.chart-window {
 .eta-dot.last {
 	opacity: 1;
 }
-.eta-dot.clipped {
+.eta-dot.clipped.active {
 	fill: none;
 	stroke: #f59e0b;
-	stroke-width: 1;
-	opacity: 1;
 }
 .eta-ylabel {
 	position: absolute;
