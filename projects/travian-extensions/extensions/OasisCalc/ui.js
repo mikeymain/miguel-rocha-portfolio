@@ -667,25 +667,17 @@ function createUI() {
                             <option value="2">Clay</option>
                             <option value="3">Iron</option>
                             <option value="4">Crop</option>
-                            <option value="none">Type unknown</option>
                         </select>
                         <select id="_vpdb-state" class="_vpselect-sm" aria-label="Garrison">
-                            <option value="all">All garrisons</option>
+                            <option value="all">All oases</option>
                             <option value="animals">With animals</option>
-                            <option value="nodata">No animal data</option>
-                        </select>
-                        <select id="_vpdb-age" class="_vpselect-sm" aria-label="Last seen">
-                            <option value="any">Any age</option>
-                            <option value="1h">Seen ≤ 1h</option>
-                            <option value="6h">Seen ≤ 6h</option>
-                            <option value="24h">Seen ≤ 24h</option>
-                            <option value="7d">Seen ≤ 7d</option>
+                            <option value="nodata">No animals</option>
                         </select>
                     </div>
                     <div class="_vpdb-toolrow">
                         <label class="_vpdb-label" for="_vpdb-from">From</label>
                         <select id="_vpdb-from" class="_vpselect-sm _vpdb-from"></select>
-                        <input type="text" id="_vpdb-xy" class="_vpdb-input _vpdb-xy" placeholder="x|y" aria-label="Origin coordinate" autocomplete="off" spellcheck="false">
+                        <input type="text" id="_vpdb-xy" class="_vpdb-input _vpdb-xy" placeholder="x|y" hidden aria-label="Origin coordinate" autocomplete="off" spellcheck="false">
                         <label class="_vpdb-label" for="_vpdb-radius">Radius</label>
                         <input type="number" id="_vpdb-radius" class="_vpdb-input _vpdb-num" min="0" max="200" step="1" placeholder="All">
                     </div>

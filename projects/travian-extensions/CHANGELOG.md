@@ -1,5 +1,11 @@
 # Changelog
 
+## Oasis Finder 70.1 — 2026-11-10
+
+- **View DB**: search and radius boxes keep the dark style on game pages, and column headers no longer run together.
+- Removed the last-seen filter and the **Type unknown** option. Filters read **All oases**, **With animals** and **No animals**.
+- The `x|y` box appears only when **From** is set to **Coordinate**.
+
 ## Travian QoL 1.2.3 — 2026-11-10
 
 - Oasis raid reports: the defender's **Resources lost** and **Net resources** show 0, since animals cost nothing to replace.

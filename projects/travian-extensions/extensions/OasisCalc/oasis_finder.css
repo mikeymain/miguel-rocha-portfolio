@@ -1229,20 +1229,26 @@
   width: auto;
   min-height: 28px;
 }
-._vpdb-input {
-  min-height: 28px;
-  background: #101216;
-  border: 1px solid #262b33;
-  border-radius: 7px;
-  color: #e6e8ea;
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
-  font-size: 11px;
-  padding: 4px 8px;
+/* !important: Travian's global input styles (white box, own font) win otherwise */
+#_vpdb-modal ._vpdb-input {
+  height: 30px !important;
+  min-height: 30px !important;
+  background: #101216 !important;
+  border: 1px solid #262b33 !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  color: #e6e8ea !important;
+  font-family: "IBM Plex Mono", ui-monospace, monospace !important;
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+  padding: 4px 9px !important;
+  margin: 0 !important;
   outline: none;
 }
-._vpdb-input::placeholder { color: #6f7680; }
-._vpdb-input:focus { border-color: #5bd39466; }
-._vpdb-input._vpdb-invalid { border-color: #e8786b; }
+#_vpdb-modal ._vpdb-input[hidden] { display: none !important; }
+#_vpdb-modal ._vpdb-input::placeholder { color: #6f7680 !important; }
+#_vpdb-modal ._vpdb-input:focus { border-color: #5bd39466 !important; }
+#_vpdb-modal ._vpdb-input._vpdb-invalid { border-color: #e8786b !important; }
 ._vpdb-q { flex: 1 1 140px; min-width: 120px; }
 ._vpdb-xy { width: 84px; }
 ._vpdb-num { width: 58px; }
@@ -1266,9 +1272,11 @@
 ._vpdb-sort {
   all: unset;
   cursor: pointer;
-  font: inherit;
-  letter-spacing: inherit;
-  text-transform: inherit;
+  font-family: inherit !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
   color: #848a94;
   padding: 3px 0;
   border-radius: 4px;

@@ -7,13 +7,6 @@ const DB_OPEN_CONFIRM_AT = 10; // ask before opening this many tabs or more
 const DB_OPEN_MAX = 50; // hard cap per click; background.js enforces it too
 const DB_MAP_LIMIT = Math.floor(MAP_SIZE / 2);
 const DB_BONUS_NAMES = { 1: "Lumber", 2: "Clay", 3: "Iron", 4: "Crop" };
-const DB_AGE_LIMITS = {
-  any: Infinity,
-  "1h": 3600e3,
-  "6h": 6 * 3600e3,
-  "24h": 24 * 3600e3,
-  "7d": 7 * 24 * 3600e3,
-};
 // Default direction per column: 1 = ascending, -1 = descending.
 const DB_SORT_DEFAULT_DIR = { loc: 1, dist: 1, type: 1, animals: -1, res: -1, seen: 1 };
 const DB_SORT_LAST = Infinity; // unknown values always sort last
@@ -172,7 +165,7 @@ function _dbReadFilter() {
     type: document.getElementById("_vpdb-type")?.value || "any",
     state: document.getElementById("_vpdb-state")?.value || "all",
     radius: Number.isFinite(radius) && radius > 0 ? radius : 0,
-    maxAge: DB_AGE_LIMITS[document.getElementById("_vpdb-age")?.value] ?? Infinity,
+    maxAge: Infinity,
   };
 }
 
@@ -242,12 +235,13 @@ function _dbFillOriginSelect() {
       .map((v) => `<option value="${escapeHTML(v.x)}|${escapeHTML(v.y)}">${escapeHTML(v.name)} (${escapeHTML(v.x)}|${escapeHTML(v.y)})</option>`)
       .join("") + '<option value="custom">Coordinate</option>';
   const keepCustom = sel.dataset.custom === "1" && parseCoordInput(xy.value);
-  if (keepCustom) {
+  if (!keepCustom) {
+    sel.value = villages.some((v) => `${v.x}|${v.y}` === current) ? current : "custom";
+    xy.value = current;
+  } else {
     sel.value = "custom";
-    return;
   }
-  sel.value = villages.some((v) => `${v.x}|${v.y}` === current) ? current : "custom";
-  xy.value = current;
+  xy.hidden = sel.value !== "custom";
 }
 
 function openDbOases() {
@@ -320,22 +314,16 @@ function initDatabaseView() {
   const tools = document.getElementById("_vpdb-tools");
   if (!tools) return;
   tools.addEventListener("input", (e) => {
-    if (e.target.id === "_vpdb-xy") {
-      const sel = document.getElementById("_vpdb-from");
-      const val = e.target.value.trim();
-      const isVillage = !!sel && [...sel.options].some((o) => o.value === val && o.value !== "custom");
-      if (sel) {
-        sel.value = isVillage ? val : "custom";
-        sel.dataset.custom = isVillage ? "" : "1";
-      }
-    }
     renderDbList();
   });
   tools.addEventListener("change", (e) => {
     if (e.target.id === "_vpdb-from") {
-      e.target.dataset.custom = e.target.value === "custom" ? "1" : "";
-      if (e.target.value !== "custom") document.getElementById("_vpdb-xy").value = e.target.value;
-      else document.getElementById("_vpdb-xy").focus();
+      const xy = document.getElementById("_vpdb-xy");
+      const custom = e.target.value === "custom";
+      e.target.dataset.custom = custom ? "1" : "";
+      xy.hidden = !custom;
+      if (custom) xy.focus();
+      else xy.value = e.target.value;
     }
     renderDbList();
   });
