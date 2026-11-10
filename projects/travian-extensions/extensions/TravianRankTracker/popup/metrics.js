@@ -220,6 +220,89 @@ function toVelocity(data) {
 	});
 }
 
+/** Trailing window for raid counters in rate mode. */
+const ROLLING_WINDOW_MS = 3 * 60 * 60 * 1000;
+
+/**
+ * Linear value of a cumulative series at `time`, clamped to the last sample.
+ *
+ * @param {Array<{timestamp: number, value: number}>} samples - Sorted samples.
+ * @param {number} time
+ * @returns {number|null} Null before the first sample.
+ */
+function cumulativeAt(samples, time) {
+	if (!samples.length || time < samples[0].timestamp) return null;
+	const last = samples[samples.length - 1];
+	if (time >= last.timestamp) return last.value;
+	let lo = 0;
+	let hi = samples.length - 1;
+	while (hi - lo > 1) {
+		const mid = (lo + hi) >> 1;
+		if (samples[mid].timestamp <= time) lo = mid;
+		else hi = mid;
+	}
+	const a = samples[lo];
+	const b = samples[hi];
+	const span = b.timestamp - a.timestamp;
+	return span > 0 ? a.value + (b.value - a.value) * ((time - a.timestamp) / span) : b.value;
+}
+
+/**
+ * Gain of a cumulative series in the window ending at each timestamp.
+ *
+ * @param {Array<{timestamp: number, value: number}>} samples - Sorted samples.
+ * @param {Array<number>} timestamps - Evaluation times.
+ * @param {number} [windowMs]
+ * @returns {Array<number|null>} Null where the window starts before the first sample.
+ */
+function rollingWindowGain(samples, timestamps, windowMs = ROLLING_WINDOW_MS) {
+	return timestamps.map((time) => {
+		const end = cumulativeAt(samples, time);
+		const start = cumulativeAt(samples, time - windowMs);
+		return end == null || start == null ? null : Math.round(Math.max(0, end - start));
+	});
+}
+
+/**
+ * Replace reset-counter rates with the trailing 3h gain from the raw history.
+ *
+ * @param {Array<Object>} velocity - Output of toVelocity.
+ * @param {Array<Object>} prepared - Output of prepareHistory (raw, sorted).
+ * @returns {Array<Object>} New points.
+ */
+function withRolling3h(velocity, prepared) {
+	const timestamps = velocity.map((point) => point.timestamp);
+	const gains = {};
+	for (const key of RESET_VALUE_KEYS) {
+		const samples = prepared
+			.filter((point) => Number.isFinite(point[`${key}Total`]))
+			.map((point) => ({ timestamp: point.timestamp, value: point[`${key}Total`] }));
+		gains[key] = rollingWindowGain(samples, timestamps);
+	}
+	return velocity.map((point, i) => {
+		const next = { ...point };
+		for (const key of RESET_VALUE_KEYS) next[key] = gains[key][i];
+		return next;
+	});
+}
+
+/**
+ * Values at the edges of a drag selection: the first non-null value from
+ * `i1` forward and the last non-null value from `i2` back.
+ *
+ * @param {Array<number|null>} values
+ * @param {number} i1 - Lower index.
+ * @param {number} i2 - Upper index.
+ * @returns {{start: number, end: number}|null} Null with fewer than two values.
+ */
+function compareEdgeValues(values, i1, i2) {
+	let lo = i1;
+	while (lo <= i2 && !Number.isFinite(values[lo])) lo++;
+	let hi = i2;
+	while (hi >= i1 && !Number.isFinite(values[hi])) hi--;
+	return lo < hi ? { start: values[lo], end: values[hi] } : null;
+}
+
 /* ── chart configuration ─────────────────────────────────────────────── */
 
 /** Compact axis tick: 1.5k / 2.3M / 1.1B. */
@@ -293,6 +376,7 @@ function hvDragComparePlugin(timestamps, tokens) {
 function hvTooltipLabel(context) {
 	let lbl = context.dataset.label ? `${context.dataset.label}: ` : "";
 	if (context.parsed.y !== null) lbl += context.parsed.y.toLocaleString();
+	if (context.dataset.rolling3h) lbl += " / 3h";
 	if (!popupState.isVelocityMode && context.dataIndex > 0) {
 		const values = context.dataset.comparisonData || context.dataset.data;
 		const curr = values[context.dataIndex];
@@ -363,7 +447,7 @@ function hvChartOptions(tokens, savedZoom) {
 				grid: { drawOnChartArea: false },
 				border: { display: false },
 				ticks: { color: tokens.tick, font, callback: hvCompactTick },
-				title: axisTitle(velocity ? "Value Δ / h" : "Value"),
+				title: axisTitle(velocity ? "Value Δ / h · raids / 3h" : "Value"),
 			},
 			x: {
 				min: savedZoom.min,

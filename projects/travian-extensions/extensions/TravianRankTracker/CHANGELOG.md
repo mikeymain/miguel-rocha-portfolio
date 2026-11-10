@@ -1,5 +1,13 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.12 — 2026-11-10
+
+- Now: average rank uses Population, Prod / Hour and CP / Day ranks only; attack and defense ranks no longer count.
+- Now: Prod / Hour shows production per hour with "Raided total" (resources gained from raids so far) beneath it.
+- Now: PvE and Robbers are collapsible again, with Resources and Raiding as breakdown rows (reverts the 5.0.11 sub-line layout).
+- History: drag-compare lists every visible metric. Series with missing samples at the selection edges (weekly ranks and population are not saved by background collection) use the nearest value inside the selection; unchanged metrics show 0.
+- History: in Per hour mode, raid and PvE counters plot the total gained in the trailing 3 hours, interpolated from saved history, instead of per-sample rates.
+
 ## Rank Tracker 5.0.11 — 2026-11-07
 
 - Now: PvE and Robbers are no longer collapsible. Their extra values show beneath the main value as "Resources: …" and "Raiding: …". Only Prod So Far keeps its breakdown.

@@ -87,33 +87,31 @@ function hvUpdateCompareBox(chart, startIdx, endIdx, timestamps) {
 	const list = h("ul", "cmp-list");
 	chart.data.datasets.forEach((ds, dsIndex) => {
 		if (!chart.isDatasetVisible(dsIndex)) return;
-		const values = ds.comparisonData || ds.data;
-		const val1 = values[i1];
-		const val2 = values[i2];
-		if (val1 == null || val2 == null) return;
-		const diff = val2 - val1;
-		if (diff === 0) return;
+		const edges = compareEdgeValues(ds.comparisonData || ds.data, i1, i2);
+		if (!edges) return;
+		const diff = edges.end - edges.start;
 
 		const isRank = ds.yAxisID === "y";
-		const good = isRank ? diff < 0 : diff > 0;
+		const good = diff === 0 ? null : isRank ? diff < 0 : diff > 0;
 		const sign = diff > 0 ? "+" : "";
 		const item = h("li", "cmp-item");
 		const swatch = h("span", "swatch");
 		swatch.style.setProperty("--c", ds.borderColor);
-		const val = h("span", `cmp-val ${good ? "d--up" : "d--down"}`, `${sign}${fmtCompact(diff)}`);
+		const cls = good == null ? "d--flat" : good ? "d--up" : "d--down";
+		const val = h("span", `cmp-val ${cls}`, `${sign}${fmtCompact(diff)}`);
 		val.title = `${sign}${fmtNum(diff)}`;
 		let rate = "";
 		if (!velocity && timeDiffHours > 0) {
 			const hourly = Math.round((diff / timeDiffHours) * 10) / 10;
 			rate = `${sign}${fmtCompact(hourly)}/h`;
 		} else if (velocity) {
-			rate = "/h";
+			rate = ds.rolling3h ? "/3h" : "/h";
 		}
 		item.append(swatch, h("span", "cmp-label", ds.label), val, h("span", "cmp-rate", rate));
 		list.append(item);
 	});
 
-	box.replaceChildren(head, list.children.length ? list : h("p", "cmp-empty", "No change in visible metrics"));
+	box.replaceChildren(head, list.children.length ? list : h("p", "cmp-empty", "No data in range for visible metrics"));
 	box.dataset.open = "true";
 }
 
@@ -305,7 +303,7 @@ async function loadGraph(filter, storageKey) {
 		delete savedZoom.max;
 		if (resetZoomBtn) resetZoomBtn.hidden = true;
 	}
-	if (popupState.isVelocityMode) data = toVelocity(data);
+	if (popupState.isVelocityMode) data = withRolling3h(toVelocity(data), prepared);
 
 	// Refresh canvas (prevents stale wheel listeners)
 	const oldCanvas = document.getElementById("rankChart");
@@ -320,8 +318,12 @@ async function loadGraph(filter, storageKey) {
 	Chart.defaults.font.family = tokens.fontNum;
 
 	const timestamps = data.map((x) => x.timestamp);
-	const datasets = DATASETS_CONFIG.map((cfg) => ({
+	const datasets = DATASETS_CONFIG.map((cfg) => {
+		const rolling3h = popupState.isVelocityMode && RESET_VALUE_KEYS.includes(cfg.key);
+		return {
 		label: cfg.label,
+		rolling3h,
+		...(rolling3h ? { cubicInterpolationMode: "monotone" } : {}),
 		data: data.map((x) => (cfg.ceil ? (x[cfg.key] != null ? Math.ceil(x[cfg.key]) : null) : x[cfg.key] ?? null)),
 		comparisonData: !popupState.isVelocityMode && RESET_VALUE_KEYS.includes(cfg.key)
 			? data.map((point) => point[`${cfg.key}Total`] ?? null) : null,
@@ -333,7 +335,8 @@ async function loadGraph(filter, storageKey) {
 		yAxisID: cfg.axis,
 		hidden: isHidden(cfg.label, cfg.defHidden),
 		spanGaps: true,
-	}));
+		};
+	});
 
 	const chart = new Chart(canvas.getContext("2d"), {
 		type: "line",
