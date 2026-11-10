@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.16 — 2026-11-10
+
+- Now: the Raids part of Prod / Hour is the hourly average over the past 2 hours (bounty gained in the trailing 2 hours ÷ 2), was 3 hours.
+
 ## Rank Tracker 5.0.15 — 2026-11-10
 
 - Now: Prod / Hour is collapsible; Fields and Raids are breakdown rows with their own changes, like the other breakdowns.
