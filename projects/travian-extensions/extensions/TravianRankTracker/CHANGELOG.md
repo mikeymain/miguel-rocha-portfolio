@@ -1,9 +1,13 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.13 — 2026-11-10
+
+- Now: Prod / Hour shows production per hour plus raid income per hour (bounty gained in the trailing 3 hours ÷ 3), with "Fields … · Raids …" beneath. Its changes use the same sum; the rank stays the production rank.
+- Replaces the 5.0.12 "Raided total" (cumulative bounty) under Prod / Hour.
+
 ## Rank Tracker 5.0.12 — 2026-11-10
 
 - Now: average rank uses Population, Prod / Hour and CP / Day ranks only; attack and defense ranks no longer count.
-- Now: Prod / Hour shows production per hour plus raid income per hour (bounty gained in the trailing 3 hours ÷ 3), with "Fields … · Raids …" beneath. Its changes use the same sum; the rank stays the production rank.
 - Now: PvE and Robbers are collapsible again, with Resources and Raiding as breakdown rows (reverts the 5.0.11 sub-line layout).
 - History: drag-compare lists every visible metric. Series with missing samples at the selection edges (weekly ranks and population are not saved by background collection) use the nearest value inside the selection; unchanged metrics show 0.
 - History: in Per hour mode, raid and PvE counters plot the total gained in the trailing 3 hours, interpolated from saved history, instead of per-sample rates.
