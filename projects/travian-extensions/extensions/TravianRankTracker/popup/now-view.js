@@ -49,8 +49,21 @@ function writeExpanded(set) {
 	}
 }
 
+/**
+ * Read the expanded keys and migrate the retired PvE breakdown: its Animals
+ * row now sits under Robbers, so a saved open PvE row opens Robbers.
+ */
+function readExpandedMigrated() {
+	const set = readExpanded();
+	if (!set.has("PvE of the week")) return set;
+	set.delete("PvE of the week");
+	set.add("Robbers of the week");
+	writeExpanded(set);
+	return set;
+}
+
 /** Breakdown rows expanded by the user, kept across re-renders. */
-const expandedRows = readExpanded();
+const expandedRows = readExpandedMigrated();
 
 /** Difference of two values, or null when either is missing. */
 function subtractOrNull(a, b) {
@@ -83,8 +96,10 @@ function bountyOf(snapshot) {
  * Each part reads its value from any snapshot so deltas work per part.
  */
 const NOW_BREAKDOWNS = {
-	"PvE of the week": [{ name: "Resources", read: pveResourcesOf }],
-	"Robbers of the week": [{ name: "Raiding", read: raidingOf }],
+	"Robbers of the week": [
+		{ name: "Raiding", read: raidingOf },
+		{ name: "Animals", read: pveResourcesOf },
+	],
 	rankProdSoFar: [
 		{ name: "Fields", read: fieldsSoFarOf },
 		{ name: "Bounty", read: bountyOf },
