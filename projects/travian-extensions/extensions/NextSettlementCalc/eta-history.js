@@ -136,6 +136,24 @@ Object.assign(
 			return best;
 		}
 
+		const LERP_KEYS = ["value", "baseline", "growth", "cp", "daily"];
+		/** Point at time t, linearly interpolated between its two neighbours. */
+		function pointAt(points, t) {
+			let i = 0;
+			while (i < points.length - 2 && points[i + 1].t < t) i++;
+			const a = points[i],
+				b = points[i + 1];
+			const share = Math.min(1, Math.max(0, (t - a.t) / (b.t - a.t || 1)));
+			const near = share < 0.5 ? a : b;
+			const point = { ...near, t: a.t + share * (b.t - a.t) };
+			for (const key of LERP_KEYS)
+				point[key] =
+					a[key] != null && b[key] != null
+						? a[key] + share * (b[key] - a[key])
+						: near[key];
+			return point;
+		}
+
 		const shortDate = (ms) =>
 			new Date(ms).toLocaleString([], {
 				month: "short",
@@ -475,8 +493,9 @@ Object.assign(
 				if (point.daily !== null)
 					rows.push(tipRow("CP/d", oneDecimal(point.daily)));
 				dom.etaTip.replaceChildren(...rows);
+				// Slide the tip across its anchor so it never jumps sides.
 				dom.etaTip.style.left = `${(fraction * 100).toFixed(2)}%`;
-				dom.etaTip.classList.toggle("flip", fraction > 0.5);
+				dom.etaTip.style.transform = `translateX(calc(${(-fraction * 100).toFixed(2)}% + ${(10 - 20 * fraction).toFixed(1)}px))`;
 				dom.etaTip.hidden = false;
 			}
 
@@ -518,15 +537,11 @@ Object.assign(
 					dom.etaTip.hidden = true;
 					return;
 				}
-				const index = nearestIndex(
-					chart.points,
-					fractionToTime(chart, state.hover),
-				);
-				const point = chart.points[index];
-				chart.layer.append(vline("eta-crosshair", point.t));
-				chart.dots[index].classList.add("active");
-				const px = chart.x(point.t) / chart.width;
-				showTip(point, px);
+				const t = fractionToTime(chart, state.hover);
+				const point = pointAt(chart.points, t);
+				chart.layer.append(vline("eta-crosshair", t));
+				chart.dots[nearestIndex(chart.points, t)].classList.add("active");
+				showTip(point, chart.x(t) / chart.width);
 			}
 
 			function render() {

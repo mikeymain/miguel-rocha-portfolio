@@ -834,9 +834,6 @@ body.chart-window {
 	pointer-events: none;
 	white-space: nowrap;
 }
-.eta-tip.flip {
-	transform: translateX(calc(-100% - 10px));
-}
 .eta-tip div {
 	display: flex;
 	justify-content: space-between;
