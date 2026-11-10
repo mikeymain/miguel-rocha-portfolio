@@ -79,3 +79,65 @@ chrome.runtime.onMessageExternal.addListener((msg, sender, sendResponse) => {
 		return true;
 	}
 });
+
+// "Open N" in the oasis database: the content script sends coordinates only.
+// URLs are built here from the sender tab's own Travian origin, so a message
+// can never open an arbitrary site. Tabs open one at a time with a gap to
+// avoid a burst of game requests.
+const OPEN_OASES_MAX = 50;
+const OPEN_OASES_MAP_LIMIT = 200;
+const OPEN_OASES_GAP_MS = [350, 750];
+
+function buildOasisTabUrls(senderUrl, coords) {
+	let origin;
+	try {
+		const url = new URL(senderUrl);
+		if (url.protocol !== 'https:' && url.protocol !== 'http:') return null;
+		if (!/(^|\.)travian\.com$/i.test(url.hostname)) return null;
+		origin = url.origin;
+	} catch (_) {
+		return null;
+	}
+	if (!Array.isArray(coords)) return null;
+	const urls = [];
+	const seen = new Set();
+	for (const c of coords) {
+		if (urls.length >= OPEN_OASES_MAX) break;
+		const x = c && c.x;
+		const y = c && c.y;
+		if (!Number.isInteger(x) || !Number.isInteger(y)) continue;
+		if (Math.abs(x) > OPEN_OASES_MAP_LIMIT || Math.abs(y) > OPEN_OASES_MAP_LIMIT) continue;
+		const key = `${x}|${y}`;
+		if (seen.has(key)) continue;
+		seen.add(key);
+		urls.push(`${origin}/position_details.php?x=${x}&y=${y}`);
+	}
+	return urls;
+}
+
+async function openOasisTabs(urls, tab) {
+	const [minGap, maxGap] = OPEN_OASES_GAP_MS;
+	for (let i = 0; i < urls.length; i++) {
+		if (i) await new Promise(r => setTimeout(r, minGap + Math.random() * (maxGap - minGap)));
+		try {
+			await chrome.tabs.create({ url: urls[i], active: false, windowId: tab.windowId, index: tab.index + 1 + i });
+		} catch (e) {
+			console.warn('[OasisCalc] Could not open oasis tab', e);
+		}
+	}
+}
+
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+	if (!msg || msg.type !== 'oasiscalc:openOases') return;
+	if (sender.id !== chrome.runtime.id || !sender.tab) {
+		sendResponse({ ok: false, error: 'invalid sender' });
+		return;
+	}
+	const urls = buildOasisTabUrls(sender.tab.url || sender.url, msg.coords);
+	if (!urls || !urls.length) {
+		sendResponse({ ok: false, error: 'no valid oases' });
+		return;
+	}
+	sendResponse({ ok: true, count: urls.length });
+	openOasisTabs(urls, sender.tab);
+});

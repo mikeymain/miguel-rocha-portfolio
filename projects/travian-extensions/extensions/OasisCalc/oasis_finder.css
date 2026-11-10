@@ -909,7 +909,7 @@
 }
 ._vpmeta-rpm { color: #6fa8e6; }
 ._vpmeta-dist,
-._vpmeta-time { color: #7a818b; }
+._vpmeta-time { color: #8b929c; }
 
 /* score badge + tier rail colors (tier class lives on the row) */
 ._vpscore-badge {
@@ -1016,6 +1016,10 @@
 #_vppanel.dens-detail ._vpresult-drawer {
   display: block;
 }
+/* detail drawer shows "xp N"; the badge would repeat it */
+#_vppanel.dens-detail ._vpscore-badge {
+  display: none;
+}
 
 /* ============================ Footer ============================ */
 ._vpfooter {
@@ -1053,10 +1057,10 @@
   padding: 2px 7px;
   font-size: 10px;
   line-height: 12px;
-  min-width: 24px;
-  min-height: 24px;
+  min-width: 28px;
+  min-height: 28px;
   height: auto;
-  border-radius: 3px;
+  border-radius: 5px;
 }
 ._vpdb-count {
   margin-left: auto;
@@ -1077,7 +1081,8 @@
   z-index: 10001;
 }
 ._vpmodal-dialog {
-  width: 404px;
+  width: 600px;
+  max-width: calc(100vw - 32px);
   max-height: 74vh;
   display: flex;
   flex-direction: column;
@@ -1167,7 +1172,7 @@
   width: 36px;
   font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-size: 10.5px;
-  color: #7a818b;
+  color: #8b929c;
 }
 ._vpmodal-gar {
   flex: 1;
@@ -1204,6 +1209,139 @@
 ._vpmodal-clear:hover {
   color: #ef8d80;
 }
+
+/* ---- database toolbar, sortable columns, open action ---- */
+._vpdb-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 10px 15px;
+  border-bottom: 1px solid #1b1f25;
+  flex-shrink: 0;
+}
+._vpdb-toolrow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+._vpdb-toolrow ._vpselect-sm {
+  width: auto;
+  min-height: 28px;
+}
+._vpdb-input {
+  min-height: 28px;
+  background: #101216;
+  border: 1px solid #262b33;
+  border-radius: 7px;
+  color: #e6e8ea;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  padding: 4px 8px;
+  outline: none;
+}
+._vpdb-input::placeholder { color: #6f7680; }
+._vpdb-input:focus { border-color: #5bd39466; }
+._vpdb-input._vpdb-invalid { border-color: #e8786b; }
+._vpdb-q { flex: 1 1 140px; min-width: 120px; }
+._vpdb-xy { width: 84px; }
+._vpdb-num { width: 58px; }
+._vpdb-from { max-width: 190px; }
+._vpdb-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8b929c;
+}
+
+._vpmodal-dialog:not(._vpmodal-errors) ._vpdb-colhead,
+._vpmodal-dialog:not(._vpmodal-errors) ._vpmodal-item {
+  display: grid;
+  grid-template-columns: 62px 50px 118px minmax(0, 1fr) 56px 58px;
+  gap: 8px;
+}
+._vpdb-colhead { padding: 6px 15px 6px 15px; }
+._vpdb-colhead > span { width: auto; min-width: 0; }
+._vpdb-sort {
+  all: unset;
+  cursor: pointer;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: #848a94;
+  padding: 3px 0;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+._vpdb-sort:hover { color: #cfd3d8; }
+._vpdb-sort.active { color: #5bd394; }
+._vpdb-sort.active[data-dir="asc"]::after { content: " ↑"; }
+._vpdb-sort.active[data-dir="desc"]::after { content: " ↓"; }
+._vpcol-res,
+._vpcol-seen,
+._vpdb-res,
+._vpdb-seen { text-align: right; }
+
+._vpmodal-dialog:not(._vpmodal-errors) ._vpmodal-coords,
+._vpmodal-dialog:not(._vpmodal-errors) ._vpmodal-dist { width: auto; }
+._vpdb-types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  min-width: 0;
+}
+._vpdb-type {
+  font-size: 9.5px;
+  border-radius: 4px;
+  padding: 1px 5px;
+  background: #101216;
+  border: 1px solid #23272e;
+  white-space: nowrap;
+}
+._vpdb-type-1 { color: #c9a27a; }
+._vpdb-type-2 { color: #e0896b; }
+._vpdb-type-3 { color: #a9b4c2; }
+._vpdb-type-4 { color: #e3c75a; }
+._vpdb-res,
+._vpdb-seen {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10.5px;
+  color: #cfd3d8;
+}
+._vpdb-dim { color: #6f7680; }
+._vpdb-shown {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+}
+._vpmodal-open {
+  margin-left: auto;
+  min-height: 28px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #0c1410;
+  background: #5bd394;
+  border: 1px solid #5bd394;
+  border-radius: 7px;
+  padding: 5px 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+._vpmodal-open:hover:not(:disabled) { background: #6ddaa1; }
+._vpmodal-open:disabled {
+  cursor: default;
+  color: #848a94;
+  background: #101216;
+  border-color: #262b33;
+}
+._vpmodal-open + ._vpmodal-clear { margin-left: 0; }
+._vpmodal-clear { min-height: 28px; }
+
+/* errors view reuses the modal without the database controls */
+._vpmodal-errors ._vpdb-tools,
+._vpmodal-errors ._vpdb-colhead,
+._vpmodal-errors ._vpdb-shown,
+._vpmodal-errors ._vpmodal-open,
+._vpmodal-errors ._vpmodal-clear { display: none; }
 
 /* scrollbars */
 ._vpresults::-webkit-scrollbar,

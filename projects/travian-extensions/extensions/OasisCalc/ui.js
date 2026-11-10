@@ -557,9 +557,9 @@ function createUI() {
             <input type="hidden" id="_vphero-mounted" value="1">
 
             <div class="_vptabs">
-                <div class="_vptab-track">
-                    <button class="_vptab active" data-tab="hero">Hero</button>
-                    <button class="_vptab" data-tab="troops">Troops</button>
+                <div class="_vptab-track" role="tablist">
+                    <button type="button" class="_vptab active" data-tab="hero" role="tab" aria-selected="true" aria-controls="_vptab-hero">Hero</button>
+                    <button type="button" class="_vptab" data-tab="troops" role="tab" aria-selected="false" aria-controls="_vptab-troops">Troops</button>
                 </div>
             </div>
 
@@ -658,15 +658,51 @@ function createUI() {
                     <span id="_vpmodal-count" class="_vpmodal-count"></span>
                     <button type="button" class="_vpmodal-close" id="_vpdb-close" aria-label="Close">✕</button>
                 </div>
-                <div class="_vpmodal-colhead">
-                    <span class="_vpcol-loc">Location</span>
-                    <span class="_vpcol-dist">Dist</span>
-                    <span class="_vpcol-gar">Garrison</span>
+                <div class="_vpdb-tools" id="_vpdb-tools">
+                    <div class="_vpdb-toolrow">
+                        <input type="search" id="_vpdb-q" class="_vpdb-input _vpdb-q" placeholder="x|y or animal" aria-label="Search coordinates or animals" autocomplete="off">
+                        <select id="_vpdb-type" class="_vpselect-sm" aria-label="Oasis type">
+                            <option value="any">All types</option>
+                            <option value="1">Lumber</option>
+                            <option value="2">Clay</option>
+                            <option value="3">Iron</option>
+                            <option value="4">Crop</option>
+                            <option value="none">Type unknown</option>
+                        </select>
+                        <select id="_vpdb-state" class="_vpselect-sm" aria-label="Garrison">
+                            <option value="all">All garrisons</option>
+                            <option value="animals">With animals</option>
+                            <option value="nodata">No animal data</option>
+                        </select>
+                        <select id="_vpdb-age" class="_vpselect-sm" aria-label="Last seen">
+                            <option value="any">Any age</option>
+                            <option value="1h">Seen ≤ 1h</option>
+                            <option value="6h">Seen ≤ 6h</option>
+                            <option value="24h">Seen ≤ 24h</option>
+                            <option value="7d">Seen ≤ 7d</option>
+                        </select>
+                    </div>
+                    <div class="_vpdb-toolrow">
+                        <label class="_vpdb-label" for="_vpdb-from">From</label>
+                        <select id="_vpdb-from" class="_vpselect-sm _vpdb-from"></select>
+                        <input type="text" id="_vpdb-xy" class="_vpdb-input _vpdb-xy" placeholder="x|y" aria-label="Origin coordinate" autocomplete="off" spellcheck="false">
+                        <label class="_vpdb-label" for="_vpdb-radius">Radius</label>
+                        <input type="number" id="_vpdb-radius" class="_vpdb-input _vpdb-num" min="0" max="200" step="1" placeholder="All">
+                    </div>
                 </div>
-                <div id="_vpdb-list" class="_vpmodal-list"></div>
+                <div class="_vpmodal-colhead _vpdb-colhead" role="row">
+                    <span role="columnheader" class="_vpcol-loc" aria-sort="none"><button type="button" class="_vpdb-sort" data-sort="loc">Location</button></span>
+                    <span role="columnheader" class="_vpcol-dist" aria-sort="ascending"><button type="button" class="_vpdb-sort active" data-sort="dist">Dist</button></span>
+                    <span role="columnheader" class="_vpcol-type" aria-sort="none"><button type="button" class="_vpdb-sort" data-sort="type">Type</button></span>
+                    <span role="columnheader" class="_vpcol-gar" aria-sort="none"><button type="button" class="_vpdb-sort" data-sort="animals">Garrison</button></span>
+                    <span role="columnheader" class="_vpcol-res" aria-sort="none"><button type="button" class="_vpdb-sort" data-sort="res">Res</button></span>
+                    <span role="columnheader" class="_vpcol-seen" aria-sort="none"><button type="button" class="_vpdb-sort" data-sort="seen">Seen</button></span>
+                </div>
+                <div id="_vpdb-list" class="_vpmodal-list" role="rowgroup"></div>
                 <div class="_vpmodal-footer">
-                    <span class="_vpmodal-foot-note">Synced from map scans</span>
-                    <button id="_vpmodal-clear" class="_vpmodal-clear">Clear all</button>
+                    <span id="_vpdb-shown" class="_vpmodal-foot-note _vpdb-shown" aria-live="polite"></span>
+                    <button type="button" id="_vpdb-open" class="_vpmodal-open" disabled>Open 0</button>
+                    <button type="button" id="_vpmodal-clear" class="_vpmodal-clear">Clear all</button>
                 </div>
             </div>
         </div>
@@ -736,8 +772,12 @@ function createUI() {
     if (!btn) return;
     div
       .querySelectorAll("._vptab")
-      .forEach((t) => t.classList.remove("active"));
+      .forEach((t) => {
+        t.classList.remove("active");
+        t.setAttribute("aria-selected", "false");
+      });
     btn.classList.add("active");
+    btn.setAttribute("aria-selected", "true");
     const tab = btn.dataset.tab;
     document.getElementById("_vptab-hero").style.display =
       tab === "hero" ? "" : "none";
@@ -834,7 +874,11 @@ function createUI() {
   document.getElementById("_vperrors-btn").onclick = showErrors;
   document.getElementById("_vpview-db").onclick = viewDatabase;
   document.getElementById("_vpdb-close").onclick = closeDatabaseView;
-  document.getElementById("_vpmodal-clear").onclick = clearDatabase;
+  document.getElementById("_vpmodal-clear").onclick = () => {
+    clearDatabase();
+    renderDbList();
+  };
+  initDatabaseView();
 
   // Click the dimmed backdrop (but not the dialog) to close the modal
   const dbModal = document.getElementById("_vpdb-modal");
@@ -855,9 +899,26 @@ function createUI() {
     }
   }).observe(dbModal, { attributes: true, attributeFilter: ["style"] });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && dbModal.style.display === "flex") {
+    if (dbModal.style.display !== "flex") return;
+    if (e.key === "Escape") {
       e.stopPropagation();
       closeDatabaseView();
+      return;
+    }
+    // Keep Tab focus inside the open dialog.
+    if (e.key !== "Tab") return;
+    const focusable = [...dbModal.querySelectorAll("a[href], button, input, select")].filter(
+      (el) => !el.disabled && el.offsetParent !== null,
+    );
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
     }
   });
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## Oasis Finder 70.0 — 2026-11-10
+
+- **View DB**: search by coordinates or animal; filter by oasis type, garrison and last-seen age; choose a village or coordinate as origin and a radius; sort by any column.
+- **Open N** opens the listed oases in background tabs: radius required, confirmation at 10 or more, 50 per click, tabs spaced 0.35–0.75 s apart. Tabs open only on the game world you are on.
+- Detail density shows hero **xp** in place of loss and hides the XP badge beside **Send**. The badge has a "Hero XP" label in the other densities.
+- Hero/Troops tabs are announced as tabs, keyboard focus stays in the open DB window, footer buttons are 28 px, and distance/time text has higher contrast.
+
 ## Next Settlement Calc 2.6.0 — 2026-11-10
 
 - ETA history chart: **24h / 7d / 30d / All** ranges and an **ETA** or **CP/d** series. Settings are saved.

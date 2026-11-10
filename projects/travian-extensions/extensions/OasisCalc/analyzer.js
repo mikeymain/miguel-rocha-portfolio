@@ -330,7 +330,7 @@ function _resultRowHTML(p) {
                         </div>
                         <div class="_vpresult-meta">${p.meta}</div>
                     </div>
-                    <span class="_vpscore-badge">${p.score}</span>
+                    <span class="_vpscore-badge" title="Hero XP" aria-label="${p.score} hero XP">${p.score}</span>
                     <a href="${p.rallyHref}" class="_vpresult-link _vprally-go" target="_blank"${p.rallyAttrs || ""}>${p.rallyLabel}</a>
                 </div>
                 <div class="_vpresult-drawer">
@@ -538,7 +538,7 @@ function renderHeroTab() {
     );
     const stats =
       `<span>score <b class="_vpresult-xp">${escapeHTML(String(o.rawScore.toFixed(0)))}</b></span>` +
-      `<span>loss <b class="_vpresult-negative">${escapeHTML(o.hp)}%</b></span>` +
+      `<span>xp <b class="_vpresult-xp">${escapeHTML(String(o.xp))}</b></span>` +
       `<span>res/hp <b style="color:#cfd3d8">${escapeHTML(String(o.resPerHp))}</b></span>`;
     html += _resultRowHTML({
       scoreClass,
@@ -775,7 +775,7 @@ function renderTroopTabPreview(
     const meta = _metaHTML(o, safety);
     const stats =
       `<span>score <b class="_vpresult-xp">${escapeHTML(String(o.rawScore.toFixed(0)))}</b></span>` +
-      `<span>loss <b class="_vpresult-negative">${escapeHTML(String(o.troopLossCount))}</b></span>` +
+      `<span>xp <b class="_vpresult-xp">${escapeHTML(String(o.oasisXP))}</b></span>` +
       `<span>res/loss <b style="color:#cfd3d8">${escapeHTML(String(Math.round(o.resPerLoss)))}</b></span>`;
 
     html += _resultRowHTML({
@@ -935,7 +935,7 @@ function renderTroopTab() {
     const meta = _metaHTML(o, safety);
     const stats =
       `<span>score <b class="_vpresult-xp">${escapeHTML(String(o.rawScore.toFixed(0)))}</b></span>` +
-      `<span>loss <b class="_vpresult-negative">−${escapeHTML(o.troopLossRes.toLocaleString())} (${escapeHTML(String(o.troopLossCount))})</b></span>` +
+      `<span>xp <b class="_vpresult-xp">${escapeHTML(String(o.oasisXP))}</b></span>` +
       `<span>res/loss <b style="color:#cfd3d8">${escapeHTML(String(Math.round(o.resPerLoss)))}</b></span>`;
 
     html += _resultRowHTML({

@@ -35,7 +35,16 @@ Replace the files in the same installed folder, click **Reload** in the extensio
 4. Choose a risk level and sort: **Best score**, **Net resources**, **Res / minute**, **Distance**, or **Res / HP**. Net resources includes modeled troop losses.
 5. Check observation age and current garrison before raiding. Coordinates open the map; **Send** opens a prefilled rally-point page. Sending the raid requires confirmation in the game.
 
-Unknown-age or incomplete readings are excluded. **View DB** shows stored targets, **Errors** shows scan problems, and **Clear DB** deletes the oasis cache.
+Unknown-age or incomplete readings are excluded. **Errors** shows scan problems, and **Clear DB** deletes the oasis cache. In **Detail** density, each target shows its garrison, score, hero XP and res/HP.
+
+**View DB** lists every stored oasis:
+
+- Search by coordinates or animal name. Filter by oasis type (Lumber, Clay, Iron, Crop or unknown), garrison (with animals or no animal data) and last-seen age.
+- **From** sets the origin: one of your villages or any `x|y` coordinate. **Radius** limits the list to that distance.
+- Click a column header to sort by location, distance, type, garrison, resources or last seen. Click again to reverse.
+- **Open N** opens the listed oases in background tabs, in the current sort order. It needs a radius, asks first at 10 or more, opens at most 50 per click, and spaces the tabs 0.35–0.75 s apart.
+
+<a href="images/oasis-database.png"><img src="images/oasis-database.png" alt="Oasis Finder database with filters" width="440" /></a>
 
 <a href="images/oasis-troops.png"><img src="images/oasis-troops.png" alt="Oasis Finder troop view" width="280" /></a>
 

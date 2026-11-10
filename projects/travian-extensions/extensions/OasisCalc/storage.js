@@ -113,9 +113,8 @@ function showErrors() {
   document.getElementById("_vpmodal-title").innerText = "SKIPPED & ERRORS";
   const modalCount = document.getElementById("_vpmodal-count");
   if (modalCount) modalCount.innerText = `${skippedOases.length} skipped`;
-  // The Location · Dist · Garrison column header is meaningless here.
-  const colhead = document.querySelector("._vpmodal-colhead");
-  if (colhead) colhead.style.display = "none";
+  // DB filters, sortable header and the open action do not apply here.
+  modal.querySelector("._vpmodal-dialog")?.classList.add("_vpmodal-errors");
 
   list.innerHTML = "";
   let html = "";
@@ -137,51 +136,6 @@ function showErrors() {
 
   list.innerHTML = html;
   modal.style.display = "flex";
-}
-
-function viewDatabase() {
-  const modal = document.getElementById("_vpdb-modal");
-  const list = document.getElementById("_vpdb-list");
-  document.getElementById("_vpmodal-title").innerText = "OASIS DATABASE";
-  const modalCount = document.getElementById("_vpmodal-count");
-  if (modalCount) modalCount.innerText = `${knownOases.size} stored`;
-  const colhead = document.querySelector("._vpmodal-colhead");
-  if (colhead) colhead.style.display = "";
-
-  const { cx, cy } = getCoords();
-  list.innerHTML = "";
-  let arr = Array.from(knownOases).map((key) => {
-    const [ox, oy] = key.split("|").map(Number);
-    const dx = torusDelta(ox, cx);
-    const dy = torusDelta(oy, cy);
-    const dist = Math.sqrt(dx * dx + dy * dy).toFixed(1);
-    // Garrison comes from the live results map (animal data); fall back to "—"
-    // for oases known only by location (never scanned with animals this session).
-    const entry = resultsMap.get(key);
-    const garrison =
-      entry && entry.animals && entry.animals.length
-        ? entry.animals
-            .map((a) => `${a.count} ${ANIMAL_STATS[a.id]?.name || a.id}`)
-            .join(" · ")
-        : "—";
-    return { x: ox, y: oy, dist: parseFloat(dist), garrison };
-  });
-  arr.sort((a, b) => a.dist - b.dist);
-  if (arr.length === 0) {
-    list.innerHTML = '<div class="_vpresults-empty">Empty</div>';
-  } else {
-    arr.forEach((o) => {
-      const row = document.createElement("div");
-      row.className = "_vpmodal-item";
-      row.innerHTML = `<a href="/position_details.php?x=${escapeHTML(o.x)}&y=${escapeHTML(o.y)}" target="_blank" class="_vpmodal-coords">${escapeHTML(o.x)}|${escapeHTML(o.y)}</a><span class="_vpmodal-dist">${escapeHTML(o.dist)}</span><span class="_vpmodal-gar">${escapeHTML(o.garrison)}</span>`;
-      list.appendChild(row);
-    });
-  }
-  modal.style.display = "flex";
-}
-
-function closeDatabaseView() {
-  document.getElementById("_vpdb-modal").style.display = "none";
 }
 
 async function fetchVillageTroops(did) {
@@ -424,6 +378,7 @@ function loadSettings() {
     const savedTab = settings["_vpactive-tab"] || "hero";
     document.querySelectorAll("._vptab").forEach((t) => {
       t.classList.toggle("active", t.dataset.tab === savedTab);
+      t.setAttribute("aria-selected", String(t.dataset.tab === savedTab));
     });
     document.getElementById("_vptab-hero").style.display =
       savedTab === "hero" ? "" : "none";
