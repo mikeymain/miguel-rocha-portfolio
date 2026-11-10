@@ -91,16 +91,41 @@ const NOW_BREAKDOWNS = {
 	],
 };
 
-/** Extra value shown beneath a general row's value, keyed by rank key. */
-const NOW_GENERAL_SUBS = {
-	rankProd: { name: "Raided total", read: bountyOf },
-};
+/** Hours in the trailing window used for raid income per hour. */
+const NOW_RAID_WINDOW_HOURS = 3;
 
-/** "Name: value" beneath a general value, or undefined when not available. */
-function generalSub(data, keyRank) {
-	const part = NOW_GENERAL_SUBS[keyRank];
-	const value = part?.read(data);
-	return Number.isFinite(value) ? `${part.name}: ${fmtNum(value)}` : undefined;
+/**
+ * Raid income per hour at a snapshot's time: bounty gained in the trailing
+ * 3h of saved history, divided by 3. Reset-safe via the unwrapped totals.
+ *
+ * @param {Array<Object>} history - Saved history points.
+ * @param {Object} data - Latest snapshot.
+ * @returns {(snapshot: Object) => number|null}
+ */
+function raidRateReader(history, data) {
+	const points = prepareHistory([...history.filter((p) => p.timestamp !== data.timestamp), data]);
+	const samples = points
+		.filter((point) => Number.isFinite(point.valBountyTotal))
+		.map((point) => ({ timestamp: point.timestamp, value: point.valBountyTotal }));
+	return (snapshot) => {
+		if (!Number.isFinite(snapshot?.timestamp)) return null;
+		const gain = rollingWindowGain(samples, [snapshot.timestamp], NOW_RAID_WINDOW_HOURS * 3_600_000)[0];
+		return gain == null ? null : Math.round(gain / NOW_RAID_WINDOW_HOURS);
+	};
+}
+
+/** Production per hour plus raid income per hour; production alone without raid data. */
+function incomeOf(snapshot, raidRate) {
+	if (!Number.isFinite(snapshot?.valProd)) return null;
+	const raid = raidRate(snapshot);
+	return snapshot.valProd + (Number.isFinite(raid) ? raid : 0);
+}
+
+/** "Fields … · Raids …" beneath the Prod / Hour value. */
+function incomeSub(data, raidRate) {
+	if (!Number.isFinite(data?.valProd)) return undefined;
+	const raid = raidRate(data);
+	return `Fields ${fmtNum(data.valProd)} · Raids ${Number.isFinite(raid) ? fmtNum(raid) : "—"}`;
 }
 
 /**
@@ -421,7 +446,7 @@ function renderUI(data, history) {
 
 	renderHero(data, generalRefs);
 	renderWeekly(data, deltaCells);
-	renderGeneral(data, deltaCells);
+	renderGeneral(data, deltaCells, history);
 	fitMetricsTable();
 
 	const playersEl = document.getElementById("players");
@@ -477,26 +502,27 @@ function breakdownRows(data, key, deltaCells, isTop10) {
 }
 
 /** General ranking rows. */
-function renderGeneral(data, deltaCells) {
+function renderGeneral(data, deltaCells, history) {
 	const body = document.getElementById("general-body");
 	if (!body) return;
 	const rows = [groupRow("General")];
-	const add = (name, keyRank, keyVal) => {
+	const raidRate = raidRateReader(history, data);
+	const add = (name, keyRank, keyVal, readVal = (s) => s?.[keyVal], sub = undefined) => {
 		const rank = data[keyRank];
-		const points = data[keyVal];
+		const points = readVal(data);
 		const parent = metricRow({
 			name,
 			rank,
 			totalPlayers: data.totalPlayers,
 			main: points != null ? fmtNum(points) : "—",
-			sub: generalSub(data, keyRank),
-			cells: deltaCells(rank, points, (s) => s?.[keyRank], (s) => s?.[keyVal], false),
+			sub,
+			cells: deltaCells(rank, points, (s) => s?.[keyRank], readVal, false),
 		});
 		rows.push(...collapsible(parent, keyRank, breakdownRows(data, keyRank, deltaCells, false)));
 	};
 
 	add("Population", "rankPop", "valPop");
-	add("Prod / Hour", "rankProd", "valProd");
+	add("Prod / Hour", "rankProd", "valProd", (s) => incomeOf(s, raidRate), incomeSub(data, raidRate));
 	add("Prod So Far", "rankProdSoFar", "valProdSoFar");
 	add("CP / Day", "rankCp", "cpProd");
 	add("CP So Far", "rankCpSoFar", "valCpSoFar");
