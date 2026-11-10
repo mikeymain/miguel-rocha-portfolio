@@ -828,20 +828,17 @@ async function processHtmlData(
  *          `status` is one of: "ok", "logged_out", "fetch_error", "empty"
  */
 /**
- * Read the ".sum .total" value from the production statistics page without
- * DOMParser, so the popup and the background service worker store the same
- * Prod / Hour figure.
+ * Prod / Hour as the production rank counts it: gross field production per
+ * hour (statistics production per day / 24), before crop upkeep. Older
+ * snapshots may hold the net production page total in valProd, so pointsProd
+ * wins when present.
  *
- * @param {string} html - /village/statistics/resources/production page.
+ * @param {Object} snapshot
  * @returns {number|null}
  */
-function parseProductionTotal(html) {
-	if (typeof html !== "string") return null;
-	const sumAt = html.search(/class="[^"]*\bsum\b[^"]*"/);
-	if (sumAt < 0) return null;
-	const match = html.slice(sumAt).match(/class="[^"]*\btotal\b[^"]*"[^>]*>([\s\S]*?)<\/(?:td|th|span|div)>/);
-	if (!match) return null;
-	return cleanSmartNum(match[1].replace(/<[^>]*>/g, "").replace(/&[#\w]+;/g, ""));
+function grossProdOf(snapshot) {
+	if (Number.isFinite(snapshot?.pointsProd) && snapshot.pointsProd > 0) return Math.round(snapshot.pointsProd / 24);
+	return Number.isFinite(snapshot?.valProd) ? snapshot.valProd : null;
 }
 
 async function fetchAllEndpoints(serverOrigin, api, storageKey, options = {}) {
@@ -898,21 +895,7 @@ async function fetchAllEndpoints(serverOrigin, api, storageKey, options = {}) {
 			/* non-critical */
 		}
 
-		// Step 3: Production total
-		try {
-			const prodRes = await fetch(
-				`${serverOrigin}/village/statistics/resources/production`,
-				{ credentials: "include" },
-			);
-			if (prodRes.ok) {
-				const total = parseProductionTotal(await prodRes.text());
-				if (total != null) mergedData.valProd = total;
-			}
-		} catch (_) {
-			/* non-critical */
-		}
-
-		// Step 4: Top 10
+		// Step 3: Top 10
 		const top10Data = await fetchTop10(serverOrigin);
 		if (top10Data.top10.length > 0) {
 			for (const key of WEEKLY_KEYS) delete mergedData[key];

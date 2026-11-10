@@ -112,7 +112,7 @@ async function performBackgroundFetch() {
 		if (!serverOrigin) continue;
 		const storageKey = `history_${serverOrigin}`;
 
-		// `fetchAllEndpoints` handles all 4 HTTP requests, merging, and persistence.
+		// `fetchAllEndpoints` handles all 3 HTTP requests, merging, and persistence.
 		// It also writes a diagnostic status we can surface in the popup.
 		await fetchAllEndpoints(serverOrigin, api, storageKey);
 	}

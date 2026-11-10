@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.20 — 2026-11-10
+
+- Now: Prod / Hour is gross field production per hour (statistics production per day ÷ 24), the figure the production rank uses, before crop upkeep. The production page is no longer fetched. Older snapshots that stored the net page total are read from their production per day, so changes and the graph stay consistent.
+
 ## Rank Tracker 5.0.19 — 2026-11-10
 
 - Now: Prod / Hour shows production per hour again, with its changes. Its collapsible rows are "With raiding" (production plus raid income per hour, trailing 3 hours ÷ 3) and "Raids".

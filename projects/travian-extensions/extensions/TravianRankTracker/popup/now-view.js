@@ -131,9 +131,10 @@ function raidRateReader(history, data) {
 
 /** Production per hour plus raid income per hour; production alone without raid data. */
 function incomeOf(snapshot, raidRate) {
-	if (!Number.isFinite(snapshot?.valProd)) return null;
+	const prod = grossProdOf(snapshot);
+	if (prod == null) return null;
 	const raid = raidRate(snapshot);
-	return snapshot.valProd + (Number.isFinite(raid) ? raid : 0);
+	return prod + (Number.isFinite(raid) ? raid : 0);
 }
 
 /** Collapsible rows under Prod / Hour: production plus raids, and raids alone. */
@@ -537,7 +538,7 @@ function renderGeneral(data, deltaCells, history) {
 	};
 
 	add("Population", "rankPop", "valPop");
-	add("Prod / Hour", "rankProd", "valProd", undefined, incomeParts(raidRate));
+	add("Prod / Hour", "rankProd", "valProd", grossProdOf, incomeParts(raidRate));
 	add("Prod So Far", "rankProdSoFar", "valProdSoFar");
 	add("CP / Day", "rankCp", "cpProd");
 	add("CP So Far", "rankCpSoFar", "valCpSoFar");

@@ -95,6 +95,7 @@ const RANK_KEYS = [
 function prepareHistory(hist) {
 	const points = (hist || []).map((item) => {
 		const point = { ...item };
+		if (point.valProd != null || point.pointsProd != null) point.valProd = grossProdOf(point);
 		if (point.valRob > 100_000_000_000) point.valRob = null;
 		if (point.valRob == null && point.valRes != null) point.valRob = point.valRes;
 		if (point.valPve != null) point.valPveResources = point.valPve * 160;
