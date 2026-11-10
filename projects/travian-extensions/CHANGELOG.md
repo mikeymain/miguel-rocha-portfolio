@@ -1,5 +1,10 @@
 # Changelog
 
+## Next Settlement Calc 2.6.1 — 2026-11-10
+
+- ETA history: outliers, such as the very late ETAs logged right after a server start, no longer flatten the chart. They are drawn as hollow dots on the chart edge, the axis label shows ≥ or ≤, and the trend and change ignore them.
+- The tooltip no longer shows the extension version.
+
 ## Oasis Finder 70.0 — 2026-11-10
 
 - **View DB**: search by coordinates or animal; filter by oasis type, garrison and last-seen age; choose a village or coordinate as origin and a radius; sort by any column.

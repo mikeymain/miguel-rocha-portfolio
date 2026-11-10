@@ -84,6 +84,36 @@ Object.assign(
 			return { slope, at: (t) => meanV + slope * (t - meanT) };
 		}
 
+		/** Tukey fence width, in interquartile ranges, before values clip. */
+		const FENCE_IQR = 1.5,
+			FENCE_MIN_POINTS = 5;
+		const quantile = (sorted, q) => {
+			const pos = (sorted.length - 1) * q,
+				low = Math.floor(pos);
+			return sorted[low] + (sorted[Math.min(low + 1, sorted.length - 1)] - sorted[low]) * (pos - low);
+		};
+		/**
+		 * Y bounds that ignore outliers, such as the huge ETAs logged while a
+		 * new account's production is still tiny. Outliers clip to the edge.
+		 */
+		function robustBounds(values, minSpan) {
+			let min = Math.min(...values),
+				max = Math.max(...values);
+			if (values.length >= FENCE_MIN_POINTS) {
+				const sorted = [...values].sort((a, b) => a - b);
+				const q1 = quantile(sorted, 0.25),
+					q3 = quantile(sorted, 0.75);
+				const iqr = Math.max(q3 - q1, minSpan);
+				min = Math.max(min, q1 - FENCE_IQR * iqr);
+				max = Math.min(max, q3 + FENCE_IQR * iqr);
+			}
+			if (max - min < minSpan) {
+				min -= minSpan / 2;
+				max += minSpan / 2;
+			}
+			return [min, max];
+		}
+
 		/** Index of the point closest in time to `t`. */
 		function nearestIndex(points, t) {
 			let best = 0;
@@ -151,17 +181,18 @@ Object.assign(
 			const plotted = [...values];
 			for (const key of overlays)
 				for (const p of points) if (p[key] !== null) plotted.push(p[key]);
-			let minV = Math.min(...plotted),
-				maxV = Math.max(...plotted);
-			const minSpan = options.mode === "cpd" ? 1 : 60000;
-			if (maxV - minV < minSpan) {
-				minV -= minSpan / 2;
-				maxV += minSpan / 2;
-			}
+			const [minV, maxV] = robustBounds(
+				plotted,
+				options.mode === "cpd" ? 1 : 60000,
+			);
+			const inside = (v) => v >= minV && v <= maxV;
 			const x = (t) =>
 				PAD_X + ((t - minT) / (maxT - minT || 1)) * (WIDTH - 2 * PAD_X);
 			const y = (v) =>
-				HEIGHT - PAD_Y - ((v - minV) / (maxV - minV)) * (HEIGHT - 2 * PAD_Y);
+				HEIGHT -
+				PAD_Y -
+				((Math.min(maxV, Math.max(minV, v)) - minV) / (maxV - minV)) *
+					(HEIGHT - 2 * PAD_Y);
 			for (const level of [minV, maxV])
 				target.append(
 					svg("line", {
@@ -191,7 +222,7 @@ Object.assign(
 				if (coords.length > 1)
 					target.append(polyline(`eta-overlay-line ${key}`, coords));
 			}
-			const trend = trendFit(points);
+			const trend = trendFit(points.filter((p) => inside(p.value)));
 			if (trend)
 				target.append(
 					polyline("eta-trendline", [
@@ -208,7 +239,7 @@ Object.assign(
 			const dots = points.map((p, index) => {
 				const last = index === points.length - 1;
 				const dot = svg("circle", {
-					class: last ? "eta-dot last" : "eta-dot",
+					class: `eta-dot${last ? " last" : ""}${inside(p.value) ? "" : " clipped"}`,
 					cx: x(p.t).toFixed(1),
 					cy: y(p.value).toFixed(1),
 					r: last ? 3 : 2,
@@ -226,7 +257,9 @@ Object.assign(
 				minT,
 				maxT,
 				trend,
-				first: values[0],
+				clippedHigh: plotted.some((v) => v > maxV),
+				clippedLow: plotted.some((v) => v < minV),
+				first: values.find(inside) ?? values[0],
 				latest: values.at(-1),
 				min: minV,
 				max: maxV,
@@ -355,7 +388,6 @@ Object.assign(
 					rows.push(tipRow("CP", Math.round(point.cp).toLocaleString()));
 				if (point.daily !== null)
 					rows.push(tipRow("CP/d", oneDecimal(point.daily)));
-				if (point.model) rows.push(tipRow("Version", point.model));
 				dom.etaTip.replaceChildren(...rows);
 				dom.etaTip.style.left = `${(fraction * 100).toFixed(2)}%`;
 				dom.etaTip.classList.toggle("flip", fraction > 0.5);
@@ -442,8 +474,8 @@ Object.assign(
 				for (const id of ["etaMax", "etaMin", "etaFrom", "etaTo", "etaTrend"])
 					dom[id].textContent = "";
 				if (chart) {
-					dom.etaMax.textContent = formatValue(state.mode, chart.max);
-					dom.etaMin.textContent = formatValue(state.mode, chart.min);
+					dom.etaMax.textContent = `${chart.clippedHigh ? "≥ " : ""}${formatValue(state.mode, chart.max)}`;
+					dom.etaMin.textContent = `${chart.clippedLow ? "≤ " : ""}${formatValue(state.mode, chart.min)}`;
 					dom.etaFrom.textContent = shortDate(chart.firstSample);
 					dom.etaTo.textContent = shortDate(chart.lastSample);
 					if (chart.trend)
@@ -525,6 +557,7 @@ Object.assign(
 			historyPoints,
 			etaSeries,
 			trendFit,
+			robustBounds,
 			nearestIndex,
 			renderEtaChart,
 			createEtaHistory,

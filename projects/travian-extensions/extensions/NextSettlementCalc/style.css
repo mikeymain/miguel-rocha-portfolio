@@ -826,6 +826,12 @@ select:focus-visible,
 .eta-dot.last {
 	opacity: 1;
 }
+.eta-dot.clipped {
+	fill: none;
+	stroke: #f59e0b;
+	stroke-width: 1;
+	opacity: 1;
+}
 .eta-ylabel {
 	position: absolute;
 	right: 0;
