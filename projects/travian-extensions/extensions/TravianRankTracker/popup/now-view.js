@@ -136,11 +136,12 @@ function incomeOf(snapshot, raidRate) {
 	return snapshot.valProd + (Number.isFinite(raid) ? raid : 0);
 }
 
-/** "Fields … · Raids …" beneath the Prod / Hour value. */
-function incomeSub(data, raidRate) {
-	if (!Number.isFinite(data?.valProd)) return undefined;
-	const raid = raidRate(data);
-	return `Fields ${fmtNum(data.valProd)} · Raids ${Number.isFinite(raid) ? fmtNum(raid) : "—"}`;
+/** Collapsible Fields and Raids rows under Prod / Hour. */
+function incomeParts(raidRate) {
+	return [
+		{ name: "Fields", read: (s) => (Number.isFinite(s?.valProd) ? s.valProd : null) },
+		{ name: "Raids", read: (s) => { const raid = raidRate(s); return Number.isFinite(raid) ? raid : null; } },
+	];
 }
 
 /**
@@ -509,8 +510,8 @@ function renderWeekly(data, deltaCells) {
  * @param {boolean} isTop10
  * @returns {Array<HTMLTableRowElement>}
  */
-function breakdownRows(data, key, deltaCells, isTop10) {
-	return (NOW_BREAKDOWNS[key] || [])
+function breakdownRows(data, key, deltaCells, isTop10, parts = NOW_BREAKDOWNS[key]) {
+	return (parts || [])
 		.map((part) => ({ part, value: part.read(data) }))
 		.filter(({ value }) => value != null)
 		.map(({ part, value }) => breakdownRow(part.name, value, deltaCells(null, value, () => null, part.read, isTop10)));
@@ -522,7 +523,7 @@ function renderGeneral(data, deltaCells, history) {
 	if (!body) return;
 	const rows = [groupRow("General")];
 	const raidRate = raidRateReader(history, data);
-	const add = (name, keyRank, keyVal, readVal = (s) => s?.[keyVal], sub = undefined) => {
+	const add = (name, keyRank, keyVal, readVal = (s) => s?.[keyVal], parts = undefined) => {
 		const rank = data[keyRank];
 		const points = readVal(data);
 		const parent = metricRow({
@@ -530,14 +531,13 @@ function renderGeneral(data, deltaCells, history) {
 			rank,
 			totalPlayers: data.totalPlayers,
 			main: points != null ? fmtNum(points) : "—",
-			sub,
 			cells: deltaCells(rank, points, (s) => s?.[keyRank], readVal, false),
 		});
-		rows.push(...collapsible(parent, keyRank, breakdownRows(data, keyRank, deltaCells, false)));
+		rows.push(...collapsible(parent, keyRank, breakdownRows(data, keyRank, deltaCells, false, parts)));
 	};
 
 	add("Population", "rankPop", "valPop");
-	add("Prod / Hour", "rankProd", "valProd", (s) => incomeOf(s, raidRate), incomeSub(data, raidRate));
+	add("Prod / Hour", "rankProd", "valProd", (s) => incomeOf(s, raidRate), incomeParts(raidRate));
 	add("Prod So Far", "rankProdSoFar", "valProdSoFar");
 	add("CP / Day", "rankCp", "cpProd");
 	add("CP So Far", "rankCpSoFar", "valCpSoFar");

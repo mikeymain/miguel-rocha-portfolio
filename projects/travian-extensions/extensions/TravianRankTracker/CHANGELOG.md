@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.15 — 2026-11-10
+
+- Now: Prod / Hour is collapsible; Fields and Raids are breakdown rows with their own changes, like the other breakdowns.
+
 ## Rank Tracker 5.0.14 — 2026-11-10
 
 - Now: the PvE animal resources breakdown moves under Robbers, below Raiding, renamed "Animals". PvE is no longer collapsible. A saved open PvE row opens Robbers.
