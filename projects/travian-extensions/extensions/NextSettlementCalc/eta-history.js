@@ -166,6 +166,65 @@ Object.assign(
 					.join(" "),
 			});
 
+		/** Gaussian kernel width as a share of the plotted time span. */
+		const SMOOTH_SIGMA = 0.025;
+		/** Time-weighted Gaussian smoothing of `key`; nulls stay null. */
+		function smoothValues(points, key) {
+			const span = points.at(-1).t - points[0].t;
+			const sigma = span * SMOOTH_SIGMA;
+			return points.map((p) => {
+				if (p[key] === null || !sigma) return p[key];
+				let sum = 0,
+					weight = 0;
+				for (const q of points) {
+					const d = q.t - p.t;
+					if (q[key] === null || Math.abs(d) > 3 * sigma) continue;
+					const w = Math.exp((-d * d) / (2 * sigma * sigma));
+					sum += w * q[key];
+					weight += w;
+				}
+				return sum / weight;
+			});
+		}
+		/** Monotone cubic (Fritsch–Carlson) path: smooth, no overshoot. */
+		function curvePath(className, coords) {
+			const n = coords.length;
+			const dx = [],
+				m = [];
+			for (let i = 0; i < n - 1; i++) {
+				dx.push(coords[i + 1][0] - coords[i][0] || 1e-6);
+				m.push((coords[i + 1][1] - coords[i][1]) / dx[i]);
+			}
+			const tangent = coords.map((_, i) => {
+				if (i === 0) return m[0];
+				if (i === n - 1) return m[n - 2];
+				return m[i - 1] * m[i] <= 0 ? 0 : (m[i - 1] + m[i]) / 2;
+			});
+			for (let i = 0; i < n - 1; i++) {
+				if (!m[i]) {
+					tangent[i] = tangent[i + 1] = 0;
+					continue;
+				}
+				const a = tangent[i] / m[i],
+					b = tangent[i + 1] / m[i];
+				const h = a * a + b * b;
+				if (h > 9) {
+					const k = 3 / Math.sqrt(h);
+					tangent[i] = k * a * m[i];
+					tangent[i + 1] = k * b * m[i];
+				}
+			}
+			const f = (v) => v.toFixed(1);
+			let d = `M${f(coords[0][0])},${f(coords[0][1])}`;
+			for (let i = 0; i < n - 1; i++) {
+				const [x0, y0] = coords[i],
+					[x1, y1] = coords[i + 1],
+					h = dx[i] / 3;
+				d += `C${f(x0 + h)},${f(y0 + h * tangent[i])} ${f(x1 - h)},${f(y1 - h * tangent[i + 1])} ${f(x1)},${f(y1)}`;
+			}
+			return svg("path", { class: className, d });
+		}
+
 		/**
 		 * Draw the points into an <svg>. X is when the forecast was made, Y is
 		 * the plotted value (later ETA = higher). Returns null under two points.
@@ -178,9 +237,11 @@ Object.assign(
 			const minT = points[0].t,
 				maxT = points.at(-1).t;
 			const values = points.map((p) => p.value);
-			const plotted = [...values];
+			const smooth = { value: smoothValues(points, "value") };
+			for (const key of overlays) smooth[key] = smoothValues(points, key);
+			const plotted = [...smooth.value];
 			for (const key of overlays)
-				for (const p of points) if (p[key] !== null) plotted.push(p[key]);
+				for (const v of smooth[key]) if (v !== null) plotted.push(v);
 			const [minV, maxV] = robustBounds(
 				plotted,
 				options.mode === "cpd" ? 1 : 60000,
@@ -217,12 +278,15 @@ Object.assign(
 			});
 			for (const key of overlays) {
 				const coords = points
-					.filter((p) => p[key] !== null)
-					.map((p) => [x(p.t), y(p[key])]);
+					.map((p, i) => [x(p.t), smooth[key][i]])
+					.filter(([, v]) => v !== null)
+					.map(([px, v]) => [px, y(v)]);
 				if (coords.length > 1)
-					target.append(polyline(`eta-overlay-line ${key}`, coords));
+					target.append(curvePath(`eta-overlay-line ${key}`, coords));
 			}
-			const trend = trendFit(points.filter((p) => inside(p.value)));
+			const trend = trendFit(
+				points.filter((_, i) => inside(smooth.value[i])),
+			);
 			if (trend)
 				target.append(
 					polyline("eta-trendline", [
@@ -231,17 +295,17 @@ Object.assign(
 					]),
 				);
 			target.append(
-				polyline(
+				curvePath(
 					"eta-line",
-					points.map((p) => [x(p.t), y(p.value)]),
+					points.map((p, i) => [x(p.t), y(smooth.value[i])]),
 				),
 			);
 			const dots = points.map((p, index) => {
 				const last = index === points.length - 1;
 				const dot = svg("circle", {
-					class: `eta-dot${last ? " last" : ""}${inside(p.value) ? "" : " clipped"}`,
+					class: `eta-dot${last ? " last" : ""}${inside(smooth.value[index]) ? "" : " clipped"}`,
 					cx: x(p.t).toFixed(1),
-					cy: y(p.value).toFixed(1),
+					cy: y(smooth.value[index]).toFixed(1),
 					r: last ? 3 : 2,
 				});
 				target.append(dot);
