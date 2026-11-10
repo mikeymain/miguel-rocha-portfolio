@@ -326,7 +326,10 @@
 	function createXpRow(xp) {
 		const row = document.createElement('tr');
 		row.className = 'tlw-xp-row';
-		row.innerHTML = `<th>Hero XP</th><td><span class="value ">${xp.toLocaleString()}</span></td><td></td>`;
+		row.innerHTML = `
+			<th>Hero XP</th>
+			<td><div class="inlineIcon " title=""><img src="/img/x.gif" class="unit uhero" alt="Hero"><span class="value ">${xp.toLocaleString()}</span></div></td>
+			<td></td>`;
 		return row;
 	}
 	function applyOasisReport(statsTable) {

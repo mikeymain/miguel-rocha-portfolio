@@ -388,3 +388,9 @@
 		animation: none !important;
 	}
 }
+
+/* Hero XP row: pad the 16px hero icon to the 28x24 box of the other report icons */
+.tlw-xp-row img.unit.uhero {
+	margin: 4px 11px 4px 6px;
+	vertical-align: middle;
+}

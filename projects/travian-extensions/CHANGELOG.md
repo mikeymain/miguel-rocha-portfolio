@@ -1,5 +1,10 @@
 # Changelog
 
+## Travian QoL 1.2.4 / Night Mode 2.6.1 — 2026-11-10
+
+- Report statistics: the **Hero XP** row shows the hero icon in the icon column.
+- Night Mode: report statistics rows alternate shading, as in the vanilla theme.
+
 ## Next Settlement Calc 2.6.5 — 2026-11-10
 
 - ETA history has an **8h** range.

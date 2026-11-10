@@ -2074,6 +2074,12 @@ div.village3 table#troops td {
   background-color: var(--nm-base) !important;
 }
 
+/* Alternate row shading, as in the vanilla report */
+#reportWrapper > div.body > div.combatStatistics > table > tbody > tr:nth-child(2n) > th,
+#reportWrapper > div.body > div.combatStatistics > table > tbody > tr:nth-child(2n) > td {
+  background-color: var(--nm-elevated) !important;
+}
+
 div#build table#build_value td, div#build table#build_value th {
   background-color: transparent !important;
 }
