@@ -809,18 +809,19 @@ body.chart-window {
 	stroke-width: 1;
 	vector-effect: non-scaling-stroke;
 }
-.eta-dot.active {
-	opacity: 1;
-	stroke: var(--text-primary);
-	stroke-width: 1;
-}
 .eta-chart {
 	cursor: crosshair;
 }
+.eta-hover-dot {
+	fill: #f59e0b;
+	stroke: var(--text-primary);
+	stroke-width: 1;
+	vector-effect: non-scaling-stroke;
+	pointer-events: none;
+}
 .eta-tip {
 	position: absolute;
-	top: -6px;
-	transform: translateX(10px);
+	bottom: calc(100% + 6px);
 	z-index: 2;
 	min-width: 140px;
 	padding: 6px 8px;
@@ -869,10 +870,6 @@ body.chart-window {
 }
 .eta-dot.last {
 	opacity: 1;
-}
-.eta-dot.clipped.active {
-	fill: none;
-	stroke: #f59e0b;
 }
 .eta-ylabel {
 	position: absolute;

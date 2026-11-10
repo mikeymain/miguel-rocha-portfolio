@@ -329,12 +329,11 @@ Object.assign(
 						[x(maxT), y(trend.at(maxT))],
 					]),
 				);
-			target.append(
-				curvePath(
-					"eta-line",
-					points.map((p, i) => [x(p.t), y(smooth.value[i])]),
-				),
+			const line = curvePath(
+				"eta-line",
+				points.map((p, i) => [x(p.t), y(smooth.value[i])]),
 			);
+			target.append(line);
 			const dots = points.map((p, index) => {
 				const last = index === points.length - 1;
 				const dot = svg("circle", {
@@ -351,6 +350,7 @@ Object.assign(
 			return {
 				points,
 				dots,
+				line,
 				layer,
 				x,
 				width: WIDTH,
@@ -374,6 +374,18 @@ Object.assign(
 			const rect = element.getBoundingClientRect();
 			if (!rect.width) return null;
 			return Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
+		}
+		/** Y of a left-to-right path at x, by bisecting its length. */
+		function curveY(path, x) {
+			if (typeof path?.getTotalLength !== "function") return null;
+			let lo = 0,
+				hi = path.getTotalLength();
+			for (let i = 0; i < 24; i++) {
+				const mid = (lo + hi) / 2;
+				if (path.getPointAtLength(mid).x < x) lo = mid;
+				else hi = mid;
+			}
+			return path.getPointAtLength(hi).y;
 		}
 		/** The plot's x maps 0–1 onto [PAD_X, width - PAD_X]. */
 		function fractionToTime(chart, fraction) {
@@ -493,10 +505,15 @@ Object.assign(
 				if (point.daily !== null)
 					rows.push(tipRow("CP/d", oneDecimal(point.daily)));
 				dom.etaTip.replaceChildren(...rows);
-				// Slide the tip across its anchor so it never jumps sides.
-				dom.etaTip.style.left = `${(fraction * 100).toFixed(2)}%`;
-				dom.etaTip.style.transform = `translateX(calc(${(-fraction * 100).toFixed(2)}% + ${(10 - 20 * fraction).toFixed(1)}px))`;
+				// Centre the tip above the cursor, held inside the plot's edges.
 				dom.etaTip.hidden = false;
+				const plot = dom.etaTip.offsetParent?.clientWidth || 0;
+				const width = dom.etaTip.offsetWidth;
+				const left = Math.min(
+					Math.max(0, fraction * plot - width / 2),
+					Math.max(0, plot - width),
+				);
+				dom.etaTip.style.left = `${left.toFixed(1)}px`;
 			}
 
 			function vline(className, t) {
@@ -515,7 +532,6 @@ Object.assign(
 					return;
 				}
 				chart.layer.replaceChildren();
-				for (const dot of chart.dots) dot.classList.remove("active");
 				const sel = state.selection;
 				if (sel && sel.a !== sel.b) {
 					const x1 = chart.x(Math.min(sel.a, sel.b)),
@@ -539,9 +555,14 @@ Object.assign(
 				}
 				const t = fractionToTime(chart, state.hover);
 				const point = pointAt(chart.points, t);
+				const x = chart.x(t);
 				chart.layer.append(vline("eta-crosshair", t));
-				chart.dots[nearestIndex(chart.points, t)].classList.add("active");
-				showTip(point, chart.x(t) / chart.width);
+				const y = curveY(chart.line, x);
+				if (y !== null)
+					chart.layer.append(
+						svg("circle", { class: "eta-hover-dot", cx: x, cy: y, r: 2.5 }),
+					);
+				showTip(point, x / chart.width);
 			}
 
 			function render() {
