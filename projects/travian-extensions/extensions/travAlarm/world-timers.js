@@ -69,11 +69,32 @@ async function fetchWorldFromCalendar() {
  */
 async function loadWorldTimers() {
   const cachedEnd = computeProtectionEnd(await readCachedWorld());
-  if (cachedEnd !== null && cachedEnd > Date.now()) {
-    worldProtectionEnd = cachedEnd;
-    return;
+  worldProtectionEnd =
+    cachedEnd !== null && cachedEnd > Date.now()
+      ? cachedEnd
+      : computeProtectionEnd(await fetchWorldFromCalendar());
+  const alarms = buildWorldAlarms(worldProtectionEnd, Date.now());
+  if (alarms.length > 0) {
+    await api.runtime.sendMessage({ type: "REFRESH_ALARMS", buildings: alarms });
   }
-  worldProtectionEnd = computeProtectionEnd(await fetchWorldFromCalendar());
+}
+
+const OASIS_WARNING_MS = 45 * 60 * 1000;
+
+/**
+ * Alarms for the end of the world's base beginner's protection: a warning
+ * 45 minutes before oasis animals respawn, and the protection end itself.
+ * Matched by name in the background, so repeat page loads update them in place.
+ * Only future times are sent, so a fired alarm is not recreated.
+ */
+function buildWorldAlarms(protectionEnd, now) {
+  if (protectionEnd === null) return [];
+  return [
+    { name: `⭐ Oasis respawn in 45 min ${serverTag}`, at: protectionEnd - OASIS_WARNING_MS },
+    { name: `⭐ Beginner's protection ends ${serverTag}`, at: protectionEnd },
+  ]
+    .filter((a) => a.at > now)
+    .map((a) => ({ name: a.name, delay: a.at - now, customType: "world" }));
 }
 
 /** Formats seconds as "Dd H:MM:SS" when over a day, else H:MM:SS. */

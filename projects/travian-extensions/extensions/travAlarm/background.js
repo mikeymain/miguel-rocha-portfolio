@@ -442,6 +442,7 @@ function handleMessage(msg, sender, sendResponse) {
           "farmlist",
           "daily",
           "hero",
+          "world",
         ];
         if (refreshTypes.includes(newB.customType)) {
           let existing;
@@ -470,7 +471,8 @@ function handleMessage(msg, sender, sendResponse) {
             }
             existing.scheduledTime = newScheduledTime;
             existing.notified = false;
-            if (newB.customType !== "culture") existing.silenced = false;
+            if (newB.customType !== "culture" && newB.customType !== "world")
+              existing.silenced = false;
             return;
           }
         }

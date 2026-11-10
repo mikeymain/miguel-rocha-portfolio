@@ -1,5 +1,9 @@
 # Changelog
 
+## TravAlarm 3.37 — 2026-11-10
+
+- New alarms **Oasis respawn in 45 min** and **Beginner's protection ends**, timed from the world's starting beginner protection (base days for the world speed). An extended personal protection is not detected.
+
 ## Next Settlement Calc 2.6.3 — 2026-11-10
 
 - ETA history: scroll over the chart to zoom the time axis, Shift+scroll to pan, double-click or **Reset zoom** to restore.
