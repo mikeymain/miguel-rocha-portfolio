@@ -1,5 +1,9 @@
 # Changelog
 
+## TravAlarm 3.36 — 2026-11-10
+
+- A building alarm is cleared when the build finishes early, e.g. with gold **Finish now** or a cancel. Open the village or resource view after finishing to clear it.
+
 ## TravAlarm 3.35 — 2026-11-07
 
 - The panel shows an **Oasis respawn** countdown until the world's starting beginner protection ends (5, 3, 3, 2 or 1 days on 1x, 2x, 3x, 5x and 10x worlds). The world start date comes from the public game world calendar and is cached per world. Hover the row for the end date.

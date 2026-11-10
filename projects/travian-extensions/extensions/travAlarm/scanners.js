@@ -490,9 +490,25 @@ function getActiveVillageName() {
   return activeNode ? cleanText(activeNode.innerText) : "Village";
 }
 
+// Village views (dorf1/dorf2) render `.buildingList` only while something is
+// being built. Once a fully loaded village view has no list, the queue is
+// empty: every build finished early (gold "finish now"), was cancelled, or
+// completed while the alarm was silenced.
+function isVillageViewWithEmptyQueue() {
+  const path = window.location.pathname;
+  const isVillageView =
+    (path.includes("dorf1.php") && document.getElementById("resourceFieldContainer")) ||
+    (path.includes("dorf2.php") && document.getElementById("villageContent"));
+  return !!isVillageView && !document.querySelector(".buildingList");
+}
+
 function scanBuildings(activeVillage) {
   const buildingList = document.querySelector(".buildingList");
-  if (!buildingList) return null;
+  if (!buildingList) {
+    return isVillageViewWithEmptyQueue()
+      ? { newBuildings: [], matchedIds: new Set() }
+      : null;
+  }
   const rows = buildingList.querySelectorAll("li, tr");
   const now = Date.now();
   const rawBuildings = [];
