@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.3.0 — 2026-11-10
+
+- New **Upgrade target values** feature: building pages show culture points, population and construction time at the current and next level, e.g. 18 → 21 (+3).
+
 ## Travian QoL 1.2.4 / Night Mode 2.6.1 — 2026-11-10
 
 - Report statistics: the **Hero XP** row shows the hero icon in the icon column.

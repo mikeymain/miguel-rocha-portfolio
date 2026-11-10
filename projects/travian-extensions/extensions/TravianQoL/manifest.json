@@ -1,7 +1,7 @@
 {
 	"manifest_version": 3,
 	"name": "Travian QoL",
-	"version": "1.2.4",
+	"version": "1.3.0",
 	"description": "Collection of small quality-of-life tweaks for Travian. Each feature is independently toggleable.",
 	"permissions": ["storage", "contextMenus"],
 	"host_permissions": [
@@ -61,6 +61,7 @@
 				"features/loot-calc/index.js",
 				"features/skip-ads/index.js",
 				"features/todolist/index.js",
+				"features/upgrade-values/index.js",
 				"content.js"
 			],
 			"css": ["features/loot-calc/styles.css"],
