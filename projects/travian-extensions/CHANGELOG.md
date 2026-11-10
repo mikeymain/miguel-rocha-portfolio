@@ -1,5 +1,10 @@
 # Changelog
 
+## Travian QoL 1.2.3 — 2026-11-10
+
+- Oasis raid reports: the defender's **Resources lost** and **Net resources** show 0, since animals cost nothing to replace.
+- Oasis raid reports with the hero show a **Hero XP** row: 1 XP per crop upkeep of each animal killed.
+
 ## Next Settlement Calc 2.6.1 — 2026-11-10
 
 - ETA history: outliers, such as the very late ETAs logged right after a server start, no longer flatten the chart. They are drawn as hollow dots on the chart edge, the axis label shows ≥ or ≤, and the trend and change ignore them.

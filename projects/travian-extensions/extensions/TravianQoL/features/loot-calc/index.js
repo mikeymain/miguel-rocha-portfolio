@@ -290,6 +290,53 @@
 			<td><div class="inlineIcon " title=""><i class="resources_medium"></i><span class="value ">${defenderLost.toLocaleString()}</span></div></td>`;
 		return row;
 	}
+
+	// ===== OASIS (NATURE) REPORTS =====
+	// Crop upkeep of nature units u31..u40 (Rat .. Elephant). The hero earns
+	// 1 XP per upkeep point of every animal killed.
+	const NATURE_UPKEEP = [1, 1, 1, 1, 2, 2, 3, 3, 3, 5];
+	function unitCounts(table, iconClass) {
+		const row = table.querySelector(`tbody.units i.${iconClass}`)?.closest('tr');
+		return row ? [...row.querySelectorAll('td.unit')].map((td) => parseValueFromElement(td)) : [];
+	}
+	function getNatureTable() {
+		return [...document.querySelectorAll('table')].find((t) =>
+			t.querySelector('tbody.units img.unit.u31'),
+		);
+	}
+	function heroSent(natureTable) {
+		const heroTable = [...document.querySelectorAll('table')].find(
+			(t) => t !== natureTable && t.querySelector('tbody.units img.unit.uhero'),
+		);
+		if (!heroTable) return false;
+		const counts = unitCounts(heroTable, 'troopCount_small');
+		return (counts[counts.length - 1] ?? 0) > 0;
+	}
+	function calcNatureXp(natureTable) {
+		const killed = unitCounts(natureTable, 'troopDead_small');
+		return NATURE_UPKEEP.reduce((xp, upkeep, i) => xp + upkeep * (killed[i] ?? 0), 0);
+	}
+	function zeroDefenderLost(statsTable) {
+		const rows = [...statsTable.querySelectorAll('tr')].filter((row) => row.querySelector('td i.resources_medium'));
+		rows.forEach((row) => {
+			const value = row.querySelectorAll('td')[1]?.querySelector('.value');
+			if (value) value.textContent = '0';
+		});
+	}
+	function createXpRow(xp) {
+		const row = document.createElement('tr');
+		row.className = 'tlw-xp-row';
+		row.innerHTML = `<th>Hero XP</th><td><span class="value ">${xp.toLocaleString()}</span></td><td></td>`;
+		return row;
+	}
+	function applyOasisReport(statsTable) {
+		const natureTable = getNatureTable();
+		if (!natureTable) return;
+		zeroDefenderLost(statsTable);
+		if (heroSent(natureTable) && !statsTable.querySelector('.tlw-xp-row')) {
+			statsTable.appendChild(createXpRow(calcNatureXp(natureTable)));
+		}
+	}
 	function sumOasisResources() {
 		const wrappers = document.querySelectorAll('.inlineIconList.resourceWrapper');
 		if (wrappers.length === 0 || wrappers[0].dataset.tlwOasisSummed) return;
@@ -308,6 +355,7 @@
 			const { attackerLost, defenderLost } = extractLostResources(statsTable);
 			statsTable.appendChild(createNetResourcesRow(grandTotal - attackerLost, defenderLost));
 		}
+		if (statsTable) applyOasisReport(statsTable);
 		log('Oasis total:', grandTotal);
 	}
 
@@ -357,7 +405,7 @@
 	}
 	function refreshAllBadges() {
 		document
-			.querySelectorAll('.tlw-auto-badge, .tlw-oasis-sum, .tlw-net-row, .tlw-tip-line')
+			.querySelectorAll('.tlw-auto-badge, .tlw-oasis-sum, .tlw-net-row, .tlw-xp-row, .tlw-tip-line')
 			.forEach((el) => el.remove());
 		document.querySelectorAll('.carry[data-tlw-processed]').forEach((el) => delete el.dataset.tlwProcessed);
 		document.querySelectorAll('[data-tlw-oasis-summed]').forEach((el) => delete el.dataset.tlwOasisSummed);
