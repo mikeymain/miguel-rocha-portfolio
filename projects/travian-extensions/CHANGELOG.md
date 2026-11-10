@@ -1,5 +1,9 @@
 # Changelog
 
+## Next Settlement Calc 2.6.5 — 2026-11-10
+
+- ETA history has an **8h** range.
+
 ## Next Settlement Calc 2.6.4 — 2026-11-10
 
 - ETA history tooltip lists **No parties**, **With parties** and **Parties + growth**, in that order; the overlay buttons use the same names.

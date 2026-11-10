@@ -12,7 +12,7 @@ Object.assign(
 		const HOUR = 3600000,
 			DAY = 24 * HOUR;
 		/** Selectable sample windows, measured back from now. */
-		const RANGES = { "24h": DAY, "7d": 7 * DAY, "30d": 30 * DAY, all: Infinity };
+		const RANGES = { "8h": 8 * HOUR, "24h": DAY, "7d": 7 * DAY, "30d": 30 * DAY, all: Infinity };
 		/** Series the chart can plot. CP/d does not depend on the target. */
 		const MODES = ["eta", "cpd"];
 		const OVERLAYS = ["baseline", "growth"];
