@@ -1,5 +1,11 @@
 # Changelog
 
+## Next Settlement Calc 2.6.0 — 2026-11-10
+
+- ETA history chart: **24h / 7d / 30d / All** ranges and an **ETA** or **CP/d** series. Settings are saved.
+- Optional **Baseline** and **Growth** forecast overlays, hover tooltip with the sample's ETAs, CP, CP/d and version, and a dotted line at each extension version change.
+- Drag across the chart to show the change and time between two samples. A least-squares trend line and per-day trend appear with at least three samples over six hours.
+
 ## TravAlarm 3.36 — 2026-11-10
 
 - A building alarm is cleared when the build finishes early, e.g. with gold **Finish now** or a cancel. Open the village or resource view after finishing to clear it.

@@ -29,7 +29,7 @@
 		interval;
 	let etaLog = [],
 		etaOpen = false,
-		etaSignature = "";
+		etaChart = null;
 	let copyFeedbackUntil = 0,
 		copyFeedback = "",
 		errorMessage = "";
@@ -110,7 +110,6 @@
 		if (selected !== server || version !== readVersion) return;
 		data = stored[storageKey(selected)] || null;
 		etaLog = stored[logKey(selected)] || [];
-		etaSignature = "";
 		if (!data) {
 			clearDisplay("Open Village Overview → Culture Points to load data.");
 			return;
@@ -290,32 +289,12 @@
 				remaining > 0 ? ` ⏱ ${formatHMS(Math.ceil(remaining))}` : " Available";
 		}
 	}
-	/** Chart of the planned ETA for the selected target across logged samples. */
+	/** Chart of logged forecasts for the selected target. */
 	function renderEtaHistory() {
 		dom.etaHistory.hidden = !etaOpen;
 		dom.etaHistoryToggle.setAttribute("aria-pressed", String(etaOpen));
-		if (!etaOpen) return;
-		const target = Number(dom.targetSlot.value);
-		const series = TSP.etaSeries(etaLog, target);
-		const signature = `${target}:${series.length}:${series.at(-1)?.join()}`;
-		if (signature === etaSignature) return;
-		etaSignature = signature;
-		const summary = TSP.renderEtaChart(dom.etaChart, series);
-		dom.etaEmpty.hidden = !!summary;
-		for (const id of ["etaMax", "etaMin", "etaFrom", "etaTo", "etaChange"])
-			dom[id].textContent = "";
-		dom.etaChange.className = "eta-change";
-		if (!summary) return;
-		dom.etaMax.textContent = TSP.shortDate(summary.max);
-		dom.etaMin.textContent = TSP.shortDate(summary.min);
-		dom.etaFrom.textContent = TSP.shortDate(summary.firstSample);
-		dom.etaTo.textContent = TSP.shortDate(summary.lastSample);
-		const shift = (summary.latest - summary.first) / 1000;
-		if (Math.abs(shift) >= 60) {
-			dom.etaChange.textContent = `${shift < 0 ? "−" : "+"}${formatDuration(Math.abs(shift))}`;
-			dom.etaChange.classList.add(shift < 0 ? "earlier" : "later");
-			dom.etaChange.title = shift < 0 ? "ETA moved earlier" : "ETA moved later";
-		}
+		if (!etaOpen || !etaChart) return;
+		etaChart.update(etaLog, Number(dom.targetSlot.value));
 	}
 	/** Elapsed time from the account and server start to the settle moment. */
 	function renderTotals(settleAt) {
@@ -509,6 +488,11 @@
 			"etaFrom",
 			"etaTo",
 			"etaEmpty",
+			"etaTip",
+			"etaRanges",
+			"etaModes",
+			"etaOverlays",
+			"etaTrend",
 		])
 			dom[id] = document.getElementById(id);
 		try {
@@ -518,12 +502,18 @@
 				"tsp_is_muted",
 				"tsp_zoom",
 				"tsp_eta_history_open",
+				"tsp_eta_chart",
 			]);
 			const servers = (
 				Array.isArray(meta.tsp_servers) ? meta.tsp_servers : []
 			).filter(serverOrigin);
 			muted = !!meta.tsp_is_muted;
 			etaOpen = !!meta.tsp_eta_history_open;
+			etaChart = TSP.createEtaHistory(dom, {
+				onSettings: (settings) =>
+					api.storage.local.set({ tsp_eta_chart: settings }).catch(report),
+			});
+			etaChart.setSettings(meta.tsp_eta_chart || {});
 			renderEtaHistory();
 			updateMuteIcon();
 			zoom = Math.max(0.5, Math.min(2, nonNegative(meta.tsp_zoom, 1) || 1));
@@ -564,7 +554,7 @@
 			dom.exportLog.addEventListener("click", () => exportLog().catch(report));
 			dom.etaHistoryToggle.addEventListener("click", () => {
 				etaOpen = !etaOpen;
-				etaSignature = "";
+				etaChart?.reset();
 				renderEtaHistory();
 				api.storage.local
 					.set({ tsp_eta_history_open: etaOpen })

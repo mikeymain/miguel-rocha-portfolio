@@ -640,7 +640,9 @@ select:focus-visible,
 	display: none;
 }
 .eta-head,
-.eta-axis {
+.eta-axis,
+.eta-controls,
+.eta-foot {
 	display: flex;
 	justify-content: space-between;
 	align-items: baseline;
@@ -660,6 +662,144 @@ select:focus-visible,
 .eta-plot {
 	position: relative;
 	margin: 8px 0 12px;
+	touch-action: none;
+}
+.eta-controls {
+	margin-top: 8px;
+	gap: 6px;
+}
+.eta-foot {
+	margin-top: 6px;
+	gap: 6px;
+	min-height: 18px;
+}
+.eta-chips {
+	display: flex;
+	gap: 2px;
+}
+.eta-chips button {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 2px 6px;
+	font: inherit;
+	font-size: 10px;
+	font-weight: 600;
+	color: var(--text-tertiary);
+	background: transparent;
+	border: 1px solid var(--border-subtle);
+	border-radius: 6px;
+	cursor: pointer;
+}
+.eta-chips button:hover {
+	color: var(--text-secondary);
+	border-color: var(--border-visible);
+}
+.eta-chips button[aria-pressed="true"] {
+	color: var(--text-primary);
+	background: var(--bg-glass);
+	border-color: var(--border-visible);
+}
+.eta-chips button:focus-visible {
+	outline: 2px solid var(--accent-emerald);
+	outline-offset: 1px;
+}
+.eta-swatch {
+	display: inline-block;
+	width: 10px;
+	border-top: 2px dashed currentColor;
+}
+.eta-swatch.baseline {
+	color: var(--text-secondary);
+}
+.eta-swatch.growth {
+	color: var(--accent-purple);
+}
+.eta-trend {
+	white-space: nowrap;
+	font-size: 10px;
+	font-variant-numeric: tabular-nums;
+	color: var(--text-secondary);
+}
+.eta-change.selected {
+	color: var(--accent-blue);
+}
+.eta-overlay-line {
+	fill: none;
+	stroke-width: 1.2;
+	stroke-dasharray: 4 3;
+	vector-effect: non-scaling-stroke;
+}
+.eta-overlay-line.baseline {
+	stroke: var(--text-secondary);
+}
+.eta-overlay-line.growth {
+	stroke: var(--accent-purple);
+}
+.eta-trendline {
+	fill: none;
+	stroke: var(--text-tertiary);
+	stroke-width: 1;
+	stroke-dasharray: 2 3;
+	vector-effect: non-scaling-stroke;
+}
+.eta-marker {
+	stroke: var(--accent-blue);
+	stroke-opacity: 0.35;
+	stroke-dasharray: 1 3;
+	vector-effect: non-scaling-stroke;
+}
+.eta-crosshair {
+	stroke: var(--text-secondary);
+	stroke-width: 1;
+	vector-effect: non-scaling-stroke;
+}
+.eta-selection {
+	fill: var(--accent-blue);
+	fill-opacity: 0.12;
+}
+.eta-selection-edge {
+	stroke: var(--accent-blue);
+	stroke-width: 1;
+	vector-effect: non-scaling-stroke;
+}
+.eta-dot.active {
+	opacity: 1;
+	stroke: var(--text-primary);
+	stroke-width: 1;
+}
+.eta-chart {
+	cursor: crosshair;
+}
+.eta-tip {
+	position: absolute;
+	top: -6px;
+	transform: translateX(10px);
+	z-index: 2;
+	min-width: 140px;
+	padding: 6px 8px;
+	font-size: 10px;
+	line-height: 1.5;
+	color: var(--text-secondary);
+	background: var(--bg-surface);
+	border: 1px solid var(--border-visible);
+	border-radius: 8px;
+	box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+	pointer-events: none;
+	white-space: nowrap;
+}
+.eta-tip.flip {
+	transform: translateX(calc(-100% - 10px));
+}
+.eta-tip div {
+	display: flex;
+	justify-content: space-between;
+	gap: 10px;
+}
+.eta-tip b {
+	font-weight: 600;
+	color: var(--text-primary);
+	font-variant-numeric: tabular-nums;
 }
 .eta-chart {
 	display: block;

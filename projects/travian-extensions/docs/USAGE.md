@@ -100,7 +100,7 @@ For expired sessions, log in and reopen the popup. Missing observations cannot b
 
 <a href="images/cp-planner.png"><img src="images/cp-planner.png" alt="Next Settlement Calc forecast and celebration controls" width="300" /></a>
 
-**Features:** measured CP totals/production, settlement targets and ETA, per-village Town Hall levels, small/large celebration plans, cooldowns, repeated celebration queues, passive-growth projection, baseline forecast, readiness alarm/mute, total time from your account start and the server start to the ETA, ETA history chart, refresh, and forecast-log export.
+**Features:** measured CP totals/production, settlement targets and ETA, per-village Town Hall levels, small/large celebration plans, cooldowns, repeated celebration queues, passive-growth projection, baseline forecast, readiness alarm/mute, total time from your account start and the server start to the ETA, ETA history chart (24h/7d/30d/All ranges, ETA or CP/d series, baseline/growth overlays, trend, version markers, drag-to-compare), refresh, and forecast-log export.
 
 **Usage:**
 
@@ -109,7 +109,7 @@ For expired sessions, log in and reopen the popup. Missing observations cannot b
 3. Compare the planned ETA with the baseline. You must supply resources and start the planned parties yourself. A running celebration's CP was paid at its start and is not counted again at completion.
 4. Passive-growth estimates require observations spanning at least 12 hours. The readiness alarm uses observed/passive CP and plays its sound even with no game tab open; click the notification to dismiss it. Settling also requires settlers and a free expansion slot.
 
-Click the chart button to show how the planned ETA for the selected target changed across logged forecasts; hover a point for its time and ETA.
+Click the chart button to show how the planned ETA for the selected target changed across logged forecasts. Choose a range and the **ETA** or **CP/d** series; toggle **Baseline** and **Growth** overlays. Hover for the sample's values. Drag across the chart to show the change and time between two samples; click to clear it. The trend line and per-day trend appear with at least three samples over six hours. Dotted vertical lines mark extension version changes.
 
 Refreshes when you open the popup or click **Refresh**; there are no background requests. The account start is read once from the oldest system message in your inbox. Failed refreshes retain the last snapshot. Export the forecast log when reporting an incorrect ETA.
 
