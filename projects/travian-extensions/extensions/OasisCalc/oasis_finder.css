@@ -331,7 +331,8 @@
   letter-spacing: 0.04em;
   margin-right: 1px;
 }
-#_vpradius {
+#_vpradius,
+#_vpdb-radius {
   width: 30px;
 }
 
@@ -1251,7 +1252,6 @@
 #_vpdb-modal ._vpdb-input._vpdb-invalid { border-color: #e8786b !important; }
 ._vpdb-q { flex: 1 1 140px; min-width: 120px; }
 ._vpdb-xy { width: 84px; }
-._vpdb-num { width: 58px; }
 ._vpdb-from { max-width: 190px; }
 ._vpdb-label {
   font-size: 10px;

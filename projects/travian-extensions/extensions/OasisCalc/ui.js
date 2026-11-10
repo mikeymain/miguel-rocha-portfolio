@@ -678,8 +678,12 @@ function createUI() {
                         <label class="_vpdb-label" for="_vpdb-from">From</label>
                         <select id="_vpdb-from" class="_vpselect-sm _vpdb-from"></select>
                         <input type="text" id="_vpdb-xy" class="_vpdb-input _vpdb-xy" placeholder="x|y" hidden aria-label="Origin coordinate" autocomplete="off" spellcheck="false">
-                        <label class="_vpdb-label" for="_vpdb-radius">Radius</label>
-                        <input type="number" id="_vpdb-radius" class="_vpdb-input _vpdb-num" min="0" max="200" step="1" placeholder="All">
+                        <div class="_vpradius-group">
+                            <span class="_vpstepper-label" id="_vpdb-radius-lbl">RADIUS</span>
+                            <button type="button" class="_vpstep-btn _vpstep-down" data-target="_vpdb-radius" data-dir="-1" aria-label="Decrease radius">−</button>
+                            <input type="number" id="_vpdb-radius" class="_vpnum" min="0" max="200" step="1" placeholder="All" aria-labelledby="_vpdb-radius-lbl">
+                            <button type="button" class="_vpstep-btn _vpstep-up" data-target="_vpdb-radius" data-dir="1" aria-label="Increase radius">+</button>
+                        </div>
                     </div>
                 </div>
                 <div class="_vpmodal-colhead _vpdb-colhead" role="row">

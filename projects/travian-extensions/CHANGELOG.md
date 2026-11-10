@@ -36,6 +36,10 @@
 
 - ETA history draws a smoothed curve instead of jagged steps. The tooltip still shows the raw values.
 
+## Oasis Finder 70.3 — 2026-11-10
+
+- **View DB**: the **Radius** box uses the same dark −/+ stepper as the main panel.
+
 ## Oasis Finder 70.2 — 2026-11-10
 
 - **View DB**: removed the **Seen** column. The **Garrison** column is now **Oasis**, and the **Location** header no longer overlaps **Dist**.
