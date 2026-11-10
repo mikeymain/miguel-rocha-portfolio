@@ -173,7 +173,20 @@
 			<section class="eta-history" id="etaHistory" hidden>
 				<div class="eta-head">
 					<span class="micro-label">ETA history</span>
-					<span id="etaChange" class="eta-change"></span>
+					<span class="eta-head-right">
+						<span id="etaChange" class="eta-change"></span>
+						<button
+							id="etaPopout"
+							class="eta-icon-btn"
+							type="button"
+							title="Open in window"
+							aria-label="Open ETA history in window"
+						>
+							<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+								<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+							</svg>
+						</button>
+					</span>
 				</div>
 				<div class="eta-controls">
 					<div id="etaRanges" class="eta-chips" role="group" aria-label="Range">
@@ -212,7 +225,12 @@
 							<i class="eta-swatch growth"></i>Growth
 						</button>
 					</div>
-					<span id="etaTrend" class="eta-trend"></span>
+					<span class="eta-foot-right">
+						<button id="etaZoomReset" class="eta-reset" type="button" hidden>
+							Reset zoom
+						</button>
+						<span id="etaTrend" class="eta-trend"></span>
+					</span>
 				</div>
 				<p id="etaEmpty" class="eta-empty" hidden>
 					Not enough forecasts in this range.

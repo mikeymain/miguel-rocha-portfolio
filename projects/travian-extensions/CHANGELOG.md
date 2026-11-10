@@ -1,5 +1,15 @@
 # Changelog
 
+## Next Settlement Calc 2.6.3 — 2026-11-10
+
+- ETA history: scroll over the chart to zoom the time axis, Shift+scroll to pan, double-click or **Reset zoom** to restore.
+- The expand button opens the chart in its own resizable window.
+- Smaller gap between the chart and the villages table.
+
+## Next Settlement Calc 2.6.2 — 2026-11-10
+
+- ETA history draws a smoothed curve instead of jagged steps. The tooltip still shows the raw values.
+
 ## Oasis Finder 70.1 — 2026-11-10
 
 - **View DB**: search and radius boxes keep the dark style on game pages, and column headers no longer run together.

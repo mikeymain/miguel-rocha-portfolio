@@ -5,8 +5,8 @@ Object.assign(
 	(() => {
 		const MAX_POINTS = 120;
 		const SVG_NS = "http://www.w3.org/2000/svg";
-		const WIDTH = 340,
-			HEIGHT = 96,
+		const DEFAULT_WIDTH = 340,
+			DEFAULT_HEIGHT = 96,
 			PAD_X = 4,
 			PAD_Y = 8;
 		const HOUR = 3600000,
@@ -16,6 +16,10 @@ Object.assign(
 		/** Series the chart can plot. CP/d does not depend on the target. */
 		const MODES = ["eta", "cpd"];
 		const OVERLAYS = ["baseline", "growth"];
+		/** Wheel zoom: span multiplier per tick, pan share, narrowest view. */
+		const ZOOM_STEP = 0.8,
+			PAN_STEP = 0.15,
+			MIN_VIEW_SPAN = HOUR;
 		/** A trend needs this many samples spread over at least this long. */
 		const TREND_MIN_POINTS = 3,
 			TREND_MIN_SPAN = 6 * HOUR;
@@ -36,14 +40,24 @@ Object.assign(
 		 * before downsampling so short windows keep their full resolution.
 		 */
 		function historyPoints(log, options = {}) {
-			const { target, mode = "eta", range = Infinity, now = Date.now() } =
-				options;
-			const from = Number.isFinite(range) ? now - range : -Infinity;
+			const {
+				target,
+				mode = "eta",
+				range = Infinity,
+				now = Date.now(),
+				view = null,
+			} = options;
+			const from = Math.max(
+				Number.isFinite(range) ? now - range : -Infinity,
+				view ? view[0] : -Infinity,
+			);
+			const to = view ? view[1] : Infinity;
 			const points = (Array.isArray(log) ? log : [])
 				.filter(
 					(entry) =>
 						Number.isFinite(entry?.t) &&
 						entry.t >= from &&
+						entry.t <= to &&
 						(mode === "cpd"
 							? Number.isFinite(entry.daily)
 							: entry.target === target &&
@@ -232,6 +246,9 @@ Object.assign(
 		function renderEtaChart(target, points, options = {}) {
 			const overlays = options.overlays || [];
 			target.replaceChildren();
+			// Match the viewBox to the rendered size so dots stay round.
+			const WIDTH = Math.round(target.clientWidth) || DEFAULT_WIDTH,
+				HEIGHT = Math.round(target.clientHeight) || DEFAULT_HEIGHT;
 			target.setAttribute("viewBox", `0 0 ${WIDTH} ${HEIGHT}`);
 			if (points.length < 2) return null;
 			const minT = points[0].t,
@@ -318,6 +335,8 @@ Object.assign(
 				dots,
 				layer,
 				x,
+				width: WIDTH,
+				height: HEIGHT,
 				minT,
 				maxT,
 				trend,
@@ -338,10 +357,10 @@ Object.assign(
 			if (!rect.width) return null;
 			return Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
 		}
-		/** The plot's x maps 0–1 onto [PAD_X, WIDTH - PAD_X]. */
+		/** The plot's x maps 0–1 onto [PAD_X, width - PAD_X]. */
 		function fractionToTime(chart, fraction) {
-			const px = fraction * WIDTH;
-			const share = (px - PAD_X) / (WIDTH - 2 * PAD_X);
+			const px = fraction * chart.width;
+			const share = (px - PAD_X) / (chart.width - 2 * PAD_X);
 			return chart.minT + Math.min(1, Math.max(0, share)) * (chart.maxT - chart.minT);
 		}
 
@@ -357,7 +376,9 @@ Object.assign(
 				hover: null,
 				selection: null,
 				dragging: false,
+				view: null,
 			};
+			let extent = null;
 			let chart = null,
 				signature = "",
 				log = [],
@@ -379,6 +400,7 @@ Object.assign(
 			function change(next) {
 				applySettings(next);
 				state.selection = null;
+				state.view = null;
 				signature = "";
 				render();
 				onSettings?.(settings());
@@ -464,7 +486,7 @@ Object.assign(
 					x1: chart.x(t),
 					x2: chart.x(t),
 					y1: 0,
-					y2: HEIGHT,
+					y2: chart.height,
 				});
 			}
 			/** Redraw only the hover and selection layer. */
@@ -485,7 +507,7 @@ Object.assign(
 							x: x1,
 							y: 0,
 							width: Math.max(0, x2 - x1),
-							height: HEIGHT,
+							height: chart.height,
 						}),
 						vline("eta-selection-edge", sel.a),
 						vline("eta-selection-edge", sel.b),
@@ -503,17 +525,24 @@ Object.assign(
 				const point = chart.points[index];
 				chart.layer.append(vline("eta-crosshair", point.t));
 				chart.dots[index].classList.add("active");
-				const px = chart.x(point.t) / WIDTH;
+				const px = chart.x(point.t) / chart.width;
 				showTip(point, px);
 			}
 
 			function render() {
-				const points = historyPoints(log, {
+				const query = {
 					target,
 					mode: state.mode,
 					range: RANGES[state.range],
-				});
-				syncChips(points);
+				};
+				const all = historyPoints(log, query);
+				extent = all.length > 1 ? [all[0].t, all.at(-1).t] : null;
+				if (!extent) state.view = null;
+				const points = state.view
+					? historyPoints(log, { ...query, view: state.view })
+					: all;
+				syncChips(all);
+				dom.etaZoomReset.hidden = !state.view;
 				const overlays =
 					state.mode === "eta"
 						? OVERLAYS.filter((key) => state.overlays.has(key))
@@ -522,6 +551,9 @@ Object.assign(
 					target,
 					state.mode,
 					state.range,
+					state.view?.join("-"),
+					dom.etaChart.clientWidth,
+					dom.etaChart.clientHeight,
 					overlays.join(),
 					points.length,
 					points[0]?.t,
@@ -582,6 +614,41 @@ Object.assign(
 				state.hover = null;
 				drawInteraction();
 			});
+			/** Wheel zooms time around the cursor; Shift+wheel pans. */
+			function zoomView(event) {
+				if (event.ctrlKey || event.metaKey || !chart || !extent) return;
+				const fraction = pointerFraction(event, dom.etaChart);
+				if (fraction === null) return;
+				event.preventDefault();
+				const [a, b] = state.view || extent;
+				const span = b - a;
+				let next;
+				if (event.shiftKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
+					const shift =
+						Math.sign(event.deltaX || event.deltaY) * span * PAN_STEP;
+					next = [a + shift, b + shift];
+					if (next[0] < extent[0]) next = [extent[0], extent[0] + span];
+					if (next[1] > extent[1]) next = [extent[1] - span, extent[1]];
+				} else {
+					const t = fractionToTime(chart, fraction);
+					const factor = event.deltaY < 0 ? ZOOM_STEP : 1 / ZOOM_STEP;
+					const width = Math.max(MIN_VIEW_SPAN, span * factor);
+					const share = span ? (t - a) / span : 0.5;
+					next = [t - width * share, t + width * (1 - share)];
+					next = [Math.max(extent[0], next[0]), Math.min(extent[1], next[1])];
+				}
+				state.view =
+					next[0] <= extent[0] && next[1] >= extent[1] ? null : next;
+				render();
+			}
+			const resetView = () => {
+				if (!state.view) return;
+				state.view = null;
+				render();
+			};
+			dom.etaChart.addEventListener("wheel", zoomView, { passive: false });
+			dom.etaChart.addEventListener("dblclick", resetView);
+			dom.etaZoomReset.addEventListener("click", resetView);
 			dom.etaRanges.addEventListener("click", (event) => {
 				const range = event.target.closest("button")?.dataset.range;
 				if (range && range !== state.range) change({ range });
@@ -612,6 +679,10 @@ Object.assign(
 				},
 				reset() {
 					signature = "";
+				},
+				resize() {
+					signature = "";
+					render();
 				},
 			};
 		}

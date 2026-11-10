@@ -493,6 +493,8 @@
 			"etaModes",
 			"etaOverlays",
 			"etaTrend",
+			"etaZoomReset",
+			"etaPopout",
 		])
 			dom[id] = document.getElementById(id);
 		try {
@@ -508,7 +510,10 @@
 				Array.isArray(meta.tsp_servers) ? meta.tsp_servers : []
 			).filter(serverOrigin);
 			muted = !!meta.tsp_is_muted;
-			etaOpen = !!meta.tsp_eta_history_open;
+			const chartWindow =
+				new URLSearchParams(location.search).get("view") === "chart";
+			document.body.classList.toggle("chart-window", chartWindow);
+			etaOpen = chartWindow || !!meta.tsp_eta_history_open;
 			etaChart = TSP.createEtaHistory(dom, {
 				onSettings: (settings) =>
 					api.storage.local.set({ tsp_eta_chart: settings }).catch(report),
@@ -552,6 +557,15 @@
 				request("SET_MUTED", { muted }).catch(report);
 			});
 			dom.exportLog.addEventListener("click", () => exportLog().catch(report));
+			window.addEventListener("resize", () => etaChart.resize());
+			dom.etaPopout.hidden = chartWindow;
+			dom.etaPopout.addEventListener("click", () => {
+				const url = api.runtime.getURL("popup.html?view=chart");
+				const opened = api.windows?.create
+					? api.windows.create({ url, type: "popup", width: 900, height: 520 })
+					: Promise.resolve(window.open(url));
+				Promise.resolve(opened).catch(report);
+			});
 			dom.etaHistoryToggle.addEventListener("click", () => {
 				etaOpen = !etaOpen;
 				etaChart?.reset();
