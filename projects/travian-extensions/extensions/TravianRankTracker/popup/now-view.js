@@ -107,11 +107,11 @@ const NOW_BREAKDOWNS = {
 };
 
 /** Hours in the trailing window used for raid income per hour. */
-const NOW_RAID_WINDOW_HOURS = 2;
+const NOW_RAID_WINDOW_HOURS = 3;
 
 /**
  * Raid income per hour at a snapshot's time: bounty gained in the trailing
- * 2h of saved history, divided by 2. Reset-safe via the unwrapped totals.
+ * 3h of saved history, divided by 3. Reset-safe via the unwrapped totals.
  *
  * @param {Array<Object>} history - Saved history points.
  * @param {Object} data - Latest snapshot.

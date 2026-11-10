@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.17 — 2026-11-10
+
+- Now: the Raids part of Prod / Hour is the hourly average over the past 3 hours again (bounty gained in the trailing 3 hours ÷ 3).
+
 ## Rank Tracker 5.0.16 — 2026-11-10
 
 - Now: the Raids part of Prod / Hour is the hourly average over the past 2 hours (bounty gained in the trailing 2 hours ÷ 2), was 3 hours.
