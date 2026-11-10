@@ -136,10 +136,10 @@ function incomeOf(snapshot, raidRate) {
 	return snapshot.valProd + (Number.isFinite(raid) ? raid : 0);
 }
 
-/** Collapsible Fields and Raids rows under Prod / Hour. */
+/** Collapsible rows under Prod / Hour: production plus raids, and raids alone. */
 function incomeParts(raidRate) {
 	return [
-		{ name: "Fields", read: (s) => (Number.isFinite(s?.valProd) ? s.valProd : null) },
+		{ name: "With raiding", read: (s) => incomeOf(s, raidRate) },
 		{ name: "Raids", read: (s) => { const raid = raidRate(s); return Number.isFinite(raid) ? raid : null; } },
 	];
 }
@@ -537,7 +537,7 @@ function renderGeneral(data, deltaCells, history) {
 	};
 
 	add("Population", "rankPop", "valPop");
-	add("Prod / Hour", "rankProd", "valProd", (s) => incomeOf(s, raidRate), incomeParts(raidRate));
+	add("Prod / Hour", "rankProd", "valProd", undefined, incomeParts(raidRate));
 	add("Prod So Far", "rankProdSoFar", "valProdSoFar");
 	add("CP / Day", "rankCp", "cpProd");
 	add("CP So Far", "rankCpSoFar", "valCpSoFar");
