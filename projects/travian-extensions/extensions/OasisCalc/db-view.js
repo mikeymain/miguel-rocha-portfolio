@@ -8,7 +8,7 @@ const DB_OPEN_MAX = 50; // hard cap per click; background.js enforces it too
 const DB_MAP_LIMIT = Math.floor(MAP_SIZE / 2);
 const DB_BONUS_NAMES = { 1: "Lumber", 2: "Clay", 3: "Iron", 4: "Crop" };
 // Default direction per column: 1 = ascending, -1 = descending.
-const DB_SORT_DEFAULT_DIR = { loc: 1, dist: 1, type: 1, animals: -1, res: -1, seen: 1 };
+const DB_SORT_DEFAULT_DIR = { loc: 1, dist: 1, type: 1, animals: -1, res: -1 };
 const DB_SORT_LAST = Infinity; // unknown values always sort last
 
 let _dbSort = { key: "dist", dir: 1 };
@@ -112,8 +112,6 @@ function _dbSortValue(row, key, now) {
       return row.count;
     case "res":
       return row.res;
-    case "seen":
-      return row.scannedAt ? now - row.scannedAt : DB_SORT_LAST;
     case "dist":
     default:
       return row.dist;
@@ -142,9 +140,6 @@ function _dbTypeHTML(types) {
 }
 
 function _dbRowHTML(o, now) {
-  const age = o.scannedAt ? getObservationAge(o, now) : null;
-  const seenCls = age ? (age.stale ? "_vphp-mid" : "_vphp-ok") : "_vpdb-dim";
-  const seen = age ? age.label || "now" : "—";
   const dash = '<span class="_vpdb-dim">—</span>';
   return (
     `<div class="_vpmodal-item" role="row">` +
@@ -153,7 +148,6 @@ function _dbRowHTML(o, now) {
     `<span role="cell" class="_vpdb-types">${_dbTypeHTML(o.types)}</span>` +
     `<span role="cell" class="_vpmodal-gar" title="${escapeHTML(o.garrison)}">${o.count ? escapeHTML(o.garrison) : dash}</span>` +
     `<span role="cell" class="_vpdb-res">${o.res ? escapeHTML(o.res.toLocaleString()) : dash}</span>` +
-    `<span role="cell" class="_vpdb-seen ${seenCls}">${escapeHTML(seen)}</span>` +
     `</div>`
   );
 }

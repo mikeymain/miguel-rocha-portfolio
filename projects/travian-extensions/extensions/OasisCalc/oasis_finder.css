@@ -1264,7 +1264,7 @@
 ._vpmodal-dialog:not(._vpmodal-errors) ._vpdb-colhead,
 ._vpmodal-dialog:not(._vpmodal-errors) ._vpmodal-item {
   display: grid;
-  grid-template-columns: 62px 50px 118px minmax(0, 1fr) 56px 58px;
+  grid-template-columns: 74px 50px 118px minmax(0, 1fr) 56px;
   gap: 8px;
 }
 ._vpdb-colhead { padding: 6px 15px 6px 15px; }
@@ -1287,9 +1287,7 @@
 ._vpdb-sort.active[data-dir="asc"]::after { content: " ↑"; }
 ._vpdb-sort.active[data-dir="desc"]::after { content: " ↓"; }
 ._vpcol-res,
-._vpcol-seen,
-._vpdb-res,
-._vpdb-seen { text-align: right; }
+._vpdb-res { text-align: right; }
 
 ._vpmodal-dialog:not(._vpmodal-errors) ._vpmodal-coords,
 ._vpmodal-dialog:not(._vpmodal-errors) ._vpmodal-dist { width: auto; }
@@ -1311,8 +1309,7 @@
 ._vpdb-type-2 { color: #e0896b; }
 ._vpdb-type-3 { color: #a9b4c2; }
 ._vpdb-type-4 { color: #e3c75a; }
-._vpdb-res,
-._vpdb-seen {
+._vpdb-res {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-size: 10.5px;
   color: #cfd3d8;

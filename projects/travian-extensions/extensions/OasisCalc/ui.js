@@ -668,7 +668,7 @@ function createUI() {
                             <option value="3">Iron</option>
                             <option value="4">Crop</option>
                         </select>
-                        <select id="_vpdb-state" class="_vpselect-sm" aria-label="Garrison">
+                        <select id="_vpdb-state" class="_vpselect-sm" aria-label="Oasis">
                             <option value="all">All oases</option>
                             <option value="animals">With animals</option>
                             <option value="nodata">No animals</option>
@@ -686,9 +686,8 @@ function createUI() {
                     <span role="columnheader" class="_vpcol-loc" aria-sort="none"><button type="button" class="_vpdb-sort" data-sort="loc">Location</button></span>
                     <span role="columnheader" class="_vpcol-dist" aria-sort="ascending"><button type="button" class="_vpdb-sort active" data-sort="dist">Dist</button></span>
                     <span role="columnheader" class="_vpcol-type" aria-sort="none"><button type="button" class="_vpdb-sort" data-sort="type">Type</button></span>
-                    <span role="columnheader" class="_vpcol-gar" aria-sort="none"><button type="button" class="_vpdb-sort" data-sort="animals">Garrison</button></span>
+                    <span role="columnheader" class="_vpcol-gar" aria-sort="none"><button type="button" class="_vpdb-sort" data-sort="animals">Oasis</button></span>
                     <span role="columnheader" class="_vpcol-res" aria-sort="none"><button type="button" class="_vpdb-sort" data-sort="res">Res</button></span>
-                    <span role="columnheader" class="_vpcol-seen" aria-sort="none"><button type="button" class="_vpdb-sort" data-sort="seen">Seen</button></span>
                 </div>
                 <div id="_vpdb-list" class="_vpmodal-list" role="rowgroup"></div>
                 <div class="_vpmodal-footer">

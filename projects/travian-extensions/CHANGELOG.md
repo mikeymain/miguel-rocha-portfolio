@@ -36,6 +36,10 @@
 
 - ETA history draws a smoothed curve instead of jagged steps. The tooltip still shows the raw values.
 
+## Oasis Finder 70.2 — 2026-11-10
+
+- **View DB**: removed the **Seen** column. The **Garrison** column is now **Oasis**, and the **Location** header no longer overlaps **Dist**.
+
 ## Oasis Finder 70.1 — 2026-11-10
 
 - **View DB**: search and radius boxes keep the dark style on game pages, and column headers no longer run together.
