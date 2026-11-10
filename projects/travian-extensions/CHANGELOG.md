@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.3.1 — 2026-11-10
+
+- Upgrade target values compare the built level with the next level. Before, queued upgrades shifted both numbers to the levels after the queue.
+
 ## Travian QoL 1.3.0 — 2026-11-10
 
 - New **Upgrade target values** feature: building pages show culture points, population and construction time at the current and next level, e.g. 18 → 21 (+3).

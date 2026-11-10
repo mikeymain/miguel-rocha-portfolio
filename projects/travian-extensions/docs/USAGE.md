@@ -82,7 +82,7 @@ Open the toolbar popup or **Options** page. Features are enabled by default and 
 | Loot Calculator | Select resource text, then **right-click → Calculate Troops Needed**. Choose tribe and carrying unit. Reports also show unit-count badges. Set default/per-server units in the **Loot Calculator** settings tab. |
 | In-game to-do list | Add, edit, reorder, and complete village-specific tasks. Lists are saved locally; the widget can be dragged or collapsed. |
 | Skip builder-bonus ads | Mutes video-feature ads you start and moves them to a corner so the page stays usable; links you open meanwhile load in an overlay so the ad keeps playing. Announces when the ad finishes. The ad always plays at normal speed, and the extension never starts an ad on its own. |
-| Upgrade target values | On building pages, culture points, population and construction time show the current value and the value at the next level, e.g. **18 → 21 (+3)**. |
+| Upgrade target values | On building pages, culture points, population and construction time show the built level's value and the next level's, e.g. **9 → 10 (+1)** for a level 8 Residence, even when more levels are queued. |
 | Counter-attack calculator | In **Counter-attack**, enter coordinates, troop/server speeds, bonuses, and attack timings to calculate return/interception times. |
 
 <a href="images/farm-selection.png"><img src="images/farm-selection.png" alt="Right-click menu for selected farm-list targets" width="420" /></a>
