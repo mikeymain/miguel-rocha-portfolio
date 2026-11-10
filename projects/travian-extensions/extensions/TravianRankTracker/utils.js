@@ -827,6 +827,23 @@ async function processHtmlData(
  * @returns {Promise<{data: Object|null, status: string}>}
  *          `status` is one of: "ok", "logged_out", "fetch_error", "empty"
  */
+/**
+ * Read the ".sum .total" value from the production statistics page without
+ * DOMParser, so the popup and the background service worker store the same
+ * Prod / Hour figure.
+ *
+ * @param {string} html - /village/statistics/resources/production page.
+ * @returns {number|null}
+ */
+function parseProductionTotal(html) {
+	if (typeof html !== "string") return null;
+	const sumAt = html.search(/class="[^"]*\bsum\b[^"]*"/);
+	if (sumAt < 0) return null;
+	const match = html.slice(sumAt).match(/class="[^"]*\btotal\b[^"]*"[^>]*>([\s\S]*?)<\/(?:td|th|span|div)>/);
+	if (!match) return null;
+	return cleanSmartNum(match[1].replace(/<[^>]*>/g, "").replace(/&[#\w]+;/g, ""));
+}
+
 async function fetchAllEndpoints(serverOrigin, api, storageKey, options = {}) {
 	if (!isTravianOrigin(serverOrigin)) return { data: null, status: "fetch_error" };
 	const { saveToHistory: shouldSave = true } = options;
@@ -887,11 +904,8 @@ async function fetchAllEndpoints(serverOrigin, api, storageKey, options = {}) {
 				`${serverOrigin}/village/statistics/resources/production`,
 				{ credentials: "include" },
 			);
-			if (prodRes.ok && typeof DOMParser !== "undefined") {
-				const prodText = await prodRes.text();
-				const prodDoc = new DOMParser().parseFromString(prodText, "text/html");
-				const totalSpan = prodDoc.querySelector(".sum .total");
-				const total = totalSpan ? cleanSmartNum(totalSpan.innerText) : null;
+			if (prodRes.ok) {
+				const total = parseProductionTotal(await prodRes.text());
 				if (total != null) mergedData.valProd = total;
 			}
 		} catch (_) {

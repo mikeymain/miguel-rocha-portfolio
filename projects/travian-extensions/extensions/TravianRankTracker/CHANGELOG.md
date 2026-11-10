@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.18 — 2026-11-10
+
+- Fix: Prod / Hour Fields jumped by about 250/h between refreshes. Background refreshes stored the statistics daily production ÷ 24, popup refreshes the production page total. Both now store the production page total (parsed without DOMParser). Older history keeps the mixed values, so changes against snapshots taken before 5.0.18 can still be off.
+
 ## Rank Tracker 5.0.17 — 2026-11-10
 
 - Now: the Raids part of Prod / Hour is the hourly average over the past 3 hours again (bounty gained in the trailing 3 hours ÷ 3).
