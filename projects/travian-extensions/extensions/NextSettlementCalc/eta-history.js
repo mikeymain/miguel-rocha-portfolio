@@ -137,20 +137,29 @@ Object.assign(
 		}
 
 		const LERP_KEYS = ["value", "baseline", "growth", "cp", "daily"];
-		/** Point at time t, linearly interpolated between its two neighbours. */
+		/**
+		 * Value of `key` at time t, interpolated between the nearest samples
+		 * on each side that have it, so gaps in one field don't blank it.
+		 */
+		function valueAt(points, key, t) {
+			let before = null,
+				after = null;
+			for (const p of points) {
+				if (p[key] == null) continue;
+				if (p.t <= t) before = p;
+				else {
+					after = p;
+					break;
+				}
+			}
+			if (!before || !after) return (before || after)?.[key] ?? null;
+			const share = (t - before.t) / (after.t - before.t || 1);
+			return before[key] + share * (after[key] - before[key]);
+		}
+		/** Point at time t with every field interpolated. */
 		function pointAt(points, t) {
-			let i = 0;
-			while (i < points.length - 2 && points[i + 1].t < t) i++;
-			const a = points[i],
-				b = points[i + 1];
-			const share = Math.min(1, Math.max(0, (t - a.t) / (b.t - a.t || 1)));
-			const near = share < 0.5 ? a : b;
-			const point = { ...near, t: a.t + share * (b.t - a.t) };
-			for (const key of LERP_KEYS)
-				point[key] =
-					a[key] != null && b[key] != null
-						? a[key] + share * (b[key] - a[key])
-						: near[key];
+			const point = { t };
+			for (const key of LERP_KEYS) point[key] = valueAt(points, key, t);
 			return point;
 		}
 
@@ -311,13 +320,16 @@ Object.assign(
 						}),
 					);
 			});
+			const curves = {};
 			for (const key of overlays) {
 				const coords = points
 					.map((p, i) => [x(p.t), smooth[key][i]])
 					.filter(([, v]) => v !== null)
 					.map(([px, v]) => [px, y(v)]);
-				if (coords.length > 1)
-					target.append(curvePath(`eta-overlay-line ${key}`, coords));
+				if (coords.length > 1) {
+					curves[key] = curvePath(`eta-overlay-line ${key}`, coords);
+					target.append(curves[key]);
+				}
 			}
 			const trend = trendFit(
 				points.filter((_, i) => inside(smooth.value[i])),
@@ -334,6 +346,7 @@ Object.assign(
 				points.map((p, i) => [x(p.t), y(smooth.value[i])]),
 			);
 			target.append(line);
+			curves.value = line;
 			const dots = points.map((p, index) => {
 				const last = index === points.length - 1;
 				const dot = svg("circle", {
@@ -350,9 +363,16 @@ Object.assign(
 			return {
 				points,
 				dots,
-				line,
+				curves,
 				layer,
 				x,
+				// Inverse of y(); null where the curve is pinned to an edge.
+				valueAtY: (py) => {
+					const top = PAD_Y,
+						bottom = HEIGHT - PAD_Y;
+					if (py <= top + 0.5 || py >= bottom - 0.5) return null;
+					return minV + ((bottom - py) / (bottom - top)) * (maxV - minV);
+				},
 				width: WIDTH,
 				height: HEIGHT,
 				minT,
@@ -378,8 +398,11 @@ Object.assign(
 		/** Y of a left-to-right path at x, by bisecting its length. */
 		function curveY(path, x) {
 			if (typeof path?.getTotalLength !== "function") return null;
+			const total = path.getTotalLength();
+			if (x < path.getPointAtLength(0).x - 0.5) return null;
+			if (x > path.getPointAtLength(total).x + 0.5) return null;
 			let lo = 0,
-				hi = path.getTotalLength();
+				hi = total;
 			for (let i = 0; i < 24; i++) {
 				const mid = (lo + hi) / 2;
 				if (path.getPointAtLength(mid).x < x) lo = mid;
@@ -557,11 +580,22 @@ Object.assign(
 				const point = pointAt(chart.points, t);
 				const x = chart.x(t);
 				chart.layer.append(vline("eta-crosshair", t));
-				const y = curveY(chart.line, x);
-				if (y !== null)
+				// Read each drawn series straight off its curve.
+				for (const [key, path] of Object.entries(chart.curves)) {
+					const y = curveY(path, x);
+					if (y === null) continue;
 					chart.layer.append(
-						svg("circle", { class: "eta-hover-dot", cx: x, cy: y, r: 2.5 }),
+						svg("circle", {
+							class: `eta-hover-dot ${key}`,
+							cx: x,
+							cy: y,
+							r: key === "value" ? 2.5 : 2,
+						}),
 					);
+					const traced = chart.valueAtY(y);
+					if (traced !== null) point[key] = traced;
+				}
+				if (state.mode === "cpd") point.daily = point.value;
 				showTip(point, x / chart.width);
 			}
 

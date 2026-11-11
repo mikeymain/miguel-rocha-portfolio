@@ -819,6 +819,12 @@ body.chart-window {
 	vector-effect: non-scaling-stroke;
 	pointer-events: none;
 }
+.eta-hover-dot.baseline {
+	fill: var(--text-secondary);
+}
+.eta-hover-dot.growth {
+	fill: var(--accent-purple);
+}
 .eta-tip {
 	position: absolute;
 	bottom: calc(100% + 6px);
