@@ -1,5 +1,9 @@
 # Changelog
 
+## TravAlarm 3.41 — 2026-11-11
+
+- Settlers and research countdowns now use the same timer text styling as all other active alarms. Category colors remain on names and accents.
+
 ## World Watch 1.3.0 — 2026-11-11
 
 - Map: **Top 10** and **Top 100** checkboxes ring the largest accounts by population; Top 10 are labelled with rank and name and listed in the legend. The tooltip shows rank.

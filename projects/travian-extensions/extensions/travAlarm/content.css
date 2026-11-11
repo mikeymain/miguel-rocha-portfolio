@@ -1041,14 +1041,8 @@
 .tw-type-teal {
   --alarm-color: var(--tw-c-teal);
 }
-.tw-type-teal .t {
-  color: var(--tw-c-teal);
-}
 .tw-type-lime {
   --alarm-color: var(--tw-c-lime);
-}
-.tw-type-lime .t {
-  color: var(--tw-c-lime);
 }
 
 [class*="tw-type-"] .tw-alarm-accent,

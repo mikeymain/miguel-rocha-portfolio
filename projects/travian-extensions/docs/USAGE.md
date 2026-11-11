@@ -61,6 +61,10 @@ Unknown-age or incomplete readings are excluded. **Errors** shows scan problems,
 3. Use **Presets** for reusable reminders. Pin or delete timers with their controls.
 4. Set volume, enabled categories and the **All sounds** mute under **Sound Settings**. Allow browser notifications for desktop alerts.
 
+All active alarm countdowns use the same green timer text, including settlers and research. Category colors remain on names and accents.
+
+<a href="images/travalarm-timers.png"><img src="images/travalarm-timers.png" alt="Stable, settlers and research countdowns using identical timer text" width="236" /></a>
+
 Timers depend on available game data. Browser shutdown, computer sleep, expired sessions, and muted audio can affect alerts.
 
 TravAlarm refreshes game data only while its Travian tab is visible (a second monitor works) and the computer has had input in the last 10 minutes. Hidden tabs, an idle computer or a locked screen pause requests; new attacks are picked up when you return.
