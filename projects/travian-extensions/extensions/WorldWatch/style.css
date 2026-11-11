@@ -285,3 +285,15 @@ button.tv-btn {
 	border: 2px solid rgba(0, 0, 0, 0.25);
 	flex: none;
 }
+
+.swatch.ring {
+	background: transparent !important;
+	border: 3px solid #e01e37;
+}
+.swatch.ring.white {
+	border-color: #ffffff;
+	box-shadow: 0 0 0 1px #555555;
+}
+.swatch.blank {
+	border: none;
+}

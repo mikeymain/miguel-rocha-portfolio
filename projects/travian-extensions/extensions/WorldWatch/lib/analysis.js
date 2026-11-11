@@ -70,6 +70,17 @@
 
 	const ALLIANCE_COLORS = ["#d7263d", "#1b6ca8", "#f49d37", "#7b2cbf", "#2a9d8f", "#e76f51", "#3a86ff", "#8d6e63", "#ff5d8f", "#00a6a6"];
 
+	// Accounts ranked by population. x/y is the account's largest village.
+	function topAccounts(snap, limit = 100) {
+		const rows = [];
+		for (const acc of accounts(snap).values()) {
+			const big = acc.idx.reduce((b, i) => (snap.pop[i] > snap.pop[b] ? i : b), acc.idx[0]);
+			rows.push({ uid: acc.uid, player: snap.players[acc.uid] || "", aid: acc.aid, alliance: snap.alliances[acc.aid] || "", pop: acc.pop, villages: acc.villages, x: snap.x[big], y: snap.y[big] });
+		}
+		rows.sort((p, q) => q.pop - p.pop || p.uid - q.uid);
+		return rows.slice(0, limit).map((r, i) => ({ rank: i + 1, ...r }));
+	}
+
 	// Map overlay data: newest spawns, the ring they form and the top alliances.
 	function mapLayers(snap, { spawnCount = 40, allianceCount = 10 } = {}) {
 		const perQuad = newestPerQuadrant(snap, spawnCount);
@@ -79,7 +90,10 @@
 			...a,
 			color: ALLIANCE_COLORS[i],
 		}));
+		const top = topAccounts(snap, 100);
 		return {
+			top,
+			topRank: new Map(top.map((r) => [r.uid, r.rank])),
 			spawnUids: new Set(spawns.map((a) => a.uid)),
 			spawnVids: new Set(spawns.map((a) => a.spawnVid)),
 			ring: dists.length ? { min: round1(Math.min(...dists)), median: round1(median(dists)), max: round1(Math.max(...dists)) } : null,
@@ -237,6 +251,7 @@
 		accounts,
 		spawnRing,
 		mapLayers,
+		topAccounts,
 		parsePoint,
 		goldSuspects,
 		topAlliances,

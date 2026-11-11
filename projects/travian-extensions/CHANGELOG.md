@@ -1,5 +1,10 @@
 # Changelog
 
+## World Watch 1.3.0 — 2026-11-11
+
+- Map: **Top 10** and **Top 100** checkboxes ring the largest accounts by population; Top 10 are labelled with rank and name and listed in the legend. The tooltip shows rank.
+- Map: panning works in every direction at every zoom. Before, when the whole world fitted the window width, only up and down worked.
+
 ## World Watch 1.2.0 — 2026-11-11
 
 - Map fills the free page area (minimum 543 × 401 px) and zooms out to the whole world.

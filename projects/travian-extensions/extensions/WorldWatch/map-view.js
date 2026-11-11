@@ -13,6 +13,8 @@
 	const GRASS = ["#b4d07e", "#b1ce7a", "#b7d282", "#afcc78"];
 	const SPAWN = "#ffd84a";
 	const EDGE = "#5a4220";
+	const TOP10 = "#e01e37";
+	const TOP100 = "#ffffff";
 	const OUTSIDE = "#3f4a33";
 
 	// Zoom levels for a view; the last one fits the whole world.
@@ -120,7 +122,7 @@
 				if (`${W}x${H}` !== before) draw();
 			}).observe(container);
 		}
-		const st = { snap: null, layers: null, show: { spawns: true, alliances: true }, cx: 0, cy: 0, zoom: 0, byField: new Map(), onChange: null };
+		const st = { snap: null, layers: null, show: { spawns: true, alliances: true, top10: false, top100: false }, cx: 0, cy: 0, zoom: 0, byField: new Map(), onChange: null };
 
 		const levels = () => zoomLevels(vw, vh);
 		const zoomValue = () => levels()[Math.min(st.zoom, levels().length - 1)];
@@ -130,12 +132,23 @@
 		const fitsY = () => scale() * SPAN <= vh;
 		const toScreen = (x, y) => {
 			const s = scale();
-			return [RULER_Y_W + vw / 2 + signedWrap(x - st.cx) * s, vh / 2 - signedWrap(y - st.cy) * s];
+			// An axis where the whole world fits on screen does not wrap.
+			const dx = fitsX() ? x - st.cx : signedWrap(x - st.cx);
+			const dy = fitsY() ? y - st.cy : signedWrap(y - st.cy);
+			return [RULER_Y_W + vw / 2 + dx * s, vh / 2 - dy * s];
 		};
 		const toField = (px, py) => {
 			const s = scale();
-			return [wrapCoord(st.cx + (px - RULER_Y_W - vw / 2) / s), wrapCoord(st.cy - (py - vh / 2) / s)];
+			const fx = st.cx + (px - RULER_Y_W - vw / 2) / s;
+			const fy = st.cy - (py - vh / 2) / s;
+			return [fitsX() ? Math.round(fx) : wrapCoord(fx), fitsY() ? Math.round(fy) : wrapCoord(fy)];
 		};
+
+		// On an axis that fits, keep the centre inside the world instead of wrapping.
+		function clampCentre() {
+			if (fitsX()) st.cx = Math.max(-200, Math.min(200, st.cx));
+			if (fitsY()) st.cy = Math.max(-200, Math.min(200, st.cy));
+		}
 
 		function worldRect(s) {
 			const x0 = fitsX() ? toScreen(-200, 0)[0] - s / 2 : RULER_Y_W;
@@ -208,13 +221,36 @@
 			return a ? a.color : null;
 		}
 
+		// Rank (1-based) of the account when the Top 10 / Top 100 layer shows it.
+		function shownRank(uid) {
+			const rank = st.layers.topRank && st.layers.topRank.get(uid);
+			if (!rank) return 0;
+			if (rank <= 10 && (st.show.top10 || st.show.top100)) return rank;
+			return st.show.top100 ? rank : 0;
+		}
+
+		function drawTopMarker(sx, sy, s, rank) {
+			const r = Math.max(rank <= 10 ? 5 : 4, s * 0.4);
+			g.lineWidth = rank <= 10 ? Math.max(2.5, s * 0.07) : Math.max(1.5, s * 0.04);
+			g.strokeStyle = "rgba(0, 0, 0, 0.55)";
+			g.beginPath();
+			g.arc(sx, sy, r + 1, 0, Math.PI * 2);
+			g.stroke();
+			g.strokeStyle = rank <= 10 ? TOP10 : TOP100;
+			g.beginPath();
+			g.arc(sx, sy, r, 0, Math.PI * 2);
+			g.stroke();
+		}
+
 		function drawVillages(s) {
 			const snap = st.snap;
 			const pad = s;
 			const spawnIdx = [];
+			const topIdx = [];
 			for (let i = 0; i < snap.uid.length; i++) {
 				const [sx, sy] = toScreen(snap.x[i], snap.y[i]);
 				if (sx < RULER_Y_W - pad || sx > RULER_Y_W + vw + pad || sy < -pad || sy > vh + pad) continue;
+				if (shownRank(snap.uid[i])) topIdx.push(i);
 				if (st.show.spawns && st.layers.spawnVids.has(snap.vid[i])) {
 					spawnIdx.push(i);
 					continue;
@@ -228,6 +264,11 @@
 				g.arc(sx, sy, Math.max(4, s * 0.42), 0, Math.PI * 2);
 				g.fill();
 				drawVillage(g, sx, sy, s, snap.pop[i], allianceColor(snap.aid[i]) || SPAWN);
+			}
+			topIdx.sort((a, b) => shownRank(snap.uid[b]) - shownRank(snap.uid[a]));
+			for (const i of topIdx) {
+				const [sx, sy] = toScreen(snap.x[i], snap.y[i]);
+				drawTopMarker(sx, sy, s, shownRank(snap.uid[i]));
 			}
 		}
 
@@ -247,9 +288,16 @@
 			g.fillText(text, sx + 1, sy);
 		}
 
-		function drawAllianceLabels() {
-			if (!st.show.alliances) return;
+		function drawLabels() {
 			const placed = [];
+			if (st.show.top10 || st.show.top100) {
+				for (const a of st.layers.top.slice(0, 10)) {
+					const [sx, sy] = toScreen(a.x, a.y);
+					if (sx < RULER_Y_W || sx > RULER_Y_W + vw || sy < 0 || sy > vh) continue;
+					label(`#${a.rank} ${a.player || a.uid}`, sx, sy - 22, TOP10, placed);
+				}
+			}
+			if (!st.show.alliances) return;
 			for (const a of st.layers.alliances) {
 				const [x, y] = a.centre.split("|").map(Number);
 				const [sx, sy] = toScreen(x, y);
@@ -312,8 +360,7 @@
 			g.clearRect(0, 0, W, H);
 			st.zoom = Math.min(st.zoom, levels().length - 1);
 			const s = scale();
-			if (fitsX()) st.cx = 0;
-			if (fitsY()) st.cy = 0;
+			clampCentre();
 			const halfX = Math.ceil(vw / 2 / s) + 1;
 			const halfY = Math.ceil(vh / 2 / s) + 1;
 			const fx0 = fitsX() ? -200 : Math.floor(st.cx) - halfX;
@@ -328,7 +375,7 @@
 			if (st.snap) {
 				drawRing(s);
 				drawVillages(s);
-				drawAllianceLabels();
+				drawLabels();
 			}
 			drawEdges(s);
 			g.restore();
@@ -346,7 +393,8 @@
 			const rect = canvas.getBoundingClientRect();
 			const px = evt.clientX - rect.left;
 			const py = evt.clientY - rect.top;
-			if (!st.snap || px < RULER_Y_W || py > vh) {
+			const [tfx, tfy] = toField(px, py);
+			if (!st.snap || px < RULER_Y_W || py > vh || Math.abs(tfx) > 200 || Math.abs(tfy) > 200) {
 				tooltip.hidden = true;
 				return;
 			}
@@ -358,6 +406,8 @@
 				lines.unshift(snap.players[snap.uid[i]] || `uid ${snap.uid[i]}`);
 				if (snap.aid[i]) lines.push(`Alliance: ${snap.alliances[snap.aid[i]] || snap.aid[i]}`);
 				lines.push(`Population: ${snap.pop[i]}`);
+				const rank = st.layers.topRank && st.layers.topRank.get(snap.uid[i]);
+				if (rank) lines.push(`Rank: ${rank}`);
 				if (st.layers.spawnVids.has(snap.vid[i])) lines.push(`New account · uid ${snap.uid[i]}`);
 			}
 			tooltip.replaceChildren(
@@ -391,8 +441,8 @@
 		const endDrag = () => {
 			if (!drag) return;
 			drag = null;
-			st.cx = wrapCoord(st.cx);
-			st.cy = wrapCoord(st.cy);
+			if (!fitsX()) st.cx = wrapCoord(st.cx);
+			if (!fitsY()) st.cy = wrapCoord(st.cy);
 			canvas.classList.remove("dragging");
 			draw();
 		};

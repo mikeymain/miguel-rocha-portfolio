@@ -167,6 +167,11 @@
 		mapKey = key;
 		const items = [];
 		if (layers.ring) items.push(legendItem("#ffd84a", `Spawns: ${layers.spawnUids.size} · ${layers.ring.min}–${layers.ring.max} (median ${layers.ring.median})`, "spawn"));
+		if ($("map-top10").checked || $("map-top100").checked) {
+			items.push(legendItem("#e01e37", "Top 10", "ring"));
+			for (const t of layers.top.slice(0, 10)) items.push(legendItem("transparent", `#${t.rank} ${t.player || t.uid} · ${t.pop} · ${t.x}|${t.y}`, "blank"));
+		}
+		if ($("map-top100").checked) items.push(legendItem("#ffffff", "Top 100", "ring white"));
 		for (const a of layers.alliances) items.push(legendItem(a.color, `${a.tag || "#" + a.aid} · ${a.members} · ${a.pop} · ${a.centre}`));
 		$("map-legend").replaceChildren(...items);
 		const newest = layers.newest ? ` · newest uid ${layers.newest.uid} at ${layers.newest.sx}|${layers.newest.sy}` : "";
@@ -247,6 +252,12 @@
 	$("map-count").addEventListener("change", render);
 	$("map-spawns").addEventListener("change", () => mapInstance().setShow({ spawns: $("map-spawns").checked }));
 	$("map-alliances").addEventListener("change", () => mapInstance().setShow({ alliances: $("map-alliances").checked }));
+	for (const id of ["map-top10", "map-top100"]) {
+		$(id).addEventListener("change", () => {
+			mapInstance().setShow({ top10: $("map-top10").checked, top100: $("map-top100").checked });
+			render();
+		});
+	}
 	$("map-zoom-in").addEventListener("click", () => mapInstance().setZoom(mapInstance().zoom - 1));
 	$("map-zoom-out").addEventListener("click", () => mapInstance().setZoom(mapInstance().zoom + 1));
 	$("map-go").addEventListener("click", mapGoto);
