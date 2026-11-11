@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>World Watch</title>
+		<link rel="stylesheet" href="style.css" />
+		<script src="lib/analysis.js"></script>
+		<script src="lib/db.js"></script>
+		<script src="dashboard.js" defer></script>
+	</head>
+	<body class="dash">
+		<header class="row">
+			<h1>World Watch</h1>
+			<label for="host">World</label>
+			<select id="host"></select>
+			<label for="cur">Snapshot</label>
+			<select id="cur"></select>
+			<label for="prev">Compare with</label>
+			<select id="prev"></select>
+		</header>
+		<p id="msg" class="msg" role="status" aria-live="polite"></p>
+		<nav class="tabs" role="tablist" aria-label="Views">
+			<button type="button" role="tab" data-view="growth" aria-selected="true">Growth</button>
+			<button type="button" role="tab" data-view="spawn" aria-selected="false">Spawn ring</button>
+			<button type="button" role="tab" data-view="gold" aria-selected="false">Gold suspects</button>
+			<button type="button" role="tab" data-view="alliances" aria-selected="false">Alliances</button>
+		</nav>
+		<section id="controls-spawn" class="row" hidden>
+			<label for="spawn-count">Newest accounts</label>
+			<input id="spawn-count" type="number" min="5" max="500" value="40" />
+		</section>
+		<section id="controls-gold" class="row" hidden>
+			<label for="point">Point (x|y)</label>
+			<input id="point" type="text" placeholder="0|0" autocomplete="off" />
+			<label for="radius">Radius</label>
+			<input id="radius" type="number" min="1" max="300" placeholder="all" />
+			<label><input id="flagged" type="checkbox" /> Above p99 only</label>
+		</section>
+		<div class="row">
+			<span id="summary" class="summary"></span>
+			<button id="csv" type="button">CSV</button>
+		</div>
+		<div class="table-wrap">
+			<table class="grid" id="table">
+				<thead></thead>
+				<tbody></tbody>
+			</table>
+		</div>
+	</body>
+</html>

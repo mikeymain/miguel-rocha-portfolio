@@ -1,5 +1,9 @@
 # Changelog
 
+## World Watch 1.0.0 — 2026-11-11
+
+- New extension. Fetches a watched world's public `map.sql` on a timer, keeps a snapshot when it changes, and shows sign-up growth, spawn ring per quadrant, population gains per account and alliance centres, with CSV export.
+
 ## Rank Tracker 5.0.29 — 2026-11-11
 
 - Graph: selectable average raiding per hour with and without animals, using a trailing 3-hour window in both graph modes.

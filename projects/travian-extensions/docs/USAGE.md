@@ -15,7 +15,7 @@ No build step is required. Game features requiring a paid Travian option still r
 
 **Browsers:** desktop Chromium. Used in Brave; Chrome and Edge compatibility needs feedback. Firefox installation is not covered.
 
-**Domains:** Oasis Finder, TravAlarm, and NPC AutoMerchant target `*.travian.com`. Rank Tracker also supports `.org`, `.net`, `.us`, and `.de`. Next Settlement Calc, QoL, and Night Mode support multiple regional domains; see their manifests.
+**Domains:** Oasis Finder, TravAlarm, and NPC AutoMerchant target `*.travian.com`. Rank Tracker also supports `.org`, `.net`, `.us`, and `.de`. Next Settlement Calc, QoL, and Night Mode support multiple regional domains; see their manifests. World Watch reads `map.sql` from `.com`, `.org`, `.net`, `.us`, and `.de` worlds.
 
 ### Updating and keeping your settings
 
@@ -152,11 +152,28 @@ Refreshes when you open the popup or click **Refresh**; there are no background 
 3. Click **+** to save a favorite; click a swatch to apply it or its delete control to remove it.
 4. **Reset to default** restores native button colors.
 
+## World Watch
+
+<a href="images/world-watch.png"><img src="images/world-watch.png" alt="World Watch spawn ring view" width="520" /></a>
+
+**Features:** watch list of game worlds; hourly read-only fetch of each world's public `map.sql` (no login, no cookies); a snapshot is saved only when the dump changed (about once a day), 30 per world; dashboard with sign-up growth, spawn ring per quadrant, population gains per account with a 99th-percentile flag and radius filter, and alliance centres; CSV export of every table.
+
+**Usage:**
+
+1. Click the extension icon, enter a world host such as `ts4.x1.arabics.travian.com`, and select **Add**. The first fetch starts at once.
+2. Set the check interval in minutes (15–1440, default 60). **Fetch now** checks every world immediately.
+3. Select **Dashboard**. Pick the world, a **Snapshot** and a **Compare with** snapshot.
+4. **Growth** lists sign-ups (highest account id) per snapshot. **Spawn ring** shows, per quadrant, the distance range of the newest accounts' first villages; change **Newest accounts** to widen the sample.
+5. **Gold suspects** ranks accounts by population gain between the two snapshots. Enter a point (`x|y`) and a radius to limit the list to accounts with a village nearby. Highlighted rows are above the 99th percentile; check **Δ villages**, because a new or conquered village also raises population.
+6. **CSV** downloads the visible table.
+
+Snapshot times are when the extension first saw new content, not when Travian generated the dump. Removing a world deletes its snapshots.
+
 ## Data and permissions
 
 Preferences, timers, histories, and caches use extension storage. Some helpers use page local/session storage for context and transfer state. QoL feature toggles use browser sync storage when available.
 
-Statistics tools use your existing game session. Some tools open tabs, show notifications, or prepare resource transfers. Inspect each manifest for permissions. Oasis Finder answers read-only requests for its stored oasis coordinates and scan results from one other extension, identified by ID under `externally_connectable` in its manifest. That ID belongs to an unpublished companion extension (FarmList Pro); websites and other extensions cannot connect. Delete the `externally_connectable` block to turn this off. TravAlarm reads the public game world calendar at `lobby.legends.travian.com` to get the world start date for the oasis respawn countdown. Styles can load Google Fonts and a Travian-hosted button asset. No project-operated account or analytics service is included.
+Statistics tools use your existing game session; World Watch does not and sends no cookies. World Watch stores snapshots in the extension's IndexedDB. Some tools open tabs, show notifications, or prepare resource transfers. Inspect each manifest for permissions. Oasis Finder answers read-only requests for its stored oasis coordinates and scan results from one other extension, identified by ID under `externally_connectable` in its manifest. That ID belongs to an unpublished companion extension (FarmList Pro); websites and other extensions cannot connect. Delete the `externally_connectable` block to turn this off. TravAlarm reads the public game world calendar at `lobby.legends.travian.com` to get the world start date for the oasis respawn countdown. Styles can load Google Fonts and a Travian-hosted button asset. No project-operated account or analytics service is included.
 
 ## Troubleshooting
 

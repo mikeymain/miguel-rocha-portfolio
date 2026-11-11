@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>World Watch</title>
+		<link rel="stylesheet" href="style.css" />
+		<script src="lib/core.js"></script>
+		<script src="lib/db.js"></script>
+		<script src="popup.js" defer></script>
+	</head>
+	<body class="popup">
+		<h1>World Watch</h1>
+		<form id="add-form" class="row">
+			<label for="host-input" class="sr-only">World host</label>
+			<input id="host-input" type="text" placeholder="ts4.x1.arabics.travian.com" autocomplete="off" spellcheck="false" />
+			<button type="submit">Add</button>
+		</form>
+		<p id="msg" class="msg" role="status" aria-live="polite"></p>
+		<table class="grid">
+			<thead>
+				<tr>
+					<th>World</th>
+					<th>Snapshots</th>
+					<th>Changed</th>
+					<th>Checked</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody id="hosts"></tbody>
+		</table>
+		<p id="empty" class="msg" hidden>Add a world host to start tracking.</p>
+		<div class="row">
+			<label for="interval">Interval (min)</label>
+			<input id="interval" type="number" min="15" max="1440" step="5" />
+			<button id="poll" type="button">Fetch now</button>
+			<button id="open-dash" type="button">Dashboard</button>
+		</div>
+	</body>
+</html>

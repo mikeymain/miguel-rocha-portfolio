@@ -40,7 +40,7 @@ React application for NBA 2K player planning, with linked attributes, budget lim
 
 ### [Travian Extensions](projects/travian-extensions/)
 
-Seven Manifest V3 browser extensions for Travian: settlement forecasts, statistics history, event alerts and configurable interface tools.
+Eight Manifest V3 browser extensions for Travian: settlement forecasts, statistics history, event alerts and configurable interface tools.
 
 - Content scripts, background services, persistent settings and browser notifications.
 - Individual installation guides and versioned [release packages](https://github.com/mikeymain/miguel-rocha-portfolio/releases).

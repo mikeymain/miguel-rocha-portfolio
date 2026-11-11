@@ -1,0 +1,33 @@
+{
+	"manifest_version": 3,
+	"name": "Travian World Watch",
+	"version": "1.0.0",
+	"description": "Tracks a world's public map.sql over time: spawn ring, population gains and alliances.",
+	"permissions": ["storage", "alarms", "unlimitedStorage"],
+	"host_permissions": [
+		"https://*.travian.com/map.sql",
+		"https://*.travian.org/map.sql",
+		"https://*.travian.net/map.sql",
+		"https://*.travian.us/map.sql",
+		"https://*.travian.de/map.sql"
+	],
+	"background": {
+		"service_worker": "background.js"
+	},
+	"action": {
+		"default_popup": "popup.html",
+		"default_title": "World Watch",
+		"default_icon": {
+			"16": "icon128.png",
+			"32": "icon128.png",
+			"48": "icon128.png",
+			"128": "icon128.png"
+		}
+	},
+	"icons": {
+		"16": "icon128.png",
+		"32": "icon128.png",
+		"48": "icon128.png",
+		"128": "icon128.png"
+	}
+}
