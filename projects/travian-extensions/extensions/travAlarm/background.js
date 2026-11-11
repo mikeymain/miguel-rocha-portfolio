@@ -12,6 +12,23 @@ importScripts("attack-state.js");
 
 let alarms = [];
 let dismissedAttacks = [];
+// World timer alarms (⭐ BP end / oasis respawn) the user deleted: {name, at}.
+// Pages resend them on every load, so deletions must be remembered.
+let dismissedWorld = [];
+// A resent world alarm within this distance of a dismissed one is the same event.
+const WORLD_DISMISS_MATCH_MS = 6 * 60 * 60 * 1000;
+
+function pruneDismissedWorld(list, now) {
+  return (Array.isArray(list) ? list : []).filter(
+    (d) => d && typeof d.name === "string" && Number.isFinite(d.at) && d.at > now - WORLD_DISMISS_MATCH_MS,
+  );
+}
+
+function isDismissedWorld(name, at) {
+  return dismissedWorld.some(
+    (d) => d.name === name && Math.abs(d.at - at) < WORLD_DISMISS_MATCH_MS,
+  );
+}
 let soundQueue = Promise.resolve();
 const DEFAULT_SOUND_CATEGORIES = {
   attack: true,
@@ -34,6 +51,7 @@ const STORAGE_KEYS = {
   ALARMS: "_w4a",
   SOUND_CATEGORIES: "_w4sc_snd",
   DISMISSED_ATTACKS: "_w4ad",
+  DISMISSED_WORLD: "_w4wd",
   VOLUME: "_w4vol",
   SOUND_ENABLED: "_w4snd_on",
 };
@@ -230,6 +248,7 @@ chrome.storage.local
     STORAGE_KEYS.ALARMS,
     STORAGE_KEYS.SOUND_CATEGORIES,
     STORAGE_KEYS.DISMISSED_ATTACKS,
+    STORAGE_KEYS.DISMISSED_WORLD,
     STORAGE_KEYS.VOLUME,
     STORAGE_KEYS.SOUND_ENABLED,
   ])
@@ -284,6 +303,7 @@ chrome.storage.local
 
     dismissedAttacks = AttackState.prune(
       res[STORAGE_KEYS.DISMISSED_ATTACKS] || [], Date.now());
+    dismissedWorld = pruneDismissedWorld(res[STORAGE_KEYS.DISMISSED_WORLD], Date.now());
 
     // Signal that state is ready — deferred GET_ACTIVE_ALARMS can now respond
     _stateLoaded = true;
@@ -304,6 +324,7 @@ function saveState() {
     [STORAGE_KEYS.ALARMS]: alarms,
     [STORAGE_KEYS.SOUND_CATEGORIES]: soundCategories,
     [STORAGE_KEYS.DISMISSED_ATTACKS]: dismissedAttacks,
+    [STORAGE_KEYS.DISMISSED_WORLD]: dismissedWorld,
     [STORAGE_KEYS.VOLUME]: volume,
     [STORAGE_KEYS.SOUND_ENABLED]: soundEnabled,
   });
@@ -424,6 +445,8 @@ function handleMessage(msg, sender, sendResponse) {
 
         const now = Date.now();
         const newScheduledTime = now + delay;
+
+        if (newB.customType === "world" && isDismissedWorld(newB.name, newScheduledTime)) return;
 
         if (newB.customType === "attack") {
           AttackState.upsert(alarms, dismissedAttacks, newB, now, generateId);
@@ -566,6 +589,12 @@ function handleMessage(msg, sender, sendResponse) {
 
       if (target && target.customType === "attack") {
         AttackState.dismiss(dismissedAttacks, target);
+      }
+      if (target?.customType === "world") {
+        dismissedWorld = [
+          ...pruneDismissedWorld(dismissedWorld, Date.now()),
+          { name: target.name, at: target.scheduledTime },
+        ];
       }
 
       if (msg.id) alarms = alarms.filter((a) => a.id !== msg.id);
