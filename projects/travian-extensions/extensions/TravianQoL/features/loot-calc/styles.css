@@ -389,7 +389,16 @@
 	}
 }
 
-/* Hero XP row: pad the 16px hero icon to the 28x24 box of the other report icons */
+/* Hero XP row: fit the scroll icon into the 28x24 box of the other report icons */
+.tlw-xp-row i.tlw-xp-icon {
+	display: block;
+	width: 28px;
+	height: 24px;
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: contain;
+}
+/* Fallback hero icon: pad the 16px icon to the same box */
 .tlw-xp-row img.unit.uhero {
 	margin: 4px 11px 4px 6px;
 	vertical-align: middle;

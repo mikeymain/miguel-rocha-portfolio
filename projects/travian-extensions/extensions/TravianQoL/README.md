@@ -2,7 +2,7 @@
 
 Configurable interface tools for farm lists, reports, resource calculations and village tasks.
 
-**Version 1.3.1 · JavaScript · Manifest V3**
+**Version 1.3.2 · JavaScript · Manifest V3**
 
 [Usage guide](../../docs/USAGE.md#travian-qol) · [Installation](../../README.md#install-in-brave-chrome-or-edge) · [All extensions](../../README.md)
 

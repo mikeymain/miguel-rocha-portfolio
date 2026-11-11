@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.3.2 — 2026-11-11
+
+- Report statistics: the **Hero XP** row shows the scroll item icon instead of the hero icon.
+
 ## TravAlarm 3.42 — 2026-11-11
 
 - Training alarms (Stable, Great Stable, Workshop, Academy, Smithy, Hospital, Trapper and others) now show their own building icon instead of the Barracks icon. Settlers use the generic building icon.

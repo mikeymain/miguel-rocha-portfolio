@@ -323,12 +323,23 @@
 			if (value) value.textContent = '0';
 		});
 	}
+	// Scroll hero item (item113) from the game's own gpack, so the icon follows game updates.
+	function scrollIconUrl() {
+		const asset = document.querySelector('link[href*="/gpack/"], script[src*="/gpack/"]');
+		const base = (asset?.href || asset?.src || '').match(/^(.*\/gpack\/[^/]+\/)/);
+		return base ? `${base[1]}img_ltr/views/HeroV2/inventory/items/item113.png` : null;
+	}
 	function createXpRow(xp) {
 		const row = document.createElement('tr');
 		row.className = 'tlw-xp-row';
+		const iconUrl = scrollIconUrl();
+		// An <i> takes the icon grid column of .inlineIcon, like the game's own report icons.
+		const icon = iconUrl
+			? `<i class="tlw-xp-icon" style="background-image:url('${iconUrl}')"></i>`
+			: '<img src="/img/x.gif" class="unit uhero" alt="Hero">';
 		row.innerHTML = `
 			<th>Hero XP</th>
-			<td><div class="inlineIcon " title=""><img src="/img/x.gif" class="unit uhero" alt="Hero"><span class="value ">${xp.toLocaleString()}</span></div></td>
+			<td><div class="inlineIcon " title="">${icon}<span class="value ">${xp.toLocaleString()}</span></div></td>
 			<td></td>`;
 		return row;
 	}
