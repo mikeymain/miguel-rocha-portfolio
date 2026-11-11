@@ -1,5 +1,10 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.28 — 2026-11-11
+
+- Now: average rank uses all seven General ranks (Population, Prod / Hour, Prod So Far, CP / Day, CP So Far, Offensive and Defensive Strength) plus weekly PvE and Robbers. Weekly Attack and Defense do not count.
+- Its 1H, 3H, 1D and 7D changes compare only the ranks both snapshots hold, since background snapshots do not store weekly ranks.
+
 ## Rank Tracker 5.0.27 — 2026-11-11
 
 - Reverts 5.0.26: the rank column is back to the 5.0.25 position.

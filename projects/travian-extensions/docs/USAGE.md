@@ -93,7 +93,7 @@ The farm-list screenshot uses a sample table with the extension's selection high
 
 <a href="images/rank-tracker.png"><img src="images/rank-tracker.png" alt="Rank Tracker current statistics" width="520" /></a>
 
-**Features:** weekly Top 10 and general rankings; population, production, CP, attack/defense, raid/PvE statistics; average rank (population, production, CP) with percentile tier; changes since last open and over 1h, 3h, 1d and 7d; history graphs with raw data/daily peaks, absolute values/per-hour rates, metric sections, saved groups, zoom, and point comparisons; header chips for total players, your playtime and time since server start; multiple servers; JSON export/import.
+**Features:** weekly Top 10 and general rankings; population, production, CP, attack/defense, raid/PvE statistics; average rank (all General ranks plus weekly PvE and Robbers) with percentile tier; changes since last open and over 1h, 3h, 1d and 7d; history graphs with raw data/daily peaks, absolute values/per-hour rates, metric sections, saved groups, zoom, and point comparisons; header chips for total players, your playtime and time since server start; multiple servers; JSON export/import.
 
 **Usage:**
 

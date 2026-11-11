@@ -7,8 +7,11 @@
  * calls it after an on-page scrape.
  */
 
-/** Ranks that feed the average: general-table ranks without attack and defense. */
-const NOW_GEN_RANK_KEYS = ["rankPop", "rankProd", "rankCp"];
+/** Ranks that feed the average: every General rank plus weekly PvE and Robbers. */
+const NOW_GEN_RANK_KEYS = ["rankPop", "rankProd", "rankProdSoFar", "rankCp", "rankCpSoFar", "rankOff", "rankDef", "rankPve", "rankRob"];
+
+/** Weekly rank keys and their Top 10 labels, for snapshots without the flat key. */
+const NOW_WEEKLY_RANK_LABELS = { rankPve: "PvE of the week", rankRob: "Robbers of the week" };
 
 /** Short display names for the weekly Top 10 labels stored in history. */
 const NOW_WEEKLY_NAMES = {
@@ -182,10 +185,30 @@ function deltaSpan(base, delta) {
 	return span;
 }
 
-/** Average of the general-table ranks in a snapshot, or null. */
-function calcAvgRank(obj) {
+/** One rank used by the average, or null when missing. */
+function avgRankOf(obj, key) {
+	let rank = obj?.[key];
+	if (rank == null && NOW_WEEKLY_RANK_LABELS[key]) {
+		rank = obj?.top10?.find((entry) => entry.label === NOW_WEEKLY_RANK_LABELS[key])?.rank;
+	}
+	return Number.isFinite(rank) && rank > 0 ? rank : null;
+}
+
+/**
+ * Change in average rank between two snapshots, over only the ranks both
+ * hold: background snapshots drop weekly ranks, which would skew the change.
+ */
+function avgRankChange(now, ref) {
+	if (!now || !ref) return null;
+	const shared = NOW_GEN_RANK_KEYS.filter((k) => avgRankOf(now, k) != null && avgRankOf(ref, k) != null);
+	if (shared.length === 0) return null;
+	return calcAvgRank(now, shared) - calcAvgRank(ref, shared);
+}
+
+/** Average of the ranks in NOW_GEN_RANK_KEYS (or the given keys), or null. */
+function calcAvgRank(obj, keys = NOW_GEN_RANK_KEYS) {
 	if (!obj) return null;
-	const vals = NOW_GEN_RANK_KEYS.map((k) => obj[k]).filter((r) => Number.isFinite(r) && r > 0);
+	const vals = keys.map((k) => avgRankOf(obj, k)).filter((r) => r != null);
 	return vals.length > 0 ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null;
 }
 
@@ -404,9 +427,9 @@ function renderHero(data, refs) {
 	const deltasEl = document.getElementById("hero-deltas");
 	if (deltasEl) {
 		const chips = refs.map((ref, i) => {
-			const old = calcAvgRank(ref);
+			const diff = avgRankChange(data, ref);
 			const chip = h("span", "chip");
-			chip.append(h("span", "chip-tag", NOW_DELTA_TAGS[i]), deltaSpan("d-rank", describeDelta(old == null ? null : avg - old, true)));
+			chip.append(h("span", "chip-tag", NOW_DELTA_TAGS[i]), deltaSpan("d-rank", describeDelta(diff, true)));
 			return chip;
 		});
 		deltasEl.replaceChildren(...chips);
