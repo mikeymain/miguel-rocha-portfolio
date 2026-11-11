@@ -49,9 +49,9 @@
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; overflow: hidden; }
 
-/* 800x600 is Chrome's popup limit; initAppZoom divides it by the zoom. */
+/* Popup size (Chrome allows up to 800x600); initAppZoom divides it by the zoom. */
 body {
-	width: 800px;
+	width: 760px;
 	height: 600px;
 	margin: 0;
 	overflow: hidden;

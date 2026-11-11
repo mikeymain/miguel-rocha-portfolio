@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.23 — 2026-11-11
+
+- Now: the popup is 760 pixels wide (was 800), at any zoom.
+
 ## Rank Tracker 5.0.22 — 2026-11-11
 
 - Fix: popup scrollbars came from the popup zoom (Ctrl+wheel) making the page larger than 800×600. The body size is now divided by the zoom so the zoomed popup stays 800×600. Reverts the 5.0.21 change that shrank the popup to almost nothing.
