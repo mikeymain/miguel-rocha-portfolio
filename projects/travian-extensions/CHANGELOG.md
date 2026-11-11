@@ -1,5 +1,9 @@
 # Changelog
 
+## TravAlarm 3.42 — 2026-11-11
+
+- Training alarms (Stable, Great Stable, Workshop, Academy, Smithy, Hospital, Trapper and others) now show their own building icon instead of the Barracks icon. Settlers use the generic building icon.
+
 ## TravAlarm 3.41 — 2026-11-11
 
 - Settlers and research countdowns now use the same timer text styling as all other active alarms. Category colors remain on names and accents.

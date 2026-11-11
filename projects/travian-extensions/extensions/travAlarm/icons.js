@@ -172,6 +172,12 @@ const BUILDING_ICON_MAP = {
   "iron foundry": "_r3",
 };
 
+// Training labels that are not building names.
+const TRAINING_ICON_OVERRIDES = {
+  settlers: "Building",
+  chieftains: "Building",
+};
+
 // ==========================================
 // ICON RENDERER
 // ==========================================
@@ -220,13 +226,14 @@ function getAlarmSvgIcon(name) {
 
   // 5. Training alarms (🎓 Troop Queue - BuildingName)
   if (name.includes("🎓")) {
-    const match = name.match(/Troop Queue\s*-\s*([^(]+)/i);
+    // Names look like "🎓 Stable (Village) tag" or "🎓 Academy: Unit (Village) tag".
+    const match = name.match(/🎓\s*(?:Troop Queue\s*-\s*)?([^(:]+)/iu);
     if (match) {
       const buildingName = match[1].trim().toLowerCase();
-      const key = BUILDING_ICON_MAP[buildingName];
+      const key = TRAINING_ICON_OVERRIDES[buildingName] || BUILDING_ICON_MAP[buildingName];
       if (key) return resolveIconKey(key);
     }
-    return makeSvgIcon("Barracks");
+    return makeSvgIcon("Building");
   }
 
   // 6. Celebrations (🎉)
