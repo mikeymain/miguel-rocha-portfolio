@@ -323,11 +323,11 @@
 			if (value) value.textContent = '0';
 		});
 	}
-	// Scroll hero item (item113) from the game's own gpack, so the icon follows game updates.
+	// Scroll hero item (item107) from the game's own gpack, so the icon follows game updates.
 	function scrollIconUrl() {
 		const asset = document.querySelector('link[href*="/gpack/"], script[src*="/gpack/"]');
 		const base = (asset?.href || asset?.src || '').match(/^(.*\/gpack\/[^/]+\/)/);
-		return base ? `${base[1]}img_ltr/views/HeroV2/inventory/items/item113.png` : null;
+		return base ? `${base[1]}img_ltr/views/HeroV2/inventory/items/item107.png` : null;
 	}
 	function createXpRow(xp) {
 		const row = document.createElement('tr');

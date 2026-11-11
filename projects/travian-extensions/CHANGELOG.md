@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.3.3 — 2026-11-11
+
+- Report statistics: the **Hero XP** row uses the scroll icon. 1.3.2 showed the bandage icon by mistake.
+
 ## Travian QoL 1.3.2 — 2026-11-11
 
 - Report statistics: the **Hero XP** row shows the scroll item icon instead of the hero icon.
