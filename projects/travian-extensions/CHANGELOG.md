@@ -1,5 +1,9 @@
 # Changelog
 
+## TravAlarm 3.43 — 2026-11-11
+
+- Stable alarms use a brown accent so they no longer look like the gold Hero alarms.
+
 ## Travian QoL 1.3.3 — 2026-11-11
 
 - Report statistics: the **Hero XP** row uses the scroll icon. 1.3.2 showed the bandage icon by mistake.

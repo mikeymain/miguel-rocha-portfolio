@@ -129,7 +129,7 @@ const TRAINING_BUILDING_COLORS = [
   ["Great Barracks", "tw-type-cyan"],
   ["Great Stable", "tw-type-orange"],
   ["Barracks", "tw-type-blue"],
-  ["Stable", "tw-type-amber"],
+  ["Stable", "tw-type-brown"],
   ["Workshop", "tw-type-purple"],
   ["Academy", "tw-type-green"],
   ["Smithy", "tw-type-pink"],

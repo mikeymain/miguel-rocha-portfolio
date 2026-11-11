@@ -34,6 +34,7 @@
   --tw-c-amber: #fbbf24;
   --tw-c-teal: #2dd4bf;
   --tw-c-lime: #a3e635;
+  --tw-c-brown: #c08a5b;
 
   /* Shared with NextSettlementCalc */
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3), 0 0 0 1px var(--tw-border);
@@ -1040,6 +1041,9 @@
 }
 .tw-type-teal {
   --alarm-color: var(--tw-c-teal);
+}
+.tw-type-brown {
+  --alarm-color: var(--tw-c-brown);
 }
 .tw-type-lime {
   --alarm-color: var(--tw-c-lime);
