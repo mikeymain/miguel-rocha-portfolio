@@ -47,7 +47,7 @@ body.popup {
 }
 body.dash {
 	padding: 16px;
-	max-width: 1200px;
+	max-width: 1800px;
 	margin: 0 auto;
 }
 h1 {
@@ -178,7 +178,10 @@ table.grid {
 	margin: 8px 0;
 }
 .tv-window {
-	display: inline-block;
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 600px;
+	min-width: 0;
 	padding: 6px 8px 8px;
 	background: linear-gradient(#f4ecd6, #e6dab9);
 	border: 2px solid #9d8a5e;
@@ -224,6 +227,18 @@ button.tv-btn {
 	position: relative;
 	line-height: 0;
 }
+#map-canvas {
+	position: relative;
+	width: 100%;
+	height: calc(100vh - 250px);
+	min-height: 418px;
+	overflow: hidden;
+}
+#map-canvas canvas {
+	position: absolute;
+	top: 0;
+	left: 0;
+}
 .map-canvas {
 	display: block;
 	cursor: grab;
@@ -250,6 +265,7 @@ button.tv-btn {
 	color: #ffffff;
 }
 .map-legend {
+	flex: 0 1 280px;
 	list-style: none;
 	margin: 0;
 	padding: 0;

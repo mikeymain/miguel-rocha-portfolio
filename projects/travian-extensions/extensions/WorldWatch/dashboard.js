@@ -141,7 +141,8 @@
 		if (map) return map;
 		map = WWMap.createMap($("map-canvas"), $("map-tip"));
 		map.onChange(({ cx, cy, zoom }) => {
-			$("map-zoom").textContent = `${Math.round(zoom * 100)}%`;
+			const pct = zoom * 100;
+			$("map-zoom").textContent = `${pct >= 10 ? Math.round(pct) : pct.toFixed(1)}%`;
 			$("map-pos").textContent = `(${cx}|${cy})`;
 		});
 		return map;

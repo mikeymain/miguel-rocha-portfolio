@@ -1,5 +1,10 @@
 # Changelog
 
+## World Watch 1.2.0 — 2026-11-11
+
+- Map fills the free page area (minimum 543 × 401 px) and zooms out to the whole world.
+- Lines mark the world edge at ±200; outside the world is dark when it is smaller than the window.
+
 ## World Watch 1.1.0 — 2026-11-11
 
 - New **Map** tab: Travian-style map at 60 px per field (100 %), 543 × 401 px window, zoom down to 5 %. Shows the newest spawns, their distance band, and the top 10 alliances with labels at their centres. Hover for player, alliance and population.

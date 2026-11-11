@@ -4,7 +4,7 @@
 	"use strict";
 
 	const FIELD_PX = 60;
-	const ZOOMS = [1, 0.5, 0.25, 0.1, 0.05];
+	const ZOOMS = [1, 0.5, 0.25, 0.1, 0.05, 0.03, 0.02];
 	const VIEW_W = 543;
 	const VIEW_H = 401;
 	const RULER_Y_W = 26;
@@ -12,6 +12,14 @@
 	const SPAN = 401;
 	const GRASS = ["#b4d07e", "#b1ce7a", "#b7d282", "#afcc78"];
 	const SPAWN = "#ffd84a";
+	const EDGE = "#5a4220";
+	const OUTSIDE = "#3f4a33";
+
+	// Zoom levels for a view; the last one fits the whole world.
+	function zoomLevels(vw, vh) {
+		const fit = Math.min(vw, vh) / (SPAN * FIELD_PX);
+		return [...ZOOMS.filter((z) => z > fit * 1.05), fit];
+	}
 
 	function signedWrap(d) {
 		let v = ((d % SPAN) + SPAN) % SPAN;
@@ -26,6 +34,11 @@
 	function noise(x, y) {
 		const n = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
 		return n - Math.floor(n);
+	}
+
+	// Smallest ruler step from 1, 2, 5, 10, 20, 25, 50, 100 that is at least min.
+	function niceStep(min) {
+		return [1, 2, 5, 10, 20, 25, 50, 100].find((n) => n >= min) || 100;
 	}
 
 	// Village size class like Travian's map sprites.
@@ -80,30 +93,63 @@
 	function createMap(container, tooltip) {
 		const canvas = document.createElement("canvas");
 		const dpr = root.devicePixelRatio || 1;
-		const W = RULER_Y_W + VIEW_W;
-		const H = VIEW_H + RULER_X_H;
-		canvas.width = W * dpr;
-		canvas.height = H * dpr;
-		canvas.style.width = `${W}px`;
-		canvas.style.height = `${H}px`;
+		let vw = VIEW_W;
+		let vh = VIEW_H;
+		let W = 0;
+		let H = 0;
+		// Sizes the map to the container; never smaller than the in-game window.
+		function resize() {
+			const rect = container.getBoundingClientRect();
+			vw = Math.max(VIEW_W, Math.floor(rect.width) - RULER_Y_W);
+			vh = Math.max(VIEW_H, Math.floor(rect.height) - RULER_X_H);
+			W = RULER_Y_W + vw;
+			H = vh + RULER_X_H;
+			canvas.width = W * dpr;
+			canvas.height = H * dpr;
+			canvas.style.width = `${W}px`;
+			canvas.style.height = `${H}px`;
+		}
 		canvas.className = "map-canvas";
 		container.replaceChildren(canvas);
 		const g = canvas.getContext("2d");
+		resize();
+		if (root.ResizeObserver) {
+			new root.ResizeObserver(() => {
+				const before = `${W}x${H}`;
+				resize();
+				if (`${W}x${H}` !== before) draw();
+			}).observe(container);
+		}
 		const st = { snap: null, layers: null, show: { spawns: true, alliances: true }, cx: 0, cy: 0, zoom: 0, byField: new Map(), onChange: null };
 
-		const scale = () => FIELD_PX * ZOOMS[st.zoom];
+		const levels = () => zoomLevels(vw, vh);
+		const zoomValue = () => levels()[Math.min(st.zoom, levels().length - 1)];
+		const scale = () => FIELD_PX * zoomValue();
+		// An axis "fits" when the whole world is narrower than the view on it.
+		const fitsX = () => scale() * SPAN <= vw;
+		const fitsY = () => scale() * SPAN <= vh;
 		const toScreen = (x, y) => {
 			const s = scale();
-			return [RULER_Y_W + VIEW_W / 2 + signedWrap(x - st.cx) * s, VIEW_H / 2 - signedWrap(y - st.cy) * s];
+			return [RULER_Y_W + vw / 2 + signedWrap(x - st.cx) * s, vh / 2 - signedWrap(y - st.cy) * s];
 		};
 		const toField = (px, py) => {
 			const s = scale();
-			return [wrapCoord(st.cx + (px - RULER_Y_W - VIEW_W / 2) / s), wrapCoord(st.cy - (py - VIEW_H / 2) / s)];
+			return [wrapCoord(st.cx + (px - RULER_Y_W - vw / 2) / s), wrapCoord(st.cy - (py - vh / 2) / s)];
 		};
 
+		function worldRect(s) {
+			const x0 = fitsX() ? toScreen(-200, 0)[0] - s / 2 : RULER_Y_W;
+			const x1 = fitsX() ? toScreen(200, 0)[0] + s / 2 : RULER_Y_W + vw;
+			const y0 = fitsY() ? toScreen(0, 200)[1] - s / 2 : 0;
+			const y1 = fitsY() ? toScreen(0, -200)[1] + s / 2 : vh;
+			return [x0, y0, x1 - x0, y1 - y0];
+		}
+
 		function drawGround(s, fx0, fx1, fy0, fy1) {
+			g.fillStyle = OUTSIDE;
+			g.fillRect(RULER_Y_W, 0, vw, vh);
 			g.fillStyle = GRASS[0];
-			g.fillRect(RULER_Y_W, 0, VIEW_W, VIEW_H);
+			g.fillRect(...worldRect(s));
 			if (s < 30) return;
 			for (let fx = fx0; fx <= fx1; fx++) {
 				for (let fy = fy0; fy <= fy1; fy++) {
@@ -127,12 +173,12 @@
 				for (let fx = fx0; fx <= fx1 + 1; fx++) {
 					const x = Math.round(toScreen(fx, 0)[0] - s / 2) + 0.5;
 					g.moveTo(x, 0);
-					g.lineTo(x, VIEW_H);
+					g.lineTo(x, vh);
 				}
 				for (let fy = fy0; fy <= fy1 + 1; fy++) {
 					const y = Math.round(toScreen(0, fy)[1] - s / 2) + 0.5;
 					g.moveTo(RULER_Y_W, y);
-					g.lineTo(RULER_Y_W + VIEW_W, y);
+					g.lineTo(RULER_Y_W + vw, y);
 				}
 				g.stroke();
 			}
@@ -168,7 +214,7 @@
 			const spawnIdx = [];
 			for (let i = 0; i < snap.uid.length; i++) {
 				const [sx, sy] = toScreen(snap.x[i], snap.y[i]);
-				if (sx < RULER_Y_W - pad || sx > RULER_Y_W + VIEW_W + pad || sy < -pad || sy > VIEW_H + pad) continue;
+				if (sx < RULER_Y_W - pad || sx > RULER_Y_W + vw + pad || sy < -pad || sy > vh + pad) continue;
 				if (st.show.spawns && st.layers.spawnVids.has(snap.vid[i])) {
 					spawnIdx.push(i);
 					continue;
@@ -207,36 +253,56 @@
 			for (const a of st.layers.alliances) {
 				const [x, y] = a.centre.split("|").map(Number);
 				const [sx, sy] = toScreen(x, y);
-				if (sx < RULER_Y_W || sx > RULER_Y_W + VIEW_W || sy < 0 || sy > VIEW_H) continue;
+				if (sx < RULER_Y_W || sx > RULER_Y_W + vw || sy < 0 || sy > vh) continue;
 				label(a.tag || `#${a.aid}`, sx, sy, a.color, placed);
 			}
+		}
+
+		// Lines on the world edge: x = ±200 and y = ±200 (the wrap seam).
+		function drawEdges(s) {
+			g.strokeStyle = EDGE;
+			g.lineWidth = 2;
+			g.beginPath();
+			for (let x of new Set([toScreen(200, 0)[0] + s / 2, toScreen(-200, 0)[0] - s / 2])) {
+				if (x < RULER_Y_W - 1 || x > RULER_Y_W + vw + 1) continue;
+				x = Math.min(RULER_Y_W + vw - 1, Math.max(RULER_Y_W + 1, x));
+				g.moveTo(x, 0);
+				g.lineTo(x, vh);
+			}
+			for (let y of new Set([toScreen(0, 200)[1] - s / 2, toScreen(0, -200)[1] + s / 2])) {
+				if (y < -1 || y > vh + 1) continue;
+				y = Math.min(vh - 1, Math.max(1, y));
+				g.moveTo(RULER_Y_W, y);
+				g.lineTo(RULER_Y_W + vw, y);
+			}
+			g.stroke();
 		}
 
 		function drawRulers(s, fx0, fx1, fy0, fy1) {
 			g.fillStyle = "#e9dfc4";
 			g.fillRect(0, 0, RULER_Y_W, H);
-			g.fillRect(0, VIEW_H, W, RULER_X_H);
+			g.fillRect(0, vh, W, RULER_X_H);
 			g.strokeStyle = "#b5a37a";
 			g.lineWidth = 1;
-			g.strokeRect(RULER_Y_W - 0.5, -0.5, VIEW_W + 1, VIEW_H + 1);
+			g.strokeRect(RULER_Y_W - 0.5, -0.5, vw + 1, vh + 1);
 			g.fillStyle = "#3c3020";
 			g.font = "10px Verdana, Arial, sans-serif";
 			g.textAlign = "center";
 			g.textBaseline = "middle";
-			const step = Math.max(1, Math.ceil(24 / s));
+			const step = niceStep(28 / s);
 			for (let fx = fx0; fx <= fx1; fx++) {
 				const v = wrapCoord(fx);
-				if (v % step) continue;
+				if (v % step || (v === 200 && !fitsX())) continue;
 				const [sx] = toScreen(fx, 0);
 				if (sx < RULER_Y_W + 8 || sx > W - 8) continue;
-				g.fillText(String(v), sx, VIEW_H + RULER_X_H / 2 + 1);
+				g.fillText(String(v), sx, vh + RULER_X_H / 2 + 1);
 			}
-			const stepY = Math.max(1, Math.ceil(14 / s));
+			const stepY = niceStep(16 / s);
 			for (let fy = fy0; fy <= fy1; fy++) {
 				const v = wrapCoord(fy);
-				if (v % stepY) continue;
+				if (v % stepY || (v === 200 && !fitsY())) continue;
 				const [, sy] = toScreen(0, fy);
-				if (sy < 6 || sy > VIEW_H - 6) continue;
+				if (sy < 6 || sy > vh - 6) continue;
 				g.fillText(String(v), RULER_Y_W / 2, sy);
 			}
 		}
@@ -244,16 +310,19 @@
 		function draw() {
 			g.setTransform(dpr, 0, 0, dpr, 0, 0);
 			g.clearRect(0, 0, W, H);
+			st.zoom = Math.min(st.zoom, levels().length - 1);
 			const s = scale();
-			const halfX = Math.ceil(VIEW_W / 2 / s) + 1;
-			const halfY = Math.ceil(VIEW_H / 2 / s) + 1;
-			const fx0 = Math.floor(st.cx) - halfX;
-			const fx1 = Math.ceil(st.cx) + halfX;
-			const fy0 = Math.floor(st.cy) - halfY;
-			const fy1 = Math.ceil(st.cy) + halfY;
+			if (fitsX()) st.cx = 0;
+			if (fitsY()) st.cy = 0;
+			const halfX = Math.ceil(vw / 2 / s) + 1;
+			const halfY = Math.ceil(vh / 2 / s) + 1;
+			const fx0 = fitsX() ? -200 : Math.floor(st.cx) - halfX;
+			const fx1 = fitsX() ? 200 : Math.ceil(st.cx) + halfX;
+			const fy0 = fitsY() ? -200 : Math.floor(st.cy) - halfY;
+			const fy1 = fitsY() ? 200 : Math.ceil(st.cy) + halfY;
 			g.save();
 			g.beginPath();
-			g.rect(RULER_Y_W, 0, VIEW_W, VIEW_H);
+			g.rect(RULER_Y_W, 0, vw, vh);
 			g.clip();
 			drawGround(s, fx0, fx1, fy0, fy1);
 			if (st.snap) {
@@ -261,9 +330,10 @@
 				drawVillages(s);
 				drawAllianceLabels();
 			}
+			drawEdges(s);
 			g.restore();
 			drawRulers(s, fx0, fx1, fy0, fy1);
-			if (st.onChange) st.onChange({ cx: Math.round(st.cx), cy: Math.round(st.cy), zoom: ZOOMS[st.zoom] });
+			if (st.onChange) st.onChange({ cx: Math.round(st.cx), cy: Math.round(st.cy), zoom: zoomValue() });
 		}
 
 		function indexFields() {
@@ -276,7 +346,7 @@
 			const rect = canvas.getBoundingClientRect();
 			const px = evt.clientX - rect.left;
 			const py = evt.clientY - rect.top;
-			if (!st.snap || px < RULER_Y_W || py > VIEW_H) {
+			if (!st.snap || px < RULER_Y_W || py > vh) {
 				tooltip.hidden = true;
 				return;
 			}
@@ -358,7 +428,7 @@
 				draw();
 			},
 			setZoom(index) {
-				st.zoom = Math.max(0, Math.min(ZOOMS.length - 1, index));
+				st.zoom = Math.max(0, Math.min(levels().length - 1, index));
 				draw();
 			},
 			get zoom() {
@@ -373,5 +443,5 @@
 		return api;
 	}
 
-	root.WWMap = { createMap, signedWrap, wrapCoord, sizeClass, FIELD_PX, ZOOMS, VIEW_W, VIEW_H };
+	root.WWMap = { createMap, zoomLevels, niceStep, signedWrap, wrapCoord, sizeClass, FIELD_PX, ZOOMS, VIEW_W, VIEW_H };
 })(globalThis);
