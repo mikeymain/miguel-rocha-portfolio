@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.26 — 2026-11-11
+
+- Now: the rank column sits another 30 pixels further right; values stay in place.
+
 ## Rank Tracker 5.0.25 — 2026-11-11
 
 - Now: the rank column sits 30 pixels further right; values stay in place.
