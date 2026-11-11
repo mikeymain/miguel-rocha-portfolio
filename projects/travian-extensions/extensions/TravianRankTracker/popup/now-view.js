@@ -492,7 +492,9 @@ function renderUI(data, history) {
 	const playersEl = document.getElementById("players");
 	if (playersEl) playersEl.textContent = data.totalPlayers != null ? `Total players: ${data.totalPlayers.toLocaleString()}` : "";
 
-	if (data.timestamp) setStatus(`Last refresh ${clockTime(data.timestamp)}`, "ok");
+	// Show the refresh from before this popup opened, so the gap since then is visible.
+	const shownAt = popupState.previousRefreshAt || data.timestamp;
+	if (shownAt) setStatus(`Last refresh ${clockTime(shownAt)} · ${formatDuration(Date.now() - shownAt)} ago`, "ok");
 }
 
 /** Weekly Top 10 rows. */

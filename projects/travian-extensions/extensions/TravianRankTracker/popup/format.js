@@ -14,6 +14,8 @@ const popupState = {
 	baselineSnapshot: null,
 	baselineExpired: false,
 	isVelocityMode: false,
+	/** Timestamp of the last refresh before this popup opened, or null. */
+	previousRefreshAt: null,
 };
 
 /** Cooldown before the "since last open" baseline re-captures. */

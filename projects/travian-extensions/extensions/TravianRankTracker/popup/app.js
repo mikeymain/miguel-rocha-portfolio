@@ -174,6 +174,7 @@ async function loadFromStorage(storageKey, serverOrigin) {
 	const res = await api.storage.local.get([storageKey, latestKey]);
 	const hist = res[storageKey] || [];
 	const data = res[latestKey] || (hist.length > 0 ? hist[hist.length - 1] : { top10: [] });
+	popupState.previousRefreshAt = data.timestamp || null;
 	if (data.timestamp) renderUI(data, hist);
 	return data.timestamp || null;
 }

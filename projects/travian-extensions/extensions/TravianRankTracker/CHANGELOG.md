@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.32 — 2026-11-11
+
+- Status shows the refresh from before the popup opened, with the time since (for example `Last refresh 14:02 · 35m ago`).
+
 ## Rank Tracker 5.0.31 — 2026-11-11
 
 - Opening the popup within 10 seconds of the last refresh shows the stored data and skips the update.
