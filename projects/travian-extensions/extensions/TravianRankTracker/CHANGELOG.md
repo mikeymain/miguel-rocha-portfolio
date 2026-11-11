@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.21 — 2026-11-11
+
+- Fix: the popup no longer shows page scrollbars or cuts off the 7D column when Chrome gives it slightly less than 800×600 (zoom or display scaling). The layout shrinks to the window instead.
+
 ## Rank Tracker 5.0.20 — 2026-11-10
 
 - Now: Prod / Hour is gross field production per hour (statistics production per day ÷ 24), the figure the production rank uses, before crop upkeep. The production page is no longer fetched. Older snapshots that stored the net page total are read from their production per day, so changes and the graph stay consistent.
