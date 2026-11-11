@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.31 — 2026-11-11
+
+- Opening the popup within 10 seconds of the last refresh shows the stored data and skips the update.
+
 ## Rank Tracker 5.0.30 — 2026-11-11
 
 - Graph: quick range buttons 3h, 6h, 12h, 24h, 48h, 72h and 1w crop to the latest points; click the active one again to show all.

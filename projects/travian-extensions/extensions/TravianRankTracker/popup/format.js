@@ -19,6 +19,9 @@ const popupState = {
 /** Cooldown before the "since last open" baseline re-captures. */
 const BASELINE_COOLDOWN_MS = 5 * 60 * 1000;
 
+/** Opening the popup skips the refresh when the last one is newer than this. */
+const OPEN_REFRESH_SKIP_MS = 10 * 1000;
+
 /**
  * Create an element with an optional class name and text content.
  *

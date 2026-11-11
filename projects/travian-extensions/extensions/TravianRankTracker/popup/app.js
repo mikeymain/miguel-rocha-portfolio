@@ -55,10 +55,16 @@ async function startPopup() {
 
 	setStatus("Updating…", "busy");
 	renderNowState("loading");
-	await loadFromStorage(storageKey, serverOrigin);
+	const lastRefreshAt = await loadFromStorage(storageKey, serverOrigin);
 
 	if (!document.getElementById("view-hist")?.hidden) {
 		loadGraph((await syncHistoryControls()) || "all", storageKey);
+	}
+
+	// A refresh under OPEN_REFRESH_SKIP_MS ago is fresh enough: keep the stored snapshot.
+	if (lastRefreshAt != null && Date.now() - lastRefreshAt < OPEN_REFRESH_SKIP_MS) {
+		await updatePlaytime(serverOrigin);
+		return;
 	}
 
 	await refreshNow(tabOrigin ? tab : null, serverOrigin, storageKey);
@@ -169,6 +175,7 @@ async function loadFromStorage(storageKey, serverOrigin) {
 	const hist = res[storageKey] || [];
 	const data = res[latestKey] || (hist.length > 0 ? hist[hist.length - 1] : { top10: [] });
 	if (data.timestamp) renderUI(data, hist);
+	return data.timestamp || null;
 }
 
 /**
