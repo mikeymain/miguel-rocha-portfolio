@@ -289,13 +289,28 @@ async function selectTab(tabId) {
 
 /* ── Popup zoom ──────────────────────────────────────────────────────── */
 
+/** Chrome's popup size limit in CSS pixels. */
+const APP_POPUP_W = 800;
+const APP_POPUP_H = 600;
+
+/**
+ * Zoom the body and size it so the zoomed popup still fills exactly
+ * 800x600; a zoom above 1 would otherwise overflow and show scrollbars.
+ */
+function applyAppZoom(zoom) {
+	const style = document.body.style;
+	style.zoom = zoom;
+	style.width = `${APP_POPUP_W / zoom}px`;
+	style.height = `${APP_POPUP_H / zoom}px`;
+}
+
 /** Ctrl+wheel and Ctrl +/-/0 scale the popup; the level is saved. */
 function initAppZoom(savedZoom) {
-	if (savedZoom) document.body.style.zoom = savedZoom;
+	if (savedZoom) applyAppZoom(savedZoom);
 	const current = () => parseFloat(document.body.style.zoom) || 1.0;
 	const setZoom = async (value) => {
 		const zoom = Math.max(APP_ZOOM_MIN, Math.min(Math.round(value * 10) / 10, APP_ZOOM_MAX));
-		document.body.style.zoom = zoom;
+		applyAppZoom(zoom);
 		await api.storage.local.set({ appZoom: zoom });
 	};
 
