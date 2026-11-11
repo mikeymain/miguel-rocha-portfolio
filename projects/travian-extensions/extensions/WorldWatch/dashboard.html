@@ -7,6 +7,7 @@
 		<link rel="stylesheet" href="style.css" />
 		<script src="lib/analysis.js"></script>
 		<script src="lib/db.js"></script>
+		<script src="map-view.js"></script>
 		<script src="dashboard.js" defer></script>
 	</head>
 	<body class="dash">
@@ -25,7 +26,36 @@
 			<button type="button" role="tab" data-view="spawn" aria-selected="false">Spawn ring</button>
 			<button type="button" role="tab" data-view="gold" aria-selected="false">Gold suspects</button>
 			<button type="button" role="tab" data-view="alliances" aria-selected="false">Alliances</button>
+			<button type="button" role="tab" data-view="map" aria-selected="false">Map</button>
 		</nav>
+		<section id="controls-map" class="row" hidden>
+			<label for="map-count">Newest accounts</label>
+			<input id="map-count" type="number" min="5" max="500" value="40" />
+			<label><input id="map-spawns" type="checkbox" checked /> Spawns</label>
+			<label><input id="map-alliances" type="checkbox" checked /> Alliances</label>
+			<label for="map-goto">Centre (x|y)</label>
+			<input id="map-goto" type="text" placeholder="0|0" autocomplete="off" />
+			<button id="map-go" type="button">Go</button>
+			<button id="map-newest" type="button">Newest spawn</button>
+		</section>
+		<section id="map-section" class="map-layout" hidden>
+			<div class="tv-window">
+				<div class="tv-title">
+					<span>Map</span>
+					<span class="tv-tools">
+						<button id="map-zoom-in" type="button" class="tv-btn" aria-label="Zoom in">+</button>
+						<button id="map-zoom-out" type="button" class="tv-btn" aria-label="Zoom out">−</button>
+						<span id="map-zoom" class="tv-zoom">100%</span>
+						<span id="map-pos" class="tv-zoom"></span>
+					</span>
+				</div>
+				<div class="tv-body">
+					<div id="map-canvas"></div>
+					<div id="map-tip" class="tv-tip" hidden></div>
+				</div>
+			</div>
+			<ul id="map-legend" class="map-legend"></ul>
+		</section>
 		<section id="controls-spawn" class="row" hidden>
 			<label for="spawn-count">Newest accounts</label>
 			<input id="spawn-count" type="number" min="5" max="500" value="40" />
@@ -41,7 +71,7 @@
 			<span id="summary" class="summary"></span>
 			<button id="csv" type="button">CSV</button>
 		</div>
-		<div class="table-wrap">
+		<div class="table-wrap" id="table-wrap">
 			<table class="grid" id="table">
 				<thead></thead>
 				<tbody></tbody>

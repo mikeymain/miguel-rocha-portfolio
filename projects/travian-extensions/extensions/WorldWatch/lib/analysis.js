@@ -61,12 +61,38 @@
 		return map;
 	}
 
-	// Spawn ring per quadrant from the newest `count` accounts (by uid).
-	function spawnRing(snap, count = 40, examples = 5) {
+	// Newest `count` accounts (by uid) per quadrant of their spawn village.
+	function newestPerQuadrant(snap, count) {
 		const byQuad = Object.fromEntries(QUADRANTS.map((q) => [q, []]));
 		for (const acc of accounts(snap).values()) byQuad[quadrantOf(acc.sx, acc.sy)].push(acc);
+		return Object.fromEntries(QUADRANTS.map((q) => [q, byQuad[q].sort((a, b) => b.uid - a.uid).slice(0, count)]));
+	}
+
+	const ALLIANCE_COLORS = ["#d7263d", "#1b6ca8", "#f49d37", "#7b2cbf", "#2a9d8f", "#e76f51", "#3a86ff", "#8d6e63", "#ff5d8f", "#00a6a6"];
+
+	// Map overlay data: newest spawns, the ring they form and the top alliances.
+	function mapLayers(snap, { spawnCount = 40, allianceCount = 10 } = {}) {
+		const perQuad = newestPerQuadrant(snap, spawnCount);
+		const spawns = QUADRANTS.flatMap((q) => perQuad[q]);
+		const dists = spawns.map((a) => Math.hypot(a.sx, a.sy));
+		const alliances = topAlliances(snap, Math.min(allianceCount, ALLIANCE_COLORS.length)).map((a, i) => ({
+			...a,
+			color: ALLIANCE_COLORS[i],
+		}));
+		return {
+			spawnUids: new Set(spawns.map((a) => a.uid)),
+			spawnVids: new Set(spawns.map((a) => a.spawnVid)),
+			ring: dists.length ? { min: round1(Math.min(...dists)), median: round1(median(dists)), max: round1(Math.max(...dists)) } : null,
+			newest: spawns.length ? spawns.reduce((a, b) => (b.uid > a.uid ? b : a)) : null,
+			alliances,
+		};
+	}
+
+	// Spawn ring per quadrant from the newest `count` accounts (by uid).
+	function spawnRing(snap, count = 40, examples = 5) {
+		const perQuad = newestPerQuadrant(snap, count);
 		return QUADRANTS.map((quadrant) => {
-			const newest = byQuad[quadrant].sort((a, b) => b.uid - a.uid).slice(0, count);
+			const newest = perQuad[quadrant];
 			const dists = newest.map((a) => Math.hypot(a.sx, a.sy));
 			return {
 				quadrant,
@@ -210,6 +236,7 @@
 		percentile,
 		accounts,
 		spawnRing,
+		mapLayers,
 		parsePoint,
 		goldSuspects,
 		topAlliances,

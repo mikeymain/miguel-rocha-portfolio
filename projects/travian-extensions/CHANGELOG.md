@@ -1,5 +1,9 @@
 # Changelog
 
+## World Watch 1.1.0 — 2026-11-11
+
+- New **Map** tab: Travian-style map at 60 px per field (100 %), 543 × 401 px window, zoom down to 5 %. Shows the newest spawns, their distance band, and the top 10 alliances with labels at their centres. Hover for player, alliance and population.
+
 ## World Watch 1.0.0 — 2026-11-11
 
 - New extension. Fetches a watched world's public `map.sql` on a timer, keeps a snapshot when it changes, and shows sign-up growth, spawn ring per quadrant, population gains per account and alliance centres, with CSV export.

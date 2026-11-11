@@ -117,6 +117,7 @@
 			return { rows: A.spawnRing(snap, count), summary: `Sign-ups ${cur.maxUid} · accounts ${cur.accounts}` };
 		}
 		if (view === "alliances") return { rows: A.topAlliances(snap, 50), summary: "" };
+		if (view === "map") return renderMap(cur, snap);
 		const prev = metaById($("prev").value);
 		if (!prev || prev.id === cur.id) return { rows: [], summary: "Pick two different snapshots." };
 		const [older, newer] = prev.t < cur.t ? [prev, cur] : [cur, prev];
@@ -131,6 +132,44 @@
 		let rows = result.rows.map((r) => ({ ...r, flagText: r.flag ? "▲" : "" }));
 		if ($("flagged").checked) rows = rows.filter((r) => r.flag);
 		return { rows, summary: `${result.hours} h · compared ${result.compared} · p99 gain ${result.p99 ?? "–"}` };
+	}
+
+	let map = null;
+	let mapKey = "";
+
+	function mapInstance() {
+		if (map) return map;
+		map = WWMap.createMap($("map-canvas"), $("map-tip"));
+		map.onChange(({ cx, cy, zoom }) => {
+			$("map-zoom").textContent = `${Math.round(zoom * 100)}%`;
+			$("map-pos").textContent = `(${cx}|${cy})`;
+		});
+		return map;
+	}
+
+	function legendItem(color, text, cls) {
+		const li = document.createElement("li");
+		const sw = document.createElement("span");
+		sw.className = `swatch ${cls || ""}`;
+		sw.style.background = color;
+		li.append(sw, document.createTextNode(text));
+		return li;
+	}
+
+	function renderMap(meta, snap) {
+		const m = mapInstance();
+		const count = Math.max(5, Math.min(500, Number($("map-count").value) || 40));
+		const layers = A.mapLayers(snap, { spawnCount: count, allianceCount: 10 });
+		const key = `${meta.id}:${count}`;
+		m.setData(snap, layers);
+		if (key.split(":")[0] !== mapKey.split(":")[0] && layers.newest) m.centre(layers.newest.sx, layers.newest.sy);
+		mapKey = key;
+		const items = [];
+		if (layers.ring) items.push(legendItem("#ffd84a", `Spawns: ${layers.spawnUids.size} · ${layers.ring.min}–${layers.ring.max} (median ${layers.ring.median})`, "spawn"));
+		for (const a of layers.alliances) items.push(legendItem(a.color, `${a.tag || "#" + a.aid} · ${a.members} · ${a.pop} · ${a.centre}`));
+		$("map-legend").replaceChildren(...items);
+		const newest = layers.newest ? ` · newest uid ${layers.newest.uid} at ${layers.newest.sx}|${layers.newest.sy}` : "";
+		return { rows: [], summary: `Sign-ups ${meta.maxUid}${newest}` };
 	}
 
 	function renderTable(columns, rows) {
@@ -160,8 +199,8 @@
 		try {
 			const { rows, summary } = await compute();
 			state.rows = rows;
-			state.columns = COLUMNS[state.view];
-			renderTable(state.columns, rows);
+			state.columns = COLUMNS[state.view] || [];
+			if (state.view !== "map") renderTable(state.columns, rows);
 			$("summary").textContent = summary + (rows.length > 1000 ? ` · showing 1000 of ${rows.length}` : "");
 		} catch (err) {
 			setMsg(err.message, true);
@@ -183,13 +222,44 @@
 		for (const b of document.querySelectorAll("[data-view]")) b.setAttribute("aria-selected", String(b.dataset.view === view));
 		$("controls-spawn").hidden = view !== "spawn";
 		$("controls-gold").hidden = view !== "gold";
+		$("controls-map").hidden = view !== "map";
+		$("map-section").hidden = view !== "map";
+		$("table-wrap").hidden = view === "map";
+		$("csv").hidden = view === "map";
 		render();
+	}
+
+	function mapGoto() {
+		const p = A.parsePoint($("map-goto").value);
+		if (!p) {
+			setMsg("Point must be x|y within ±200.", true);
+			return;
+		}
+		setMsg("");
+		mapInstance().centre(p.x, p.y);
 	}
 
 	for (const b of document.querySelectorAll("[data-view]")) b.addEventListener("click", () => selectView(b.dataset.view));
 	$("host").addEventListener("change", loadMetas);
 	for (const id of ["cur", "prev", "spawn-count", "radius", "flagged"]) $(id).addEventListener("change", render);
 	$("point").addEventListener("change", render);
+	$("map-count").addEventListener("change", render);
+	$("map-spawns").addEventListener("change", () => mapInstance().setShow({ spawns: $("map-spawns").checked }));
+	$("map-alliances").addEventListener("change", () => mapInstance().setShow({ alliances: $("map-alliances").checked }));
+	$("map-zoom-in").addEventListener("click", () => mapInstance().setZoom(mapInstance().zoom - 1));
+	$("map-zoom-out").addEventListener("click", () => mapInstance().setZoom(mapInstance().zoom + 1));
+	$("map-go").addEventListener("click", mapGoto);
+	$("map-goto").addEventListener("keydown", (e) => {
+		if (e.key === "Enter") mapGoto();
+	});
+	$("map-newest").addEventListener("click", () => {
+		const meta = metaById($("cur").value);
+		if (!meta) return;
+		loadSnap(meta.id).then((snap) => {
+			const layers = A.mapLayers(snap, { spawnCount: 1 });
+			if (layers.newest) mapInstance().centre(layers.newest.sx, layers.newest.sy);
+		});
+	});
 	$("csv").addEventListener("click", exportCsv);
 	api.storage.onChanged.addListener((changes, area) => {
 		if (area === "local" && changes.wwStatus) loadMetas();

@@ -19,6 +19,7 @@ Tracks a Travian Legends game world over time from its public `map.sql` dump. Us
 | Spawn ring | Per quadrant (NE/NW/SE/SW): the newest N accounts by uid (default 40). Spawn village = lowest village id per account. Min, median and max distance from 0\|0 and the newest spawn coordinates. |
 | Gold suspects | Population gain per account between two snapshots, gain per hour, Δ villages and distance to a point. Rows above the 99th percentile gain are highlighted. Only accounts present in both snapshots are compared. A Δ villages above 0 means part of the gain comes from a new or conquered village. |
 | Alliances | Members, villages, population, population-weighted centre and main quadrant. |
+| Map | Travian-style map: 60 px per field at 100 % in a 543 × 401 px window, like the in-game map. Zoom 100/50/25/10/5 %, drag to pan, mouse wheel to zoom. Newest spawns are highlighted and their distance band from 0|0 is shaded; the top 10 alliances are coloured and labelled at their centre. Hover a field for player, alliance and population. |
 
 Every table exports to CSV. Nature and Natar villages are ignored. Positive y is north. Distances wrap around the 401 × 401 map.
 
@@ -35,6 +36,7 @@ Every table exports to CSV. Nature and Natar villages are ignored. Positive y is
 | `lib/core.js` | Host validation, settings, poll and dedupe |
 | `lib/db.js` | IndexedDB store |
 | `background.js` | Alarm and messages |
+| `map-view.js` | Map canvas |
 | `popup.*`, `dashboard.*` | UI |
 
 Tests: `tests/worldwatch.test.cjs` (`cd tests && node --test worldwatch.test.cjs`).

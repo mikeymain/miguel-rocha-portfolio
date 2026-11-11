@@ -170,3 +170,102 @@ table.grid {
 	overflow: hidden;
 	clip: rect(0 0 0 0);
 }
+.map-layout {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	align-items: flex-start;
+	margin: 8px 0;
+}
+.tv-window {
+	display: inline-block;
+	padding: 6px 8px 8px;
+	background: linear-gradient(#f4ecd6, #e6dab9);
+	border: 2px solid #9d8a5e;
+	border-radius: 6px;
+	box-shadow:
+		inset 0 0 0 1px #fffaf0,
+		0 4px 14px rgba(0, 0, 0, 0.35);
+	color: #3c3020;
+}
+.tv-title {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 2px 4px 6px;
+	font: 600 18px/1.2 Georgia, "Times New Roman", serif;
+	letter-spacing: 0.5px;
+}
+.tv-tools {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font: 12px Verdana, Arial, sans-serif;
+}
+button.tv-btn {
+	min-height: 24px;
+	width: 26px;
+	padding: 0;
+	background: #fbf6e9;
+	color: #3c3020;
+	border: 1px solid #9d8a5e;
+	border-radius: 4px;
+	font-weight: 700;
+}
+.tv-zoom {
+	padding: 2px 6px;
+	background: #fbf6e9;
+	border: 1px solid #c9b88f;
+	border-radius: 4px;
+	font-variant-numeric: tabular-nums;
+}
+.tv-body {
+	position: relative;
+	line-height: 0;
+}
+.map-canvas {
+	display: block;
+	cursor: grab;
+	touch-action: none;
+}
+.map-canvas.dragging {
+	cursor: grabbing;
+}
+.tv-tip {
+	position: absolute;
+	z-index: 2;
+	pointer-events: none;
+	min-width: 120px;
+	padding: 6px 8px;
+	background: rgba(40, 30, 15, 0.92);
+	border: 1px solid #9d8a5e;
+	border-radius: 4px;
+	color: #f4ecd6;
+	font: 12px/1.45 Verdana, Arial, sans-serif;
+	white-space: nowrap;
+}
+.tv-tip .tip-title {
+	font-weight: 700;
+	color: #ffffff;
+}
+.map-legend {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	gap: 4px;
+	font-variant-numeric: tabular-nums;
+}
+.map-legend li {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.swatch {
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	border: 2px solid rgba(0, 0, 0, 0.25);
+	flex: none;
+}
