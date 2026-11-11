@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.29 — 2026-11-11
+
+- Graph: selectable average raiding per hour with and without animals, calculated from the trailing 3 hours. Available in both graph modes; observed weekly resets are handled.
+
 ## Rank Tracker 5.0.28 — 2026-11-11
 
 - Now: average rank uses all seven General ranks (Population, Prod / Hour, Prod So Far, CP / Day, CP So Far, Offensive and Defensive Strength) plus weekly PvE and Robbers. Weekly Attack and Defense do not count.

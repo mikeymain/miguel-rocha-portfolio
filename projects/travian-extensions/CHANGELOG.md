@@ -1,5 +1,9 @@
 # Changelog
 
+## Rank Tracker 5.0.29 — 2026-11-11
+
+- Graph: selectable average raiding per hour with and without animals, using a trailing 3-hour window in both graph modes.
+
 ## TravAlarm 3.38 — 2026-11-11
 
 - New **Academy research** and **Smithy upgrade** alarms per village. They are set or updated when the Academy or Smithy page is opened.

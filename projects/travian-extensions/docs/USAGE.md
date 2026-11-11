@@ -99,12 +99,14 @@ The farm-list screenshot uses a sample table with the extension's selection high
 
 1. Open a logged-in Travian tab and click the extension icon to register the server and collect statistics.
 2. Use **Now** for rankings and changes. The status in the top bar shows the last update. Background collection runs approximately every 30 minutes while the browser and session are available. Weekly tables refresh when the popup is opened; the Weekly header shows when they were observed. Cached weekly values are not recorded as new history.
-3. Use **History** to pick metrics in the sidebar, drag across the chart to compare two points, and scroll on the chart to zoom (Shift + scroll pans). **Daily peaks** aggregates observations; **Per hour** shows change per hour; raid and PvE counters show the total gained in the trailing 3 hours. **Save group** stores the visible metrics; **Clear** hides all. Weekly statistics reset; value changes and hourly rates bridge observed resets rather than reporting the old total as a loss. Gains during missing observations cannot be recovered.
+3. Use **History** to pick metrics in the sidebar, drag across the chart to compare two points, and scroll on the chart to zoom (Shift + scroll pans). Under **Raids**, select **Avg/h with animals** and **Avg/h without animals** for trailing 3-hour gains divided by 3 (animals × 160 resources). These stay hourly averages in both modes and require 3 hours of saved history. **Daily peaks** aggregates observations; **Per hour** shows change per hour; raid and PvE counters show the total gained in the trailing 3 hours. **Save group** stores the visible metrics; **Clear** hides all. Weekly statistics reset; value changes and hourly rates bridge observed resets rather than reporting the old total as a loss. Gains during missing observations cannot be recovered.
 4. Use the export icon (arrow down) to save data. The import icon (arrow up) restores a backup and asks before deleting data the backup does not contain; export existing data before importing. The star icon lists the rank tiers.
 
 For expired sessions, log in and reopen the popup. Missing observations cannot be reconstructed.
 
 <a href="images/rank-history.png"><img src="images/rank-history.png" alt="Rank Tracker history graph" width="520" /></a>
+
+<a href="images/rank-raid-hourly.jpg"><img src="images/rank-raid-hourly.jpg" alt="Hourly raiding averages with and without animals, using synthetic preview data" width="520" /></a>
 
 ## Next Settlement Calc
 

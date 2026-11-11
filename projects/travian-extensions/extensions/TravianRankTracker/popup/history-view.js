@@ -101,7 +101,9 @@ function hvUpdateCompareBox(chart, startIdx, endIdx, timestamps) {
 		const val = h("span", `cmp-val ${cls}`, `${sign}${fmtCompact(diff)}`);
 		val.title = `${sign}${fmtNum(diff)}`;
 		let rate = "";
-		if (!velocity && timeDiffHours > 0) {
+		if (ds.perHour) {
+			rate = "/h";
+		} else if (!velocity && timeDiffHours > 0) {
 			const hourly = Math.round((diff / timeDiffHours) * 10) / 10;
 			rate = `${sign}${fmtCompact(hourly)}/h`;
 		} else if (velocity) {
@@ -304,6 +306,7 @@ async function loadGraph(filter, storageKey) {
 		if (resetZoomBtn) resetZoomBtn.hidden = true;
 	}
 	if (popupState.isVelocityMode) data = withRolling3h(toVelocity(data), prepared);
+	data = withRaidHourly(data, prepared);
 
 	// Refresh canvas (prevents stale wheel listeners)
 	const oldCanvas = document.getElementById("rankChart");
@@ -322,6 +325,7 @@ async function loadGraph(filter, storageKey) {
 		const rolling3h = popupState.isVelocityMode && RESET_VALUE_KEYS.includes(cfg.key);
 		return {
 		label: cfg.label,
+		perHour: !!cfg.perHour,
 		rolling3h,
 		...(rolling3h ? { cubicInterpolationMode: "monotone" } : {}),
 		data: data.map((x) => (cfg.ceil ? (x[cfg.key] != null ? Math.ceil(x[cfg.key]) : null) : x[cfg.key] ?? null)),

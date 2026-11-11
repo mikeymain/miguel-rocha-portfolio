@@ -19,6 +19,8 @@ const DATASETS_CONFIG = [
 	{ key: "valPve", label: "Animals Killed", color: "#e8b45c", dash: [5, 5], axis: "y1", defHidden: true, group: "raids" },
 	{ key: "valPveResources", label: "Res from Animal Kills", color: "#ffd88a", dash: [5, 5], axis: "y1", defHidden: true, group: "raids" },
 	{ key: "valRobExcludingPve", label: "Res Raided (excl. PvE)", color: "#3fa7c9", dash: [5, 5], axis: "y1", defHidden: true, group: "raids" },
+	{ key: "valRaidHourly", label: "Avg Raiding / Hour (with animals)", color: "#62c6e8", dash: [2, 2], axis: "y1", defHidden: true, perHour: true, group: "raids" },
+	{ key: "valRaidHourlyExcludingPve", label: "Avg Raiding / Hour (without animals)", color: "#3fa7c9", dash: [4, 2], axis: "y1", defHidden: true, perHour: true, group: "raids" },
 	{ key: "rankPve", label: "PvE of the week", color: "#f2a541", dash: null, axis: "y", defHidden: false, group: "weekly" },
 	{ key: "rankPop", label: "Pop Rank", color: "#c9ced6", dash: null, axis: "y", defHidden: false, group: "population" },
 	{ key: "valPop", label: "Population", color: "#f1efe9", dash: [2, 2], axis: "y1", defHidden: true, group: "population" },
@@ -36,7 +38,7 @@ const DATASETS_CONFIG = [
 /** Picker sections in display order; `keys` lists DATASETS_CONFIG keys. */
 const METRIC_GROUPS = [
 	{ id: "weekly", title: "Weekly", keys: ["rankPvp", "rankDefTop", "rankRob", "rankPve"] },
-	{ id: "raids", title: "Raids", keys: ["valRob", "valRobExcludingPve", "valPve", "valPveResources", "valBounty"] },
+	{ id: "raids", title: "Raids", keys: ["valRob", "valRobExcludingPve", "valRaidHourly", "valRaidHourlyExcludingPve", "valPve", "valPveResources", "valBounty"] },
 	{ id: "population", title: "Population", keys: ["rankPop", "valPop"] },
 	{ id: "production", title: "Production", keys: ["rankProd", "valProd", "rankProdSoFar", "valProdSoFar"] },
 	{ id: "culture", title: "Culture", keys: ["rankCp", "cpProd", "rankCpSoFar", "valCpSoFar"] },
@@ -47,6 +49,7 @@ const METRIC_GROUPS = [
 const METRIC_SHORT_LABELS = {
 	rankPvp: "Attack rank", rankDefTop: "Defense rank", rankRob: "Robbers rank", rankPve: "PvE rank",
 	valRob: "Raided", valRobExcludingPve: "Raided excl. PvE", valPve: "Animals killed", valPveResources: "Animal resources", valBounty: "Bounty",
+	valRaidHourly: "Avg/h with animals", valRaidHourlyExcludingPve: "Avg/h without animals",
 	rankPop: "Rank", valPop: "Population",
 	rankProd: "Rank", valProd: "Per hour", rankProdSoFar: "Total rank", valProdSoFar: "Total",
 	rankCp: "Rank", cpProd: "Per day", rankCpSoFar: "Total rank", valCpSoFar: "Total",
@@ -285,6 +288,18 @@ function withRolling3h(velocity, prepared) {
 		for (const key of RESET_VALUE_KEYS) next[key] = gains[key][i];
 		return next;
 	});
+}
+
+/** Hourly raid averages from raw, reset-safe totals, in either graph mode. */
+function withRaidHourly(data, prepared) {
+	const timestamps = data.map((point) => point.timestamp);
+	const rates = {};
+	for (const [key, source] of [["valRaidHourly", "valRobTotal"], ["valRaidHourlyExcludingPve", "valRobExcludingPveTotal"]]) {
+		const samples = prepared.filter((point) => Number.isFinite(point[source]))
+			.map((point) => ({ timestamp: point.timestamp, value: point[source] }));
+		rates[key] = rollingWindowGain(samples, timestamps).map((gain) => gain == null ? null : Math.round(gain / 3));
+	}
+	return data.map((point, i) => ({ ...point, valRaidHourly: rates.valRaidHourly[i], valRaidHourlyExcludingPve: rates.valRaidHourlyExcludingPve[i] }));
 }
 
 /**

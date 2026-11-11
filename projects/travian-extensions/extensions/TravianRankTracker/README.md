@@ -2,7 +2,7 @@
 
 Records player statistics and displays rankings, historical changes and comparison graphs.
 
-**Version 5.0.28 · JavaScript · Manifest V3**
+**Version 5.0.29 · JavaScript · Manifest V3**
 
 [Usage guide](../../docs/USAGE.md#rank-tracker) · [Installation](../../README.md#install-in-brave-chrome-or-edge) · [All extensions](../../README.md)
 
@@ -13,6 +13,7 @@ Load this directory with **Load unpacked** in a desktop Chromium browser. No bui
 - Weekly tables refresh when the popup opens; the Weekly header shows when they were observed. Background collection handles JSON-backed general statistics.
 - Changes and rates account for observed weekly resets; daily bounty resets are handled in History. Absolute charts retain the original period totals.
 - Average rank uses the seven General ranks (Population, Prod / Hour, Prod So Far, CP / Day, CP So Far, Offensive and Defensive Strength) plus weekly PvE and Robbers. Weekly Attack and Defense are excluded.
+- Graph → Raids includes **Avg/h with animals** and **Avg/h without animals**: trailing 3-hour gains divided by 3, with animals valued at 160 resources each. Both remain hourly averages in either graph mode; a full 3 hours of history is required.
 - In Per hour mode, raid and PvE counters show the total gained in the trailing 3 hours.
 - Cached weekly readings are omitted from new history. Activity during missing observations or unobserved resets cannot be reconstructed.
 - Backup imports are validated before writing. Failed writes preserve existing data. Restore is available without a registered server.
