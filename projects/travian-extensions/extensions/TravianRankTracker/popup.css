@@ -337,9 +337,9 @@ svg {
 	text-align: right;
 }
 
-.metrics thead th.col-metric { width: 210px; text-align: left; padding-left: 14px; }
+.metrics thead th.col-metric { width: 180px; text-align: left; padding-left: 14px; }
 .metrics thead th.col-rank { width: 72px; text-align: center; }
-.metrics thead th.col-value { width: 100px; }
+.metrics thead th.col-value { width: 130px; }
 .metrics tbody tr.group-row th { height: 22px; padding: 4px 14px 2px; text-align: left; border-bottom: 1px solid var(--line); }
 .group-name { color: var(--accent); font: 600 11px/1 var(--font-num); letter-spacing: 0.14em; text-transform: uppercase; }
 .group-meta { margin-left: 10px; color: var(--faint); font: 11px/1 var(--font-num); }
