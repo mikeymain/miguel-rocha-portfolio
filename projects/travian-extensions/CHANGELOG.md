@@ -36,6 +36,10 @@
 
 - ETA history draws a smoothed curve instead of jagged steps. The tooltip still shows the raw values.
 
+## Oasis Finder 70.4 — 2026-11-11
+
+- Empty free oases are now recognised from the map. Their old garrison is cleared and they appear under **No animals** in **View DB**.
+
 ## Oasis Finder 70.3 — 2026-11-10
 
 - **View DB**: the **Radius** box uses the same dark −/+ stepper as the main panel.

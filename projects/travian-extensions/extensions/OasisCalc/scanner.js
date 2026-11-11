@@ -63,6 +63,13 @@ function inspectOasisTile(tile) {
     /\{k\.(?:spieler|allianz)\}/.test(text) ||
     /\b(?:Player|Alliance)\s*:/.test(root.textContent) || /^occupied oasis\b/i.test(title.trim());
   if (occupied) return { isOasis: true, status: "occupied", animals: [] };
+  // Empty free oases keep the full tooltip (coordinates, distance) but the
+  // game drops the {k.animals} section. Partial tiles lack the tooltip and
+  // stay unknown.
+  if (!animalIcons.length && !/\{k\.animals\}/.test(text) &&
+      root.querySelector(".tileDistance") && root.querySelector(".coordinates")) {
+    return { isOasis: true, status: "empty", animals: [] };
+  }
   const counts = new Map();
   let complete = animalIcons.length > 0;
   for (const icon of animalIcons) {
