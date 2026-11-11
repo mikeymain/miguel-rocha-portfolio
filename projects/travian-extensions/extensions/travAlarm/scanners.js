@@ -103,6 +103,7 @@ function scan() {
     // expansion units never appear on the troops training statistics page)
     if (window.location.pathname.includes("build.php")) {
       tryScan(scanSettlerTraining, activeVillage);
+      tryScan(scanResearch, activeVillage);
     }
 
     // Celebrations on-page trigger
@@ -641,6 +642,48 @@ function scanSettlerTraining(activeVillage) {
   const now = Date.now();
   const existing = currentAlarms.find((a) => a.name === alarmName);
   if (existing && existing.scheduledTime - now > 10000) {
+    api.runtime.sendMessage({
+      type: "DELETE_ALARM",
+      id: existing.id,
+      name: existing.name,
+    });
+  }
+}
+
+// Academy research and Smithy upgrades only show their queue on the building
+// page itself (the Smithy statistics page has no timers), so scan on-page.
+// customType "research" keeps CLEAR_STALE_TRAINING from wiping these alarms.
+const RESEARCH_BUILDINGS = { 13: "Smithy upgrade", 22: "Academy research" };
+
+function scanResearch(activeVillage) {
+  const build = document.querySelector("#build");
+  const gid = build?.className.match(/\bgid(\d+)\b/)?.[1];
+  const label = RESEARCH_BUILDINGS[gid];
+  if (!label) return;
+
+  const alarmName = `🎓 ${label} (${activeVillage}) ${serverTag}`;
+
+  let maxSeconds = 0;
+  build
+    .querySelectorAll(".under_progress .timer, .underProgress .timer")
+    .forEach((t) => {
+      const s = parseInt(t.getAttribute("value"), 10) || 0;
+      if (s > maxSeconds) maxSeconds = s;
+    });
+
+  if (maxSeconds > 0) {
+    api.runtime.sendMessage({
+      type: "REFRESH_ALARMS",
+      buildings: [
+        { name: alarmName, delay: maxSeconds * 1000, customType: "research" },
+      ],
+    });
+    return;
+  }
+
+  // Empty queue → drop a stale future alarm for this village (e.g. finished with gold).
+  const existing = currentAlarms.find((a) => a.name === alarmName);
+  if (existing && existing.scheduledTime - Date.now() > 10000) {
     api.runtime.sendMessage({
       type: "DELETE_ALARM",
       id: existing.id,

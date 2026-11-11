@@ -1,5 +1,9 @@
 # Changelog
 
+## TravAlarm 3.38 — 2026-11-11
+
+- New **Academy research** and **Smithy upgrade** alarms per village. They are set or updated when the Academy or Smithy page is opened.
+
 ## Travian QoL 1.3.1 — 2026-11-10
 
 - Upgrade target values compare the built level with the next level. Before, queued upgrades shifted both numbers to the levels after the queue.

@@ -52,7 +52,7 @@ Unknown-age or incomplete readings are excluded. **Errors** shows scan problems,
 
 <a href="images/travalarm.png"><img src="images/travalarm.png" alt="TravAlarm grouped timer dashboard" width="224" /></a>
 
-**Features:** grouped timers for attacks, hero movements, construction, training, storage, celebrations, and farm lists; village labels/colors; custom reminders; recurring/daily presets; countdowns; pin/delete controls; draggable/collapsible panel; category sound settings; volume; browser alarms and notifications; an **Oasis respawn** countdown to the end of the world's starting beginner protection, when oasis animals begin to respawn, with alarms 45 minutes before and at the protection end.
+**Features:** grouped timers for attacks, hero movements, construction, training, Academy research and Smithy upgrades, storage, celebrations, and farm lists; village labels/colors; custom reminders; recurring/daily presets; countdowns; pin/delete controls; draggable/collapsible panel; category sound settings; volume; browser alarms and notifications. Research and upgrade alarms update when the Academy or Smithy page is opened. An **Oasis respawn** countdown runs to the end of the world's starting beginner protection, when oasis animals begin to respawn, with alarms 45 minutes before and at the protection end.
 
 **Usage:**
 

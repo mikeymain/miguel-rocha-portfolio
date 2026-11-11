@@ -436,6 +436,7 @@ function handleMessage(msg, sender, sendResponse) {
         const refreshTypes = [
           "training",
           "settler",
+          "research",
           "resource",
           "storage",
           "culture",
