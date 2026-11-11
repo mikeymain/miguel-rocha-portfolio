@@ -289,13 +289,13 @@ async function selectTab(tabId) {
 
 /* ── Popup zoom ──────────────────────────────────────────────────────── */
 
-/** Popup size in CSS pixels (Chrome allows up to 800x600). */
-const APP_POPUP_W = 760;
+/** Chrome's popup size limit in CSS pixels. */
+const APP_POPUP_W = 800;
 const APP_POPUP_H = 600;
 
 /**
  * Zoom the body and size it so the zoomed popup still fills exactly
- * 760x600; a zoom above 1 would otherwise overflow and show scrollbars.
+ * 800x600; a zoom above 1 would otherwise overflow and show scrollbars.
  */
 function applyAppZoom(zoom) {
 	const style = document.body.style;

@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.24 — 2026-11-11
+
+- Reverts 5.0.23: the popup is 800 pixels wide again.
+
 ## Rank Tracker 5.0.23 — 2026-11-11
 
 - Now: the popup is 760 pixels wide (was 800), at any zoom.
