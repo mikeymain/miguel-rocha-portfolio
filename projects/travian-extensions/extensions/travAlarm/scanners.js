@@ -653,7 +653,25 @@ function scanSettlerTraining(activeVillage) {
 // Academy research and Smithy upgrades only show their queue on the building
 // page itself (the Smithy statistics page has no timers), so scan on-page.
 // customType "research" keeps CLEAR_STALE_TRAINING from wiping these alarms.
-const RESEARCH_BUILDINGS = { 13: "Smithy upgrade", 22: "Academy research" };
+const RESEARCH_BUILDINGS = { 13: "Smithy", 22: "Academy" };
+
+// One queued research row → "Legionnaire" (Academy) or "Legionnaire lvl 2"
+// (Smithy, the level being upgraded to). Unit name comes from the unit icon's
+// alt/title when present, else the row text with the level stripped.
+function describeResearchRow(row, withLevel) {
+  const desc = row.querySelector(".desc") || row.querySelector("td");
+  if (!desc) return "";
+  const img = desc.querySelector("img.unit, i.unit, [class*='unit u']");
+  const text = cleanText(desc.textContent);
+  const iconName = cleanText(img?.getAttribute("alt") || img?.getAttribute("title") || "");
+  const name = (iconName || text.replace(/\(?\s*(level|lvl|stufe|niveau)?\s*\d+\s*\)?/gi, ""))
+    .replace(/[()]/g, "")
+    .trim();
+  if (!name) return "";
+  if (!withLevel) return name;
+  const level = text.replace(iconName, "").match(/\d+/)?.[0];
+  return level ? `${name} lvl ${level}` : name;
+}
 
 function scanResearch(activeVillage) {
   const build = document.querySelector("#build");
@@ -661,15 +679,39 @@ function scanResearch(activeVillage) {
   const label = RESEARCH_BUILDINGS[gid];
   if (!label) return;
 
-  const alarmName = `🎓 ${label} (${activeVillage}) ${serverTag}`;
-
   let maxSeconds = 0;
+  const units = [];
   build
     .querySelectorAll(".under_progress .timer, .underProgress .timer")
     .forEach((t) => {
       const s = parseInt(t.getAttribute("value"), 10) || 0;
+      if (s <= 0) return;
       if (s > maxSeconds) maxSeconds = s;
+      const row = t.closest("tr");
+      const unit = row ? describeResearchRow(row, label === "Smithy") : "";
+      if (unit && !units.includes(unit)) units.push(unit);
     });
+
+  const prefix = `🎓 ${label}`;
+  const suffix = `(${activeVillage}) ${serverTag}`;
+  const alarmName = units.length
+    ? `${prefix}: ${units.join(", ")} ${suffix}`
+    : `${prefix} ${suffix}`;
+
+  // Drop this village's older alarm for the same building when the queue
+  // changed (different units) or emptied early (e.g. finished with gold).
+  currentAlarms
+    .filter(
+      (a) =>
+        a.name !== alarmName &&
+        a.name.startsWith(prefix) &&
+        a.name.endsWith(suffix) &&
+        a.customType === "research" &&
+        a.scheduledTime - Date.now() > 10000,
+    )
+    .forEach((a) =>
+      api.runtime.sendMessage({ type: "DELETE_ALARM", id: a.id, name: a.name }),
+    );
 
   if (maxSeconds > 0) {
     api.runtime.sendMessage({
@@ -677,17 +719,6 @@ function scanResearch(activeVillage) {
       buildings: [
         { name: alarmName, delay: maxSeconds * 1000, customType: "research" },
       ],
-    });
-    return;
-  }
-
-  // Empty queue → drop a stale future alarm for this village (e.g. finished with gold).
-  const existing = currentAlarms.find((a) => a.name === alarmName);
-  if (existing && existing.scheduledTime - Date.now() > 10000) {
-    api.runtime.sendMessage({
-      type: "DELETE_ALARM",
-      id: existing.id,
-      name: existing.name,
     });
   }
 }

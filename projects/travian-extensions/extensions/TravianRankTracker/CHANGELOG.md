@@ -1,5 +1,10 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.30 — 2026-11-11
+
+- Graph: quick range buttons 3h, 6h, 12h, 24h, 48h, 72h and 1w crop to the latest points; click the active one again to show all.
+- Graph: smoother lines; Per hour values use a 5-point moving average.
+
 ## Rank Tracker 5.0.29 — 2026-11-11
 
 - Graph: selectable average raiding per hour with and without animals, calculated from the trailing 3 hours. Available in both graph modes; observed weekly resets are handled.

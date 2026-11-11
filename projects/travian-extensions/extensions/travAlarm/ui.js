@@ -123,8 +123,27 @@ function classifyAlarm(a) {
   return "building";
 }
 
+// Training rows get a colour per building so Barracks, Stable etc. are easy to
+// tell apart; the Training section header keeps its blue. "Great" names first.
+const TRAINING_BUILDING_COLORS = [
+  ["Great Barracks", "tw-type-cyan"],
+  ["Great Stable", "tw-type-orange"],
+  ["Barracks", "tw-type-blue"],
+  ["Stable", "tw-type-amber"],
+  ["Workshop", "tw-type-purple"],
+  ["Academy", "tw-type-green"],
+  ["Smithy", "tw-type-pink"],
+  ["Settlers", "tw-type-lime"],
+  ["Trapper", "tw-type-teal"],
+  ["Hospital", "tw-type-red"],
+];
+
 function getTypeColorClass(a) {
   const type = classifyAlarm(a);
+  if (type === "training") {
+    const hit = TRAINING_BUILDING_COLORS.find(([b]) => a.name.includes(`🎓 ${b}`));
+    if (hit) return hit[1];
+  }
   return SECTION_META[type]?.cls || "tw-type-orange";
 }
 

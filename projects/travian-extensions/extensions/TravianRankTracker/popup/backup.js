@@ -47,6 +47,7 @@ function validateBackup(data) {
 		else if (key === "velocityMode") requireValid(typeof value === "boolean");
 		else if (key === "appZoom") requireValid(Number.isFinite(value) && value >= 0.5 && value <= 2);
 		else if (key === "graphFilter") requireValid(["all", "daily"].includes(value));
+		else if (key === "graphRange") requireValid([3, 6, 12, 24, 48, 72, 168].includes(value));
 		else if (key === "graphZoom") requireValid(object(value) && Object.values(value).every(Number.isFinite));
 		else if (key === "graphPrefs") requireValid(object(value) && Object.values(value).every((item) => typeof item === "boolean"));
 		else if (key === "customGroups") requireValid(object(value) && Object.values(value).every((items) => Array.isArray(items) && items.every((item) => typeof item === "string")));

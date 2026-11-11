@@ -465,7 +465,10 @@ td.delta { text-align: right; white-space: nowrap; font-family: var(--font-num);
 }
 
 .seg-btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4); }
-.group-bar { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.group-bar { display: flex; align-items: center; gap: 6px; min-width: 0; flex: 0 1 auto; }
+#seg-range .seg-btn { padding: 0 6px; }
+.hist-toolbar { min-width: 0; }
+.hist-toolbar .group-list { min-width: 0; flex: 0 1 auto; }
 
 .group-list {
 	display: flex;

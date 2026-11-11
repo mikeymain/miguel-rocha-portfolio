@@ -319,6 +319,48 @@ function compareEdgeValues(values, i1, i2) {
 	return lo < hi ? { start: values[lo], end: values[hi] } : null;
 }
 
+/** Neighbours on each side averaged when smoothing per-hour lines. */
+const RATE_SMOOTH_RADIUS = 2;
+
+/**
+ * Centred moving average over the non-null neighbours within `radius`.
+ * Null points stay null so gaps are kept.
+ *
+ * @param {(number|null)[]} values
+ * @param {number} radius
+ * @returns {(number|null)[]}
+ */
+function smoothSeries(values, radius) {
+	return values.map((v, i) => {
+		if (v == null) return null;
+		let sum = 0;
+		let n = 0;
+		for (let j = Math.max(0, i - radius); j <= Math.min(values.length - 1, i + radius); j++) {
+			if (values[j] != null) {
+				sum += values[j];
+				n++;
+			}
+		}
+		return Math.round((sum / n) * 10) / 10;
+	});
+}
+
+/**
+ * Index window covering the last `hours` of `timestamps` (at least 2 points).
+ *
+ * @param {number[]} timestamps - Ascending.
+ * @param {number} hours
+ * @returns {{min:number, max:number}|null}
+ */
+function rangeWindow(timestamps, hours) {
+	const total = timestamps.length;
+	if (total < 2) return null;
+	const cutoff = timestamps[total - 1] - hours * 3_600_000;
+	let min = timestamps.findIndex((t) => t >= cutoff);
+	if (min < 0) min = 0;
+	return { min: Math.min(min, total - 2), max: total - 1 };
+}
+
 /* ── chart configuration ─────────────────────────────────────────────── */
 
 /** Compact axis tick: 1.5k / 2.3M / 1.1B. */
@@ -475,7 +517,7 @@ function hvChartOptions(tokens, savedZoom) {
 		},
 		elements: {
 			point: { radius: 0, hoverRadius: 4, hoverBorderWidth: 2 },
-			line: { borderWidth: 1.75, tension: 0.25 },
+			line: { borderWidth: 1.75, tension: 0.4, cubicInterpolationMode: "monotone" },
 		},
 	};
 }

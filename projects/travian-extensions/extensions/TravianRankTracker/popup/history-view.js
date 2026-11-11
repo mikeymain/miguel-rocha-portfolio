@@ -249,6 +249,8 @@ function hvInitChartZoom(canvas) {
 			chart.options.scales.x.min = min;
 			chart.options.scales.x.max = max;
 			api.storage.local.set({ graphZoom: { min, max } });
+			api.storage.local.remove("graphRange");
+			hvSetPressed("seg-range", () => false);
 			chart.update("none");
 			const resetBtn = document.getElementById("btn-zoom-reset");
 			if (resetBtn) resetBtn.hidden = min <= 0 && max >= total - 1;
@@ -277,7 +279,7 @@ async function loadGraph(filter, storageKey) {
 	if (!storageKey) return;
 	const loadVersion = ++graphLoadVersion;
 
-	const res = await api.storage.local.get([storageKey, "graphPrefs", "graphZoom"]);
+	const res = await api.storage.local.get([storageKey, "graphPrefs", "graphZoom", "graphRange"]);
 	if (loadVersion !== graphLoadVersion) return;
 	const hist = res[storageKey] || [];
 	const prefs = res.graphPrefs || {};
@@ -308,6 +310,16 @@ async function loadGraph(filter, storageKey) {
 	if (popupState.isVelocityMode) data = withRolling3h(toVelocity(data), prepared);
 	data = withRaidHourly(data, prepared);
 
+	// A quick range (3h … 1w) always anchors to the newest point.
+	const rangeHours = Number(res.graphRange) || 0;
+	hvSetPressed("seg-range", (b) => Number(b.dataset.h) === rangeHours);
+	const win = rangeHours ? rangeWindow(data.map((x) => x.timestamp), rangeHours) : null;
+	if (win) {
+		savedZoom.min = win.min;
+		savedZoom.max = win.max;
+		if (resetZoomBtn) resetZoomBtn.hidden = true;
+	}
+
 	// Refresh canvas (prevents stale wheel listeners)
 	const oldCanvas = document.getElementById("rankChart");
 	if (!oldCanvas) return;
@@ -321,6 +333,10 @@ async function loadGraph(filter, storageKey) {
 	Chart.defaults.font.family = tokens.fontNum;
 
 	const timestamps = data.map((x) => x.timestamp);
+	const seriesFor = (cfg) => {
+		const raw = data.map((x) => (cfg.ceil ? (x[cfg.key] != null ? Math.ceil(x[cfg.key]) : null) : x[cfg.key] ?? null));
+		return popupState.isVelocityMode ? smoothSeries(raw, RATE_SMOOTH_RADIUS) : raw;
+	};
 	const datasets = DATASETS_CONFIG.map((cfg) => {
 		const rolling3h = popupState.isVelocityMode && RESET_VALUE_KEYS.includes(cfg.key);
 		return {
@@ -328,7 +344,7 @@ async function loadGraph(filter, storageKey) {
 		perHour: !!cfg.perHour,
 		rolling3h,
 		...(rolling3h ? { cubicInterpolationMode: "monotone" } : {}),
-		data: data.map((x) => (cfg.ceil ? (x[cfg.key] != null ? Math.ceil(x[cfg.key]) : null) : x[cfg.key] ?? null)),
+		data: seriesFor(cfg),
 		comparisonData: !popupState.isVelocityMode && RESET_VALUE_KEYS.includes(cfg.key)
 			? data.map((point) => point[`${cfg.key}Total`] ?? null) : null,
 		borderColor: cfg.color,
@@ -348,6 +364,7 @@ async function loadGraph(filter, storageKey) {
 		options: hvChartOptions(tokens, savedZoom),
 		plugins: [hvDragComparePlugin(timestamps, tokens)],
 	});
+	chart.$hvTimestamps = timestamps;
 	window.myChart = chart;
 
 	hvInitChartZoom(canvas);
@@ -412,7 +429,31 @@ function initHistoryControls() {
 		chart.options.scales.x.max = undefined;
 		chart.update();
 		e.currentTarget.hidden = true;
-		await api.storage.local.remove("graphZoom");
+		hvSetPressed("seg-range", () => false);
+		await api.storage.local.remove(["graphZoom", "graphRange"]);
+	});
+
+	document.querySelectorAll("#seg-range .seg-btn").forEach((btn) => {
+		btn.addEventListener("click", async () => {
+			// Clicking the active range again shows everything.
+			const active = btn.getAttribute("aria-pressed") === "true";
+			const hours = Number(btn.dataset.h);
+			const chart = window.myChart;
+			const win = chart && !active ? rangeWindow(chart.$hvTimestamps || [], hours) : null;
+			hvSetPressed("seg-range", (b) => !active && b === btn);
+			if (active) await api.storage.local.remove(["graphRange", "graphZoom"]);
+			else {
+				await api.storage.local.set({ graphRange: hours });
+				await api.storage.local.remove("graphZoom");
+			}
+			const resetBtn = document.getElementById("btn-zoom-reset");
+			if (resetBtn) resetBtn.hidden = true;
+			if (!chart) return;
+			chart.options.scales.x.min = win?.min;
+			chart.options.scales.x.max = win?.max;
+			chart.update();
+			hvCloseCompare();
+		});
 	});
 
 	document.getElementById("btn-group-none")?.addEventListener("click", async () => {
