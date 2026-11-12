@@ -1,5 +1,14 @@
 # Changelog
 
+## Rank Tracker 5.0.34 — 2026-11-12
+
+- Opening the popup within 30 seconds of the last refresh skips the update (was 10 seconds).
+
+## Rank Tracker 5.0.33 — 2026-11-12
+
+- Drag comparisons include the time-weighted average across the selected range.
+- Renamed the production breakdown to **Fields + raiding** and removed both **Avg/h** raiding graph options.
+
 ## World Watch 1.4.0 — 2026-11-12
 
 - Reads your village list from the game sidebar. The dashboard gets a **Your village** selector that fills **Point (x|y)** and **Centre (x|y)**; the inputs stay editable. Your villages are ringed blue on the map.

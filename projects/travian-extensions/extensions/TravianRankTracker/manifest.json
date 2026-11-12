@@ -1,7 +1,7 @@
 {
 	"manifest_version": 3,
 	"name": "Travian Rank Tracker",
-	"version": "5.0.33",
+	"version": "5.0.34",
 	"description": "Tracks weekly Top 10, general rankings and history graphs.",
 	"permissions": [
 		"storage",
