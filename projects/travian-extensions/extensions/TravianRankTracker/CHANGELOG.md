@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.35 — 2026-11-12
+
+- Raid income shared with TravAlarm (FNPC time) now uses the trailing 3-hour rate, matching the popup's "Raids" row, instead of the whole-history average.
+
 ## Rank Tracker 5.0.34 — 2026-11-12
 
 - Opening the popup within 30 seconds of the last refresh shows the stored data and skips the update (was 10 seconds).
