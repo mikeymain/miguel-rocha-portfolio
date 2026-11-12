@@ -1,6 +1,109 @@
 import ICAL from "ical.js";
 
 export const DAY = 86_400_000;
+const ICAL_CACHE_ENTRIES = 128;
+const ICAL_CACHE_ROWS = 2048;
+const ICAL_CACHE_TEXT_LIMIT = 65_536;
+const icalWindows = new Map();
+
+// Cache only temporal templates: edits and cloned state must retain their current metadata.
+function calendarWindow(text, from, to) {
+  const bounded =
+    Number.isFinite(+from) &&
+    Number.isFinite(+to) &&
+    from < to &&
+    text.length <= ICAL_CACHE_TEXT_LIMIT;
+  const lower = bounded ? new Date(Math.floor(+from / DAY) * DAY) : from;
+  const upper = bounded ? new Date(Math.ceil(+to / DAY) * DAY) : to;
+  const key = bounded
+    ? JSON.stringify([text, +lower, +upper, Intl.DateTimeFormat().resolvedOptions().timeZone])
+    : null;
+  const cached = icalWindows.get(key);
+  if (cached) {
+    icalWindows.delete(key);
+    icalWindows.set(key, cached);
+    // Registration is observable by other calendars with externally defined TZIDs.
+    for (const zone of cached.zones) ICAL.TimezoneService.register(zone);
+    return cached;
+  }
+  const expanded = expandCalendar(text, lower, upper);
+  if (bounded && expanded.cacheable && expanded.rows.length <= ICAL_CACHE_ROWS) {
+    icalWindows.set(key, expanded);
+    if (icalWindows.size > ICAL_CACHE_ENTRIES) icalWindows.delete(icalWindows.keys().next().value);
+  }
+  return expanded;
+}
+
+function expandCalendar(text, from, to) {
+  const component = new ICAL.Component(ICAL.parse(text));
+  const zones = component.getAllSubcomponents("vtimezone").map((zone) => new ICAL.Timezone(zone));
+  for (const zone of zones) ICAL.TimezoneService.register(zone);
+  const defined = new Set(zones.map((zone) => zone.tzid));
+  const expanded = { rows: [], zones, cacheable: true, exceptionAdvance: 0 };
+  const pending = [component];
+  while (pending.length) {
+    const child = pending.pop();
+    for (const property of child.getAllProperties()) {
+      const tzid = property.getParameter("tzid");
+      if (tzid && !defined.has(tzid)) expanded.cacheable = false;
+    }
+    pending.push(...child.getAllSubcomponents());
+  }
+  const add = (s, e, extra, recurrence) => {
+    if (s < to && (e > from || (+e === +s && s >= from)))
+      expanded.rows.push({ start: +s, end: +e, extra, recurrence });
+  };
+  const components = component.getAllSubcomponents("vevent");
+  const master = components.find((c) => !c.hasProperty("recurrence-id"));
+  if (!master) return expanded;
+  const event = new ICAL.Event(master);
+  const cancelledIds = new Set(),
+    cancelledRanges = [];
+  let exceptionAdvance = 0;
+  for (const exception of components.filter((c) => c.hasProperty("recurrence-id"))) {
+    if (exception.getFirstPropertyValue("status") === "CANCELLED") {
+      const recurrenceId = exception.getFirstPropertyValue("recurrence-id");
+      cancelledIds.add(recurrenceId.toString());
+      cancelledIds.add(recurrenceId.convertToZone(ICAL.Timezone.utcTimezone).toString());
+      if (exception.getFirstProperty("recurrence-id").getParameter("range") === "THISANDFUTURE")
+        cancelledRanges.push(+recurrenceId.toJSDate());
+    } else {
+      const instance = new ICAL.Event(exception);
+      exceptionAdvance = Math.max(
+        exceptionAdvance,
+        +instance.recurrenceId.toJSDate() - +instance.startDate.toJSDate(),
+      );
+      event.relateException(instance);
+    }
+  }
+  expanded.exceptionAdvance = exceptionAdvance;
+  if (!event.isRecurring()) {
+    add(event.startDate.toJSDate(), event.endDate.toJSDate());
+    return expanded;
+  }
+  const iterator = event.iterator();
+  let next,
+    safety = 0;
+  while ((next = iterator.next()) && safety++ < 100000) {
+    if (+next.toJSDate() >= +to + exceptionAdvance) break;
+    if (
+      cancelledIds.has(next.toString()) ||
+      cancelledIds.has(next.convertToZone(ICAL.Timezone.utcTimezone).toString()) ||
+      cancelledRanges.some((start) => +next.toJSDate() >= start)
+    )
+      continue;
+    const detail = event.getOccurrenceDetails(next);
+    if (detail.item.component.getFirstPropertyValue("status") === "CANCELLED") continue;
+    add(
+      detail.startDate.toJSDate(),
+      detail.endDate.toJSDate(),
+      { title: detail.item.summary, location: detail.item.location },
+      +next.toJSDate(),
+    );
+  }
+  return expanded;
+}
+
 export const dateKey = (value) => {
   const d = new Date(value);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -76,53 +179,17 @@ export function occurrences(item, from, to) {
       });
   };
   if (item.ical) {
-    const component = new ICAL.Component(ICAL.parse(item.ical));
-    for (const zone of component.getAllSubcomponents("vtimezone"))
-      ICAL.TimezoneService.register(new ICAL.Timezone(zone));
-    const components = component.getAllSubcomponents("vevent");
-    const master = components.find((c) => !c.hasProperty("recurrence-id"));
-    if (!master) return [];
-    const event = new ICAL.Event(master);
-    const cancelledIds = new Set(),
-      cancelledRanges = [];
-    let exceptionAdvance = 0;
-    for (const exception of components.filter((c) => c.hasProperty("recurrence-id"))) {
-      if (exception.getFirstPropertyValue("status") === "CANCELLED") {
-        const recurrenceId = exception.getFirstPropertyValue("recurrence-id");
-        cancelledIds.add(recurrenceId.toString());
-        cancelledIds.add(recurrenceId.convertToZone(ICAL.Timezone.utcTimezone).toString());
-        if (exception.getFirstProperty("recurrence-id").getParameter("range") === "THISANDFUTURE")
-          cancelledRanges.push(+recurrenceId.toJSDate());
-      } else {
-        const instance = new ICAL.Event(exception);
-        exceptionAdvance = Math.max(
-          exceptionAdvance,
-          +instance.recurrenceId.toJSDate() - +instance.startDate.toJSDate(),
-        );
-        event.relateException(instance);
-      }
-    }
-    if (!event.isRecurring()) {
-      add(event.startDate.toJSDate(), event.endDate.toJSDate());
-      return result;
-    }
-    const iterator = event.iterator();
-    let next,
-      safety = 0;
-    while ((next = iterator.next()) && safety++ < 100000) {
-      if (+next.toJSDate() >= +to + exceptionAdvance) break;
-      if (
-        cancelledIds.has(next.toString()) ||
-        cancelledIds.has(next.convertToZone(ICAL.Timezone.utcTimezone).toString()) ||
-        cancelledRanges.some((start) => +next.toJSDate() >= start)
-      )
-        continue;
-      const detail = event.getOccurrenceDetails(next);
-      if (detail.item.component.getFirstPropertyValue("status") === "CANCELLED") continue;
-      add(detail.startDate.toJSDate(), detail.endDate.toJSDate(), {
-        title: detail.item.summary || item.title,
-        location: detail.item.location || item.location,
-      });
+    const expanded = calendarWindow(item.ical, from, to);
+    for (const row of expanded.rows) {
+      // Preserve the original iterator cutoff as well as the exact overlap bounds.
+      if (row.recurrence != null && row.recurrence >= +to + expanded.exceptionAdvance) continue;
+      add(
+        new Date(row.start),
+        new Date(row.end),
+        row.extra
+          ? { title: row.extra.title || item.title, location: row.extra.location || item.location }
+          : {},
+      );
     }
     return result;
   }

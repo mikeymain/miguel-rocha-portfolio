@@ -6,7 +6,6 @@ import {
   Link2,
   Upload,
   RefreshCw,
-  Check,
   ArrowUpRight,
   X,
   Monitor,
@@ -152,7 +151,7 @@ export default function AccountsPage({ state, run, setImportOpen }) {
           <Cloud size={20} />
           <p>
             Bring over iPhone calendars and birthdays from iCloud, then connect Gmail for
-            invitations. Aurora only reads your accounts and encrypts credentials on this PC.
+            invitations. Credentials are encrypted on this PC.
           </p>
         </div>
       )}
@@ -268,8 +267,8 @@ export default function AccountsPage({ state, run, setImportOpen }) {
                   />
                 </label>
                 <p className="field-hint">
-                  Only iCloud calendars and birthday fields are imported. Aurora does not change
-                  your iPhone data.
+                  Only iCloud calendars and birthday fields are imported. Edits and deletions to
+                  iCloud events sync to your iPhone. Contact birthdays stay read-only.
                 </p>
                 <button
                   type="submit"
