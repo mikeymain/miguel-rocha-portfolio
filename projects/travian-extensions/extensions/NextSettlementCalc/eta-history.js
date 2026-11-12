@@ -41,21 +41,36 @@ Object.assign(
 			(Number.isFinite(entry.cp) && entry.target > 0 && entry.cp >= entry.target) ||
 			entry.eta.parties <= entry.t + REACHED_SLACK;
 		/**
-		 * Time of the first sample that met `target`, or null. Later samples
+		 * When CP actually crossed `target`: the sample's observation time
+		 * minus the CP above target at the logged rate, kept after the
+		 * previous sample. Scans are throttled, so the sample itself can
+		 * land hours after the crossing.
+		 */
+		function crossingTime(entry, previous) {
+			const observed = Number.isFinite(entry.obsAt) ? entry.obsAt : entry.t;
+			let at = observed;
+			if (Number.isFinite(entry.cp) && entry.daily > 0)
+				at = observed - (Math.max(0, entry.cp - entry.target) / entry.daily) * DAY;
+			const floor = previous ? previous.t : -Infinity;
+			return Math.round(Math.min(entry.t, Math.max(floor, at)));
+		}
+		/**
+		 * First sample that met `target` ({t, at}) or null. Later samples
 		 * only repeat "now" as the ETA, so the chart stops there.
 		 */
 		function reachedAt(log, target) {
-			let first = null;
-			for (const entry of Array.isArray(log) ? log : [])
-				if (
-					Number.isFinite(entry?.t) &&
-					entry.target === target &&
-					Number.isFinite(entry.eta?.parties) &&
-					isReached(entry) &&
-					(first === null || entry.t < first)
+			const entries = (Array.isArray(log) ? log : [])
+				.filter(
+					(entry) =>
+						Number.isFinite(entry?.t) &&
+						entry.target === target &&
+						Number.isFinite(entry.eta?.parties),
 				)
-					first = entry.t;
-			return first;
+				.sort((a, b) => a.t - b.t);
+			const index = entries.findIndex(isReached);
+			if (index < 0) return null;
+			const entry = entries[index];
+			return { t: entry.t, at: crossingTime(entry, entries[index - 1]) };
 		}
 
 		/**
@@ -76,7 +91,7 @@ Object.assign(
 				Number.isFinite(range) ? now - range : -Infinity,
 				view ? view[0] : -Infinity,
 			);
-			const to = Math.min(view ? view[1] : Infinity, reached ?? Infinity);
+			const to = Math.min(view ? view[1] : Infinity, reached?.t ?? Infinity);
 			const points = (Array.isArray(log) ? log : [])
 				.filter(
 					(entry) =>
@@ -88,22 +103,24 @@ Object.assign(
 							: entry.target === target &&
 								Number.isFinite(entry.eta?.parties)),
 				)
-				.map((entry) => ({
-					t: entry.t,
-					value: mode === "cpd" ? entry.daily : entry.eta.parties,
-					baseline: finiteOrNull(entry.eta?.baseline),
-					growth: finiteOrNull(entry.eta?.growth),
-					cp: finiteOrNull(entry.cp),
-					daily: finiteOrNull(entry.daily),
-					model: typeof entry.model === "string" ? entry.model : null,
-					reached: entry.t === reached,
-				}))
+				.map((entry) => {
+					// Every series of the crossing sample ends at the real arrival.
+					const hit = reached !== null && entry.t === reached.t;
+					const eta = (v) => (hit ? reached.at : finiteOrNull(v));
+					return {
+						t: entry.t,
+						value: mode === "cpd" ? entry.daily : eta(entry.eta.parties),
+						baseline: eta(entry.eta?.baseline),
+						growth: eta(entry.eta?.growth),
+						cp: finiteOrNull(entry.cp),
+						daily: finiteOrNull(entry.daily),
+						model: typeof entry.model === "string" ? entry.model : null,
+						reached: hit,
+					};
+				})
 				.sort((a, b) => a.t - b.t);
-			const sampled = downsample(points);
-			// Downsampling must keep the crossing sample.
-			if (points.at(-1)?.reached && !sampled.at(-1).reached)
-				sampled[sampled.length - 1] = points.at(-1);
-			return sampled;
+			// Downsampling always keeps the last point, so the crossing stays.
+			return downsample(points);
 		}
 
 		/** [sampledAt, eta] pairs for one target, oldest first, downsampled. */
@@ -363,7 +380,7 @@ Object.assign(
 			}
 			// The crossing sample's ETA is the real arrival: a level to judge
 			// every earlier forecast against.
-			const reached = points.at(-1).reached ? points.at(-1).t : null;
+			const reached = points.at(-1).reached ? points.at(-1).value : null;
 			if (reached !== null)
 				target.append(
 					svg("line", {
