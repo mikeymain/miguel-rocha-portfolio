@@ -297,3 +297,6 @@ button.tv-btn {
 .swatch.blank {
 	border: none;
 }
+.swatch.ring.blue {
+	border-color: #1e88e5;
+}

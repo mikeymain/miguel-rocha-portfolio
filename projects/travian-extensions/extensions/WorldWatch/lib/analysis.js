@@ -68,7 +68,7 @@
 		return Object.fromEntries(QUADRANTS.map((q) => [q, byQuad[q].sort((a, b) => b.uid - a.uid).slice(0, count)]));
 	}
 
-	const ALLIANCE_COLORS = ["#d7263d", "#1b6ca8", "#f49d37", "#7b2cbf", "#2a9d8f", "#e76f51", "#3a86ff", "#8d6e63", "#ff5d8f", "#00a6a6"];
+	const ALLIANCE_COLORS = ["#d7263d", "#1b6ca8", "#f49d37", "#7b2cbf", "#2a9d8f", "#e76f51", "#455a64", "#8d6e63", "#ff5d8f", "#00a6a6"];
 
 	// Accounts ranked by population. x/y is the account's largest village.
 	function topAccounts(snap, limit = 100) {

@@ -95,9 +95,41 @@
 		if (keepCur) $("cur").value = keepCur;
 		if (keepPrev) $("prev").value = keepPrev;
 		else if (newestFirst[1]) $("prev").value = newestFirst[1].id;
+		await loadOwn(host);
 		if (host && !state.metas.length) setMsg("No snapshots yet.", true);
 		else if (host) setMsg("");
 		await render();
+	}
+
+	// Your villages for this world, read by own-village.js from the game sidebar.
+	async function loadOwn(host) {
+		const data = await api.storage.local.get("wwOwn");
+		const own = (data.wwOwn || {})[host] || null;
+		state.own = own;
+		const villages = own ? own.villages : [];
+		const prev = $("own").value;
+		$("own").replaceChildren(...villages.map((v, i) => option(String(i), `${v.name} (${v.x}|${v.y})`)));
+		$("own").hidden = $("own-label").hidden = !villages.length;
+		if (!villages.length) return;
+		const active = villages.findIndex((v) => v.active);
+		$("own").value = villages[Number(prev)] && $("own").dataset.host === host ? prev : String(Math.max(0, active));
+		$("own").dataset.host = host;
+		fillOwnPoint(false);
+	}
+
+	// Fills the point inputs with the selected village. Without force, only
+	// empty inputs or ones still holding the last automatic value change.
+	function fillOwnPoint(force) {
+		const v = state.own && state.own.villages[Number($("own").value)];
+		if (!v) return;
+		const text = `${v.x}|${v.y}`;
+		for (const id of ["point", "map-goto"]) {
+			const input = $(id);
+			if (force || !input.value.trim() || input.value === input.dataset.auto) {
+				input.value = text;
+				input.dataset.auto = text;
+			}
+		}
 	}
 
 	function metaById(id) {
@@ -160,12 +192,13 @@
 	function renderMap(meta, snap) {
 		const m = mapInstance();
 		const count = Math.max(5, Math.min(500, Number($("map-count").value) || 40));
-		const layers = A.mapLayers(snap, { spawnCount: count, allianceCount: 10 });
+		const layers = { ...A.mapLayers(snap, { spawnCount: count, allianceCount: 10 }), own: state.own ? state.own.villages : [] };
 		const key = `${meta.id}:${count}`;
 		m.setData(snap, layers);
 		if (key.split(":")[0] !== mapKey.split(":")[0] && layers.newest) m.centre(layers.newest.sx, layers.newest.sy);
 		mapKey = key;
 		const items = [];
+		if (layers.own.length) items.push(legendItem("#1e88e5", `Your villages: ${layers.own.map((v) => `${v.name} (${v.x}|${v.y})`).join(", ")}`, "ring blue"));
 		if (layers.ring) items.push(legendItem("#ffd84a", `Spawns: ${layers.spawnUids.size} · ${layers.ring.min}–${layers.ring.max} (median ${layers.ring.median})`, "spawn"));
 		if ($("map-top10").checked || $("map-top100").checked) {
 			items.push(legendItem("#e01e37", "Top 10", "ring"));
@@ -247,6 +280,12 @@
 
 	for (const b of document.querySelectorAll("[data-view]")) b.addEventListener("click", () => selectView(b.dataset.view));
 	$("host").addEventListener("change", loadMetas);
+	$("own").addEventListener("change", () => {
+		fillOwnPoint(true);
+		const v = state.own && state.own.villages[Number($("own").value)];
+		if (v && state.view === "map") mapInstance().centre(v.x, v.y);
+		render();
+	});
 	for (const id of ["cur", "prev", "spawn-count", "radius", "flagged"]) $(id).addEventListener("change", render);
 	$("point").addEventListener("change", render);
 	$("map-count").addEventListener("change", render);
@@ -274,7 +313,7 @@
 	});
 	$("csv").addEventListener("click", exportCsv);
 	api.storage.onChanged.addListener((changes, area) => {
-		if (area === "local" && changes.wwStatus) loadMetas();
+		if (area === "local" && (changes.wwStatus || changes.wwOwn)) loadMetas();
 	});
 	loadHosts();
 })();

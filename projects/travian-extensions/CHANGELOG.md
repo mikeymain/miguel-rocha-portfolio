@@ -1,5 +1,9 @@
 # Changelog
 
+## World Watch 1.4.0 — 2026-11-12
+
+- Reads your village list from the game sidebar. The dashboard gets a **Your village** selector that fills **Point (x|y)** and **Centre (x|y)**; the inputs stay editable. Your villages are ringed blue on the map.
+
 ## TravAlarm 3.43 — 2026-11-11
 
 - Stable alarms use a brown accent so they no longer look like the gold Hero alarms.

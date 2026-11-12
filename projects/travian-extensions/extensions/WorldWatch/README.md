@@ -21,6 +21,8 @@ Tracks a Travian Legends game world over time from its public `map.sql` dump. Us
 | Alliances | Members, villages, population, population-weighted centre and main quadrant. |
 | Map | Travian-style map: 60 px per field at 100 %, like the in-game map. The window fills the free page area (at least 543 × 401 px, the in-game size). Zoom from 100 % down to the whole world; drag to pan, mouse wheel to zoom. Lines mark the world edge at ±200. Newest spawns are highlighted and their distance band from 0\|0 is shaded; the top 10 alliances are coloured and labelled at their centre. **Top 10** and **Top 100** mark the largest accounts by population (red and white rings); Top 10 are labelled with rank and name at their largest village. Hover a field for player, alliance, population and rank. |
 
+**Your village:** `own-village.js` reads your player name and village list (names and coordinates) from the game sidebar on any page you open in that world, and stores them per world. The dashboard then shows a **Your village** selector, fills **Point (x|y)** and **Centre (x|y)** with the selected village (the inputs stay editable; a typed value is not overwritten), and rings your villages blue on the map.
+
 Every table exports to CSV. Nature and Natar villages are ignored. Positive y is north. Distances wrap around the 401 × 401 map.
 
 ## Live mode
@@ -36,6 +38,7 @@ Every table exports to CSV. Nature and Natar villages are ignored. Positive y is
 | `lib/core.js` | Host validation, settings, poll and dedupe |
 | `lib/db.js` | IndexedDB store |
 | `background.js` | Alarm and messages |
+| `own-village.js` | Content script: your villages from the game sidebar |
 | `map-view.js` | Map canvas |
 | `popup.*`, `dashboard.*` | UI |
 

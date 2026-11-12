@@ -15,6 +15,7 @@
 	const EDGE = "#5a4220";
 	const TOP10 = "#e01e37";
 	const TOP100 = "#ffffff";
+	const OWN = "#1e88e5";
 	const OUTSIDE = "#3f4a33";
 
 	// Zoom levels for a view; the last one fits the whole world.
@@ -270,6 +271,24 @@
 				const [sx, sy] = toScreen(snap.x[i], snap.y[i]);
 				drawTopMarker(sx, sy, s, shownRank(snap.uid[i]));
 			}
+			for (const v of st.layers.own || []) {
+				const [sx, sy] = toScreen(v.x, v.y);
+				const r = Math.max(6, s * 0.46);
+				g.lineWidth = Math.max(3, s * 0.08);
+				g.strokeStyle = "rgba(0, 0, 0, 0.6)";
+				g.beginPath();
+				g.arc(sx, sy, r + 1.5, 0, Math.PI * 2);
+				g.stroke();
+				g.strokeStyle = OWN;
+				g.beginPath();
+				g.arc(sx, sy, r, 0, Math.PI * 2);
+				g.stroke();
+				g.lineWidth = Math.max(1.5, s * 0.03);
+				g.strokeStyle = "#ffffff";
+				g.beginPath();
+				g.arc(sx, sy, Math.max(3, r - Math.max(3, s * 0.08)), 0, Math.PI * 2);
+				g.stroke();
+			}
 		}
 
 		function label(text, sx, sy, color, placed) {
@@ -290,6 +309,11 @@
 
 		function drawLabels() {
 			const placed = [];
+			for (const v of st.layers.own || []) {
+				const [sx, sy] = toScreen(v.x, v.y);
+				if (sx < RULER_Y_W || sx > RULER_Y_W + vw || sy < 0 || sy > vh) continue;
+				label(v.name || `${v.x}|${v.y}`, sx, sy + 24, OWN, placed);
+			}
 			if (st.show.top10 || st.show.top100) {
 				for (const a of st.layers.top.slice(0, 10)) {
 					const [sx, sy] = toScreen(a.x, a.y);
