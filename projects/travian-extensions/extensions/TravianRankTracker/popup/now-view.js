@@ -145,7 +145,7 @@ function incomeParts(raidRate, raidingRate) {
 	return [
 		{ name: "Fields + raiding", read: (s) => incomeOf(s, raidRate) },
 		{ name: "Raids", read: (s) => { const raid = raidRate(s); return Number.isFinite(raid) ? raid : null; } },
-		{ name: "Raiding (no animals)", read: raidingRate },
+		{ name: "Raids (no animals)", read: raidingRate },
 	];
 }
 

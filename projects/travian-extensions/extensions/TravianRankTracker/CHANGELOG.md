@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.37 — 2026-11-12
+
+- Renamed the hourly breakdown row to "Raids (no animals)" to match "Raids".
+
 ## Rank Tracker 5.0.36 — 2026-11-12
 
 - Now: added "Raiding (no animals)" under the collapsible Prod / Hour row, with a trailing 3-hour hourly rate and change columns. Animal rewards are excluded at 160 resources per kill.
