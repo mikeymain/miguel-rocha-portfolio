@@ -29,14 +29,14 @@ Installable workout tracker with equipment-based programmes, set logging, rest t
 
 **JavaScript · HTML/CSS · Service workers · localStorage**
 
-### [Build Lab](projects/build-lab/)
+### [Aurora](projects/aurora/)
 
-React application for NBA 2K player planning, with linked attributes, budget limits, saved configurations and comparisons.
+Windows desktop calendar and alarm app with recurring events, snoozable alarms, iCloud calendars and birthdays, read-only Google Calendar and Gmail imports, and sports schedules.
 
-- Separate calculation layer, locked inputs, undo and configuration searches in a Web Worker.
-- Calculation unit tests and Playwright browser tests. Externally sourced rules have [documented accuracy limits](projects/build-lab/README.md#accuracy).
+- Electron shell with a React interface: close-to-tray alarms, overdue reminders after resume, atomic calendar saves with a previous backup.
+- Encrypted account credentials, least-privilege Google scopes and Node.js tests for recurrence, time zones, imports and sync; a smoke test exercises startup and a background alarm.
 
-**React · JavaScript · Vite · Web Workers · Playwright**
+**Electron · React · JavaScript · Vite · CalDAV · OAuth**
 
 ### [Travian Extensions](projects/travian-extensions/)
 
@@ -59,6 +59,6 @@ Contributed Blender vehicle modelling to a collaborative Forza Horizon 6 mod, in
 
 Project READMEs contain setup instructions and source maps. The [source guide](docs/REVIEWER-GUIDE.md) identifies implementation entry points; [validation](docs/VALIDATION.md) describes automated coverage and manual checks.
 
-[GitHub Actions](https://github.com/mikeymain/miguel-rocha-portfolio/actions/workflows/ci.yml) runs JavaScript linting and formatting, Python formatting, unit tests, and Build Lab's production build and browser tests. Travian extensions are excluded from linting and formatting.
+[GitHub Actions](https://github.com/mikeymain/miguel-rocha-portfolio/actions/workflows/ci.yml) runs JavaScript linting and formatting, Python formatting, unit tests, and Aurora's tests and production build. Aurora and the Travian extensions are excluded from root linting and formatting.
 
 Game-related projects are unofficial. Third-party data and assets are documented in [attribution](ATTRIBUTION.md); no blanket licence is asserted for those materials.

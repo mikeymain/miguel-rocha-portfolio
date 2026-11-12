@@ -9,7 +9,8 @@ export default [
     ignores: [
       "**/node_modules/**",
       "**/dist/**",
-      "projects/build-lab/research/**",
+      // Maintained in the Aurora development checkout.
+      "projects/aurora/**",
       "projects/workout-tracker/app/media/**",
       // Maintained in the Travian development checkout; its scripts share globals across files.
       "projects/travian-extensions/**",
@@ -22,18 +23,8 @@ export default [
     },
   },
   {
-    files: [
-      "eslint.config.js",
-      "**/*.config.{js,mjs}",
-      "projects/build-lab/tests/**",
-      "projects/workout-tracker/tests/**",
-    ],
+    files: ["eslint.config.js", "**/*.config.{js,mjs}", "projects/workout-tracker/tests/**"],
     languageOptions: { globals: globals.node },
-  },
-  {
-    // Playwright evaluates some callbacks inside the page.
-    files: ["projects/build-lab/tests/ui/**"],
-    languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
   {
     files: ["projects/build-lab/**/*.{js,jsx}"],

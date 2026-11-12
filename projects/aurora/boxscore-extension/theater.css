@@ -1,0 +1,65 @@
+/* Theater mode: the player fills the browser window; tabs, bookmarks and the taskbar stay visible. */
+html.sa-theater,
+html.sa-theater body {
+  overflow: hidden !important;
+}
+html.sa-theater #player-wrapper {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  z-index: 2147483646 !important;
+  background: #000 !important;
+}
+html.sa-theater #player-wrapper .player-container {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* corner toggle on the player */
+#sa-theater-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  font:
+    600 13px/1 system-ui,
+    sans-serif;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+#player-wrapper:hover #sa-theater-btn {
+  opacity: 0.9;
+}
+#sa-theater-btn:hover {
+  opacity: 1 !important;
+  background: rgba(0, 0, 0, 0.85);
+}
+/* in theater mode the exit button always shows (dimmed) so there's an obvious way out */
+html.sa-theater #sa-theater-btn,
+html.sa-theater #player-wrapper:hover #sa-theater-btn {
+  opacity: 0.5;
+}
+html.sa-theater #sa-theater-btn:hover {
+  opacity: 1 !important;
+}
+
+/* button next to the feed buttons */
+#sa-theater-feed-btn {
+  margin-left: auto;
+}

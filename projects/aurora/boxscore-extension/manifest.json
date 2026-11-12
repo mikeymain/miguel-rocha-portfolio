@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "StreamEast Box Score",
+  "version": "1.1",
+  "description": "Live ESPN box score under the streams, plus a theater mode for the video player.",
+  "content_scripts": [
+    {
+      "matches": ["https://streameasto.cx/live/*", "https://streamseaste.cx/live/*"],
+      "js": ["boxscore.js", "theater.js"],
+      "css": ["boxscore.css", "theater.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

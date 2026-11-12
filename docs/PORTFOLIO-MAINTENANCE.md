@@ -4,7 +4,7 @@ This repository holds portfolio copies of personal projects. Each project is dev
 
 ## Organisation
 
-- `projects/`: PC Remote, Hypertrophy (in `workout-tracker/`), Build Lab and Travian Extensions, featured in that order on the front page. The M4 mod is linked to its Nexus Mods page only.
+- `projects/`: PC Remote, Hypertrophy (in `workout-tracker/`), Aurora and Travian Extensions, featured in that order on the front page. The M4 mod is linked to its Nexus Mods page only.
 - `assets/`: the header and screenshots used by the READMEs.
 - `docs/`: validation notes and this guide.
 - `ATTRIBUTION.md`: third-party sources and ownership notes.
@@ -12,7 +12,7 @@ This repository holds portfolio copies of personal projects. Each project is dev
 ## Updating a project
 
 1. Copy the changed source in from the working repository.
-2. Run `npm run lint`, `npm run format:check` and `npm test` from the root, plus the project's own tests (Build Lab: `npm test` and `npm run test:ui`; PC Remote: `black --check` and `python -m pytest`).
+2. Run `npm run lint`, `npm run format:check` and `npm test` from the root, plus the project's own tests (Aurora: `npm test` and `npm run build`; PC Remote: `black --check` and `python -m pytest`).
 3. Update the project's README if features or commands changed.
 4. Open a pull request and let CI pass before merging.
 
