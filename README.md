@@ -4,7 +4,7 @@
 
 Lisbon, Portugal · Portuguese (native) · English (C2)
 
-Personal projects in JavaScript, React and Python, alongside customer support experience at Teleperformance (Meta Business Support) and Majorel (Bolt). Open to Lisbon-based and remote roles.
+I build web and Windows applications, browser extensions and tools that simplify everyday tasks, alongside customer support experience at Teleperformance (Meta Business Support, 90%+ CSAT) and Majorel (Bolt). Open to Lisbon-based and remote roles in technical support or junior development.
 
 [LinkedIn](https://www.linkedin.com/in/miguel-rocha-63755922b/) · [Source guide](docs/REVIEWER-GUIDE.md) · [Validation](docs/VALIDATION.md)
 
@@ -12,48 +12,50 @@ Personal projects in JavaScript, React and Python, alongside customer support ex
 
 ### [PC Remote](projects/pc-remote/)
 
-Control a Windows PC from a phone over the local network: trackpad, keyboard, hotkeys, media and volume controls.
+A phone-based controller for a Windows PC: trackpad, keyboard, hotkeys, media and volume, over the local network.
 
-- Python WebSocket server with PIN pairing, per-device tokens, host and origin checks, rate limiting and input validation.
-- pytest coverage for authentication and command handling, with the Windows input layer replaced by a stub.
-- Uses plain HTTP; intended for trusted networks. See the [security notes](projects/pc-remote/README.md#security).
+- Python WebSocket server secured with PIN pairing, per-device tokens, host and origin checks, rate limiting and command validation.
+- pytest tests for pairing, sign-out, rate limits and command handling, including security tests, with the Windows input layer replaced by a stub.
+- Uses plain HTTP, so it is meant for trusted networks. See the [security notes](projects/pc-remote/README.md#security).
 
-**Python · JavaScript · WebSockets · Windows APIs · pytest**
+**Python · WebSockets · JavaScript · pytest**
 
 ### [Hypertrophy](projects/workout-tracker/)
 
-Installable workout tracker with equipment-based programmes, set logging, rest timers and progress history.
+An installable workout app with plans tailored to experience and equipment, set logging, rest timers and exercise substitutions.
 
-- Offline caching, browser-local storage and JSON backup import/export.
+- Eight-week training blocks, load progression, 1RM estimates, history and personal records.
+- Works offline; data stays on the device, with validated JSON backups and automatic save migration.
 - Node.js tests for programme generation, save migration and training calculations.
 
-**JavaScript · HTML/CSS · Service workers · localStorage**
+**JavaScript · HTML · CSS · Progressive Web App**
 
 ### [Aurora](projects/aurora/)
 
-Windows desktop calendar and alarm app with recurring events, snoozable alarms, iCloud calendars and birthdays, read-only Google Calendar and Gmail imports, and sports schedules.
+A Windows calendar with recurring alarms, iCloud and Google integration, Gmail event imports, sports schedules, team tracking, game alerts and match statistics.
 
-- Electron shell with a React interface: close-to-tray alarms, overdue reminders after resume, atomic calendar saves with a previous backup.
-- Encrypted account credentials, least-privilege Google scopes and Node.js tests for recurrence, time zones, imports and sync; a smoke test exercises startup and a background alarm.
+- Electron desktop app with a React interface: alarms keep running from the system tray, and missed reminders show after the PC wakes.
+- Credentials are encrypted, Google access is read-only, and calendar saves keep the previous copy so a crash cannot corrupt data.
+- Node.js tests for recurrence, time zones, imports and sync, plus a smoke test of startup and a background alarm.
 
-**Electron · React · JavaScript · Vite · CalDAV · OAuth**
+**Electron · React · JavaScript · Vite · OAuth**
 
 ### [Travian Extensions](projects/travian-extensions/)
 
-Eight Manifest V3 browser extensions for Travian: settlement forecasts, statistics history, event alerts and configurable interface tools.
+Eight browser extensions for the strategy game Travian: event notifications, ranking history, comparison charts and planning calculations.
 
-- Content scripts, background services, persistent settings and browser notifications.
-- Individual installation guides and versioned [release packages](https://github.com/mikeymain/miguel-rocha-portfolio/releases).
+- Built with content scripts, DOM integration, service workers and Chrome APIs, with persistent storage and configurable settings.
+- Each extension has its own installation guide and versioned [release package](https://github.com/mikeymain/miguel-rocha-portfolio/releases).
 
-**JavaScript · Chrome APIs · Service workers · DOM integration**
+**JavaScript · Manifest V3 · Chrome APIs**
 
 ## 3D modelling
 
 ### [BMW M4 ADRO Kit — Nexus Mods](https://www.nexusmods.com/forzahorizon6/mods/469)
 
-Contributed Blender vehicle modelling to a collaborative Forza Horizon 6 mod, including widebody and standard-body variants. Contributor credits are listed on the published release.
+Co-created a vehicle mod for Forza Horizon 6, contributing Blender 3D modelling for the widebody and standard-body variants. Contributor credits are listed on the published release.
 
-**Blender · Vehicle modelling · Collaboration**
+**Blender · 3D modelling**
 
 ## Repository guide
 
