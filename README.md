@@ -18,7 +18,7 @@ A phone-based controller for a Windows PC: trackpad, keyboard, hotkeys, media an
 - pytest tests for pairing, sign-out, rate limits and command handling, including security tests, with the Windows input layer replaced by a stub.
 - Uses plain HTTP, so it is meant for trusted networks. See the [security notes](projects/pc-remote/README.md#security).
 
-**Python · WebSockets · JavaScript · pytest**
+**Python · JavaScript · HTML · CSS · WebSockets · pytest**
 
 ### [Hypertrophy](projects/workout-tracker/)
 
@@ -38,7 +38,7 @@ A Windows calendar with recurring alarms, iCloud and Google integration, Gmail e
 - Credentials are encrypted, Google access is read-only, and calendar saves keep the previous copy so a crash cannot corrupt data.
 - Node.js tests for recurrence, time zones, imports and sync, plus a smoke test of startup and a background alarm.
 
-**Electron · React · JavaScript · Vite · OAuth**
+**JavaScript · HTML · CSS · React · Electron · Vite · OAuth**
 
 ### [Travian Extensions](projects/travian-extensions/)
 
@@ -47,7 +47,7 @@ Eight browser extensions for the strategy game Travian: event notifications, ran
 - Built with content scripts, DOM integration, service workers and Chrome APIs, with persistent storage and configurable settings.
 - Each extension has its own installation guide and versioned [release package](https://github.com/mikeymain/miguel-rocha-portfolio/releases).
 
-**JavaScript · Manifest V3 · Chrome APIs**
+**JavaScript · HTML · CSS · Chrome Manifest V3**
 
 ## 3D modelling
 
