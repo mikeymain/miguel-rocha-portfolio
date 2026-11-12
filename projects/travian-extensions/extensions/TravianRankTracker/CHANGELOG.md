@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.36 — 2026-11-12
+
+- Now: added "Raiding (no animals)" under the collapsible Prod / Hour row, with a trailing 3-hour hourly rate and change columns. Animal rewards are excluded at 160 resources per kill.
+
 ## Rank Tracker 5.0.35 — 2026-11-12
 
 - Raid income shared with TravAlarm (FNPC time) now uses the trailing 3-hour rate, matching the popup's "Raids" row, instead of the whole-history average.

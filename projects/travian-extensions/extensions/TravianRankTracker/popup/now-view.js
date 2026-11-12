@@ -120,11 +120,11 @@ const NOW_RAID_WINDOW_HOURS = 3;
  * @param {Object} data - Latest snapshot.
  * @returns {(snapshot: Object) => number|null}
  */
-function raidRateReader(history, data) {
+function raidRateReader(history, data, valueKey = "valBountyTotal") {
 	const points = prepareHistory([...history.filter((p) => p.timestamp !== data.timestamp), data]);
 	const samples = points
-		.filter((point) => Number.isFinite(point.valBountyTotal))
-		.map((point) => ({ timestamp: point.timestamp, value: point.valBountyTotal }));
+		.filter((point) => Number.isFinite(point[valueKey]))
+		.map((point) => ({ timestamp: point.timestamp, value: point[valueKey] }));
 	return (snapshot) => {
 		if (!Number.isFinite(snapshot?.timestamp)) return null;
 		const gain = rollingWindowGain(samples, [snapshot.timestamp], NOW_RAID_WINDOW_HOURS * 3_600_000)[0];
@@ -140,11 +140,12 @@ function incomeOf(snapshot, raidRate) {
 	return prod + (Number.isFinite(raid) ? raid : 0);
 }
 
-/** Collapsible rows under Prod / Hour: production plus raids, and raids alone. */
-function incomeParts(raidRate) {
+/** Collapsible hourly income rows, including raiding without animal rewards. */
+function incomeParts(raidRate, raidingRate) {
 	return [
 		{ name: "Fields + raiding", read: (s) => incomeOf(s, raidRate) },
 		{ name: "Raids", read: (s) => { const raid = raidRate(s); return Number.isFinite(raid) ? raid : null; } },
+		{ name: "Raiding (no animals)", read: raidingRate },
 	];
 }
 
@@ -549,6 +550,7 @@ function renderGeneral(data, deltaCells, history) {
 	if (!body) return;
 	const rows = [groupRow("General")];
 	const raidRate = raidRateReader(history, data);
+	const raidingRate = raidRateReader(history, data, "valRobExcludingPveTotal");
 	const add = (name, keyRank, keyVal, readVal = (s) => s?.[keyVal], parts = undefined) => {
 		const rank = data[keyRank];
 		const points = readVal(data);
@@ -563,7 +565,7 @@ function renderGeneral(data, deltaCells, history) {
 	};
 
 	add("Population", "rankPop", "valPop");
-	add("Prod / Hour", "rankProd", "valProd", grossProdOf, incomeParts(raidRate));
+	add("Prod / Hour", "rankProd", "valProd", grossProdOf, incomeParts(raidRate, raidingRate));
 	add("Prod So Far", "rankProdSoFar", "valProdSoFar");
 	add("CP / Day", "rankCp", "cpProd");
 	add("CP So Far", "rankCpSoFar", "valCpSoFar");
