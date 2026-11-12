@@ -35,11 +35,19 @@ Object.assign(
 			);
 		}
 
-		/** An ETA within this of its sample time means the target was met. */
-		const REACHED_SLACK = 60000;
-		const isReached = (entry) =>
-			(Number.isFinite(entry.cp) && entry.target > 0 && entry.cp >= entry.target) ||
-			entry.eta.parties <= entry.t + REACHED_SLACK;
+		/**
+		 * Same test predictSettlement uses: observed CP plus passive CP since
+		 * the observation meets the target. An ETA equal to the sample time
+		 * is not enough, since "start the planned celebrations" also gives 0.
+		 */
+		function isReached(entry) {
+			if (!(entry.target > 0) || !Number.isFinite(entry.cp)) return false;
+			const since =
+				Number.isFinite(entry.obsAt) && entry.daily > 0
+					? (entry.daily * Math.max(0, entry.t - entry.obsAt)) / DAY
+					: 0;
+			return entry.cp + since >= entry.target;
+		}
 		/**
 		 * When CP actually crossed `target`: the sample's observation time
 		 * minus the CP above target at the logged rate, kept after the
@@ -256,17 +264,21 @@ Object.assign(
 
 		/** Gaussian kernel width as a share of the plotted time span. */
 		const SMOOTH_SIGMA = 0.025;
-		/** Time-weighted Gaussian smoothing of `key`; nulls stay null. */
+		/**
+		 * Time-weighted Gaussian smoothing of `key`; nulls stay null. The
+		 * reached point is the real arrival, so it is neither smoothed nor
+		 * blended into its neighbours.
+		 */
 		function smoothValues(points, key) {
 			const span = points.at(-1).t - points[0].t;
 			const sigma = span * SMOOTH_SIGMA;
 			return points.map((p) => {
-				if (p[key] === null || !sigma) return p[key];
+				if (p[key] === null || !sigma || p.reached) return p[key];
 				let sum = 0,
 					weight = 0;
 				for (const q of points) {
 					const d = q.t - p.t;
-					if (q[key] === null || Math.abs(d) > 3 * sigma) continue;
+					if (q[key] === null || q.reached || Math.abs(d) > 3 * sigma) continue;
 					const w = Math.exp((-d * d) / (2 * sigma * sigma));
 					sum += w * q[key];
 					weight += w;
@@ -337,12 +349,12 @@ Object.assign(
 				plotted,
 				options.mode === "cpd" ? 1 : 60000,
 			);
-			// The newest value and a reached arrival are never clipped as
-			// outliers: near a threshold they are what the chart is about.
-			const keep = [smooth.value.at(-1)];
-			if (points.at(-1).reached) keep.push(points.at(-1).value);
-			minV = Math.min(minV, ...keep);
-			maxV = Math.max(maxV, ...keep);
+			// A reached arrival is never clipped as an outlier: it is the level
+			// every forecast is judged against. Raw value, not smoothed.
+			if (points.at(-1).reached) {
+				minV = Math.min(minV, points.at(-1).value);
+				maxV = Math.max(maxV, points.at(-1).value);
+			}
 			const inside = (v) => v >= minV && v <= maxV;
 			const x = (t) =>
 				PAD_X + ((t - minT) / (maxT - minT || 1)) * (WIDTH - 2 * PAD_X);

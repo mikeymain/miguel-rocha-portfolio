@@ -2,7 +2,7 @@
 
 Forecasts settlement culture-point thresholds from observed production and planned celebrations.
 
-**Version 2.6.12 · JavaScript · Manifest V3**
+**Version 2.6.13 · JavaScript · Manifest V3**
 
 [Usage guide](../../docs/USAGE.md#next-settlement-calc) · [Installation](../../README.md#install-in-brave-chrome-or-edge) · [All extensions](../../README.md)
 
