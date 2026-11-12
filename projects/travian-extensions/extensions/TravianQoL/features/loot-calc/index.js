@@ -66,6 +66,15 @@
 			{ name: 'Corinthian Crusher', cap: 80 },
 		],
 	};
+	// Unit used when neither this server nor the global default names one.
+	const BUILTIN_DEFAULT_UNIT = {
+		Romans: 'Equites Imperatoris',
+		Teutons: 'Clubswinger',
+		Gauls: 'Theutates Thunder',
+		Egyptians: 'Resheph Chariot',
+		Huns: 'Steppe Rider',
+		Spartans: 'Hoplite',
+	};
 	const TROOP_DATA_ORIGINAL = { ...BASE_TRIBES };
 	const TROOP_DATA_REBALANCED = { ...BASE_TRIBES, ...EXTENDED_TRIBES };
 
@@ -233,7 +242,9 @@
 		}
 		// `||` not `??`: the popup writes '' for "(none)", which should fall
 		// through to the global default rather than count as a choice.
-		const globalUnit = tribeResolved ? res[GlobalKeys.autoUnit(currentTribe)] : null;
+		const globalUnit = tribeResolved
+			? res[GlobalKeys.autoUnit(currentTribe)] || BUILTIN_DEFAULT_UNIT[currentTribe]
+			: null;
 		const perServerUnit = res[StorageKeys.autoUnit()];
 		const savedUnit = perServerUnit || globalUnit;
 		autoUnitFromGlobal = !perServerUnit && !!globalUnit;

@@ -136,6 +136,16 @@
 		Spartans: [['Hoplite', 60], ['Shieldsman', 40], ['Twinsteel Therion', 50], ['Elpida Rider', 110], ['Corinthian Crusher', 80]],
 	};
 
+	// Mirrors BUILTIN_DEFAULT_UNIT in features/loot-calc/index.js.
+	const BUILTIN_DEFAULT_UNIT = {
+		Romans: 'Equites Imperatoris',
+		Teutons: 'Clubswinger',
+		Gauls: 'Theutates Thunder',
+		Egyptians: 'Resheph Chariot',
+		Huns: 'Steppe Rider',
+		Spartans: 'Hoplite',
+	};
+
 	// Sentinel for the "Default (all servers)" entry in the server dropdown.
 	// Its settings live under the `global` scope and are the fallback the
 	// content script uses on any server that has no override of its own --
@@ -276,11 +286,13 @@
 			const selected = isGlobal
 				? res[lcKey('auto_unit', server, forTribe)] || ''
 				: res[lcKey('auto_unit', server)] || '';
-			const fallback = res[lcKey('auto_unit', LC_GLOBAL, forTribe)];
+			const builtin = BUILTIN_DEFAULT_UNIT[forTribe];
+			const fallback = res[lcKey('auto_unit', LC_GLOBAL, forTribe)] || builtin;
 			unitSel.innerHTML = '';
 			const blank = document.createElement('option');
 			blank.value = '';
-			blank.textContent = !isGlobal && fallback ? `(use default: ${fallback})` : '(none)';
+			if (isGlobal) blank.textContent = builtin ? `(built-in: ${builtin})` : '(none)';
+			else blank.textContent = fallback ? `(use default: ${fallback})` : '(none)';
 			unitSel.appendChild(blank);
 			for (const [name, cap] of BASE_TRIBES[forTribe] || []) {
 				const opt = document.createElement('option');
