@@ -1,6 +1,17 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { alarmOrigin, eventSource } from "../src/core/origin.js";
+import { parseCalendar } from "../src/core/imports.js";
+
+test("structured email invitations retain their sender and subject in reminders", () => {
+  const [event] = parseCalendar(
+    "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:invitation\r\nDTSTART:20261112T100000Z\r\nDTEND:20261112T110000Z\r\nSUMMARY:Meeting\r\nEND:VEVENT\r\nEND:VCALENDAR",
+    { subject: "Invitation", from: "ana@example.com" },
+  );
+  const origin = alarmOrigin({ events: [event] }, { kind: "event", itemId: event.id });
+  assert.equal(origin.source, "Email from ana@example.com");
+  assert.ok(origin.details.includes("“Invitation”"));
+});
 
 const state = {
   accounts: [{ id: "google:me@example.com", email: "me@example.com" }],

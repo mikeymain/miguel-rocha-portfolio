@@ -428,18 +428,18 @@ async function handle(action) {
         properties: ["openFile", "multiSelections"],
       });
       if (result.canceled) return publicState();
-      let next = state;
+      const imports = [];
       for (const file of result.filePaths) {
         const buffer = readFileSync(file);
         if (buffer.length > 25 * 1024 * 1024) throw new Error("Choose a file smaller than 25 MB.");
         if (extname(file).toLowerCase() === ".vcf")
-          next = applyAction(next, {
+          imports.push({
             type: "importBirthdays",
             text: buffer.toString("utf8"),
             source: { name: file.split(/[\\/]/).pop() },
           });
         else if (extname(file).toLowerCase() === ".ics")
-          next = applyAction(next, {
+          imports.push({
             type: "importCalendar",
             text: enrichTimezones(buffer.toString("utf8")),
             source: { type: "calendar-file", name: file.split(/[\\/]/).pop() },
@@ -452,7 +452,7 @@ async function handle(action) {
               attachment.contentType === "text/calendar" ||
               /\.ics$/i.test(attachment.filename || "")
             ) {
-              next = applyAction(next, {
+              imports.push({
                 type: "importCalendar",
                 text: enrichTimezones(attachment.content.toString("utf8")),
                 source: { subject: mail.subject, from: mail.from?.text },
@@ -460,7 +460,7 @@ async function handle(action) {
               invitation = true;
             }
           if (!invitation)
-            next = applyAction(next, {
+            imports.push({
               type: "importText",
               mail: {
                 subject: mail.subject,
@@ -471,7 +471,8 @@ async function handle(action) {
             });
         }
       }
-      persist(next);
+      // Parsing email yields to other requests; apply the batch to the latest saved state.
+      persist(imports.reduce((next, action) => applyAction(next, action), state));
       tick();
       return publicState();
     }

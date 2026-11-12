@@ -25,7 +25,6 @@ import {
   Volume2,
   Link2,
   CalendarCheck,
-  Repeat2,
   Menu,
   ChevronDown,
   CheckCheck,
@@ -42,7 +41,7 @@ import SportsPage from "./Sports.jsx";
 import SportsSettings from "./SportsSettings.jsx";
 import { cx, Empty, Toggle } from "./ui.jsx";
 import ImportDialog from "./ImportDialog.jsx";
-import { dateKey, allOccurrences, occurrences, DAY } from "./core/calendar.js";
+import { dateKey, allOccurrences, occurrences } from "./core/calendar.js";
 import { sportsOccurrences, sportsSettings } from "./core/sports.js";
 import { alarmOrigin } from "./core/origin.js";
 

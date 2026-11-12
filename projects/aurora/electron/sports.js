@@ -126,7 +126,7 @@ export function createSports({ dataDir, onChange, offline = false }) {
     // One download at a time. A forced update that arrives mid-download runs again once it finishes.
     async refresh(settings, force = false) {
       if (offline) return;
-      if (inflight) {
+      while (inflight) {
         await inflight;
         if (!force) return;
       }

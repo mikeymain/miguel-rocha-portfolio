@@ -11,6 +11,12 @@ const event = {
   repeat: "none",
   reminder: 10,
 };
+
+test("backup validation rejects corrupt embedded calendars before saving", () => {
+  const backup = emptyState();
+  backup.events = [{ ...event, ical: "garbage" }];
+  assert.throws(() => validateBackup(backup));
+});
 test("saving then editing retains one event and deleting clears pending reminders", () => {
   let state = applyAction(emptyState(), { type: "saveEvent", item: event });
   state = applyAction(state, { type: "saveEvent", item: { ...event, title: "Dinner" } });
@@ -33,6 +39,44 @@ test("accepting a suggestion is idempotent and rejection never creates an event"
 test("invalid backups and unknown actions cannot replace user data", () => {
   assert.throws(() => validateBackup({ version: 1, events: "oops" }), /backup/i);
   assert.throws(() => applyAction(emptyState(), { type: "runShell" }), /unsupported/i);
+});
+
+test("backup validation rejects malformed records before they can break startup", () => {
+  for (const record of [null, false, 7, "bad record", []]) {
+    assert.throws(() => validateBackup({ ...emptyState(), suggestions: [record] }), /suggestion/i);
+    assert.throws(() => validateBackup({ ...emptyState(), accounts: [record] }), /account/i);
+    assert.throws(
+      () => validateBackup({ ...emptyState(), alarmState: { reminder: record } }),
+      /alarm/i,
+    );
+  }
+  for (const accounts of [null, {}, "bad accounts"]) {
+    assert.throws(() => validateBackup({ ...emptyState(), accounts }), /account/i);
+  }
+});
+
+test("backup validation keeps historical backups with optional accounts omitted", () => {
+  const historical = emptyState();
+  delete historical.accounts;
+  historical.suggestions = [{ ...event, status: "pending" }];
+  historical.alarmState.saved = {
+    key: "saved",
+    kind: "test",
+    title: "Saved alarm",
+    status: "snoozed",
+    snoozedUntil: event.start,
+  };
+  const restored = validateBackup(historical);
+  assert.deepEqual(restored.accounts, []);
+  assert.deepEqual(restored.suggestions, historical.suggestions);
+  assert.deepEqual(restored.alarmState, historical.alarmState);
+  assert.deepEqual(
+    validateBackup({
+      ...restored,
+      accounts: [{ id: "icloud:test@example.com", provider: "icloud", email: "test@example.com" }],
+    }).accounts[0].provider,
+    "icloud",
+  );
 });
 test("editing notes preserves a snoozed reminder", () => {
   const initial = emptyState();

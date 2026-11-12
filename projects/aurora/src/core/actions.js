@@ -17,13 +17,21 @@ export function validateBackup(input) {
     ...input,
     settings: { ...emptyState().settings, ...input.settings },
   };
+  const isRecord = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+  if (result.suggestions.some((suggestion) => !isRecord(suggestion)))
+    throw new Error("Invalid suggestion in backup.");
+  if (!Array.isArray(result.accounts) || result.accounts.some((account) => !isRecord(account)))
+    throw new Error("Invalid accounts in backup.");
   if (result.settings.sports != null) validateSportsSettings(result.settings.sports);
-  for (const event of result.events) if (!event.cancelled && !event.detached) validateEvent(event);
+  for (const event of result.events)
+    if (!event.cancelled && !event.detached) {
+      validateEvent(event);
+      if (event.ical) parseCalendar(event.ical, event.source);
+    }
   for (const alarm of result.alarms) validateEvent(alarm, true);
   if (
-    !result.alarmState ||
-    typeof result.alarmState !== "object" ||
-    Array.isArray(result.alarmState)
+    !isRecord(result.alarmState) ||
+    Object.values(result.alarmState).some((record) => !isRecord(record))
   )
     throw new Error("Invalid alarm history in backup.");
   return result;

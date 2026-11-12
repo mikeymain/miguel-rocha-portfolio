@@ -21,10 +21,15 @@ function accountName(state, accountId) {
   return account?.email || account?.name || "";
 }
 
+const isEmailSource = (source) =>
+  source?.type === "email" ||
+  (source?.type === "calendar" && Boolean(source.from || source.subject));
+
 // Where an event lives: "iCloud · Casa", "Google Calendar · Work", "Email from Ana", ...
 export function eventSource(state, event) {
   const source = event?.source || {};
   const account = accountName(state, source.accountId);
+  if (isEmailSource(source)) return source.from ? `Email from ${source.from}` : "Email";
   switch (source.type) {
     case "icloud-calendar":
       return ["iCloud", source.name].filter(Boolean).join(" · ");
@@ -73,7 +78,7 @@ export function alarmOrigin(state, record) {
   const details = [];
   if (!birthday && event?.category) details.push(CATEGORY_LABELS[event.category] || "Personal");
   if (event?.reminder != null) details.push(leadText(Number(event.reminder)));
-  if (event?.source?.type === "email" && event.source.subject)
+  if (isEmailSource(event?.source) && event.source.subject)
     details.push(`“${event.source.subject}”`);
   return {
     kind: birthday ? "birthday" : "event",

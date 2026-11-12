@@ -57,8 +57,6 @@ test("a cancellation without dates still matches the original invitation", () =>
   assert.equal(result[0].cancelled, true);
   assert.equal(result[0].start, initial[0].start);
 });
-// Fixed clock: suggestions skip dates that have already passed, so these tests must not use the real date.
-const BOOKING_NOW = new Date("2026-11-03T12:00:00Z");
 test("ordinary emails produce reviewable suggestions, not imported events", () => {
   const suggestions = suggestFromText(
     {
@@ -66,8 +64,8 @@ test("ordinary emails produce reviewable suggestions, not imported events", () =
       text: "Your table is reserved on November 5, 2026 at 7pm.",
       sourceId: "mail-1",
     },
-    BOOKING_NOW,
-    BOOKING_NOW,
+    new Date("2026-11-03T12:00:00Z"),
+    new Date("2026-11-03T12:00:00Z"),
   );
   assert.equal(suggestions.length, 1);
   assert.equal(suggestions[0].status, "pending");
@@ -101,8 +99,8 @@ test("relative arrival instructions do not become a second booking", () => {
         subject: "Dinner reservation",
         text: "Your table is reserved on November 5, 2026 at 7pm. Please arrive five minutes early.",
       },
-      BOOKING_NOW,
-      BOOKING_NOW,
+      new Date("2026-11-03T12:00:00Z"),
+      new Date("2026-11-03T12:00:00Z"),
     ).length,
     1,
   );
