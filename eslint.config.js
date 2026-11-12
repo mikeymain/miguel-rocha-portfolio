@@ -1,7 +1,5 @@
 import js from "@eslint/js";
 import globals from "globals";
-import react from "eslint-plugin-react";
-import reactHooks from "eslint-plugin-react-hooks";
 import prettier from "eslint-config-prettier";
 
 export default [
@@ -25,24 +23,6 @@ export default [
   {
     files: ["eslint.config.js", "**/*.config.{js,mjs}", "projects/workout-tracker/tests/**"],
     languageOptions: { globals: globals.node },
-  },
-  {
-    files: ["projects/build-lab/**/*.{js,jsx}"],
-    ignores: ["projects/build-lab/tests/**", "projects/build-lab/*.config.{js,mjs}"],
-    ...react.configs.flat.recommended,
-    ...react.configs.flat["jsx-runtime"],
-    plugins: { react, "react-hooks": reactHooks },
-    languageOptions: {
-      ...react.configs.flat.recommended.languageOptions,
-      globals: globals.browser,
-    },
-    settings: { react: { version: "detect" } },
-    rules: {
-      ...react.configs.flat.recommended.rules,
-      ...react.configs.flat["jsx-runtime"].rules,
-      ...reactHooks.configs.recommended.rules,
-      "react/prop-types": "off",
-    },
   },
   {
     files: ["projects/workout-tracker/**/*.js"],
