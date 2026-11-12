@@ -1,12 +1,19 @@
 # Miguel Rocha
 
-**Technical support · Junior development**
+**Junior development · Customer support background**
 
 Lisbon, Portugal · Portuguese (native) · English (C2)
 
-I build web and Windows applications, browser extensions and tools that simplify everyday tasks, alongside customer support experience at Teleperformance (Meta Business Support, 90%+ CSAT) and Majorel (Bolt). Open to Lisbon-based and remote roles in technical support or junior development.
+Junior developer transitioning from customer service, with almost two years at Teleperformance (Meta Business Support, 90%+ CSAT) and Majorel (Bolt). I build web and Windows applications and browser extensions using JavaScript, Python and React, with practical experience in APIs and automated testing. Open to Lisbon-based and remote junior development roles.
 
 [LinkedIn](https://www.linkedin.com/in/miguel-rocha-63755922b/) · [Source guide](docs/REVIEWER-GUIDE.md) · [Validation](docs/VALIDATION.md)
+
+## CVs
+
+| Version | English | Português |
+| --- | --- | --- |
+| Junior developer | [PDF](docs/cv/Miguel_Rocha_CV_Junior_Developer.pdf) · [Word](docs/cv/Miguel_Rocha_CV_Junior_Developer.docx) | [PDF](docs/cv/Miguel_Rocha_CV_Junior_Developer_PT.pdf) · [Word](docs/cv/Miguel_Rocha_CV_Junior_Developer_PT.docx) |
+| General and support | [PDF](docs/cv/Miguel_Rocha_CV_General.pdf) · [Word](docs/cv/Miguel_Rocha_CV_General.docx) | [PDF](docs/cv/Miguel_Rocha_CV_General_PT.pdf) · [Word](docs/cv/Miguel_Rocha_CV_General_PT.docx) |
 
 ## Software projects
 
