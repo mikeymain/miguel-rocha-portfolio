@@ -35,9 +35,33 @@ Object.assign(
 			);
 		}
 
+		/** An ETA within this of its sample time means the target was met. */
+		const REACHED_SLACK = 60000;
+		const isReached = (entry) =>
+			(Number.isFinite(entry.cp) && entry.target > 0 && entry.cp >= entry.target) ||
+			entry.eta.parties <= entry.t + REACHED_SLACK;
+		/**
+		 * Time of the first sample that met `target`, or null. Later samples
+		 * only repeat "now" as the ETA, so the chart stops there.
+		 */
+		function reachedAt(log, target) {
+			let first = null;
+			for (const entry of Array.isArray(log) ? log : [])
+				if (
+					Number.isFinite(entry?.t) &&
+					entry.target === target &&
+					Number.isFinite(entry.eta?.parties) &&
+					isReached(entry) &&
+					(first === null || entry.t < first)
+				)
+					first = entry.t;
+			return first;
+		}
+
 		/**
 		 * Chart points for one target, oldest first. The range filter runs
 		 * before downsampling so short windows keep their full resolution.
+		 * ETA points end at the sample that reached the target.
 		 */
 		function historyPoints(log, options = {}) {
 			const {
@@ -47,11 +71,12 @@ Object.assign(
 				now = Date.now(),
 				view = null,
 			} = options;
+			const reached = mode === "eta" ? reachedAt(log, target) : null;
 			const from = Math.max(
 				Number.isFinite(range) ? now - range : -Infinity,
 				view ? view[0] : -Infinity,
 			);
-			const to = view ? view[1] : Infinity;
+			const to = Math.min(view ? view[1] : Infinity, reached ?? Infinity);
 			const points = (Array.isArray(log) ? log : [])
 				.filter(
 					(entry) =>
@@ -71,9 +96,14 @@ Object.assign(
 					cp: finiteOrNull(entry.cp),
 					daily: finiteOrNull(entry.daily),
 					model: typeof entry.model === "string" ? entry.model : null,
+					reached: entry.t === reached,
 				}))
 				.sort((a, b) => a.t - b.t);
-			return downsample(points);
+			const sampled = downsample(points);
+			// Downsampling must keep the crossing sample.
+			if (points.at(-1)?.reached && !sampled.at(-1).reached)
+				sampled[sampled.length - 1] = points.at(-1);
+			return sampled;
 		}
 
 		/** [sampledAt, eta] pairs for one target, oldest first, downsampled. */
@@ -331,6 +361,19 @@ Object.assign(
 					target.append(curves[key]);
 				}
 			}
+			// The crossing sample's ETA is the real arrival: a level to judge
+			// every earlier forecast against.
+			const reached = points.at(-1).reached ? points.at(-1).t : null;
+			if (reached !== null)
+				target.append(
+					svg("line", {
+						class: "eta-reached",
+						x1: 0,
+						x2: WIDTH,
+						y1: y(reached),
+						y2: y(reached),
+					}),
+				);
 			const trend = trendFit(
 				points.filter((_, i) => inside(smooth.value[i])),
 			);
@@ -350,7 +393,7 @@ Object.assign(
 			const dots = points.map((p, index) => {
 				const last = index === points.length - 1;
 				const dot = svg("circle", {
-					class: `eta-dot${last ? " last" : ""}${inside(smooth.value[index]) ? "" : " clipped"}`,
+					class: `eta-dot${last ? " last" : ""}${p.reached ? " reached" : ""}${inside(smooth.value[index]) ? "" : " clipped"}`,
 					cx: x(p.t).toFixed(1),
 					cy: y(smooth.value[index]).toFixed(1),
 					r: last ? 3 : 2,
@@ -378,6 +421,7 @@ Object.assign(
 				minT,
 				maxT,
 				trend,
+				reached,
 				clippedHigh: plotted.some((v) => v > maxV),
 				clippedLow: plotted.some((v) => v < minV),
 				first: values.find(inside) ?? values[0],
@@ -499,6 +543,12 @@ Object.assign(
 				}
 				const delta = chart.latest - chart.first;
 				const text = formatDelta(state.mode, delta);
+				if (state.mode === "eta" && chart.reached !== null) {
+					dom.etaChange.textContent = `Reached ${shortDate(chart.reached)}`;
+					if (text) dom.etaChange.title = `${text} vs first forecast`;
+					dom.etaChange.classList.add("reached");
+					return;
+				}
 				if (!text) return;
 				dom.etaChange.textContent = text;
 				const better = state.mode === "cpd" ? delta > 0 : delta < 0;

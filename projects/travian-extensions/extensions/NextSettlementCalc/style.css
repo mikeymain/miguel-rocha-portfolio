@@ -662,6 +662,18 @@ select:focus-visible,
 .eta-change.later {
 	color: #f59e0b;
 }
+.eta-change.reached {
+	color: #34d399;
+}
+.eta-reached {
+	stroke: #34d399;
+	stroke-opacity: 0.7;
+	stroke-dasharray: 4 3;
+	vector-effect: non-scaling-stroke;
+}
+.eta-dot.reached {
+	fill: #34d399;
+}
 .eta-plot {
 	position: relative;
 	margin: 8px 0 12px;
