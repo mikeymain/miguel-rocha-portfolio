@@ -61,7 +61,7 @@ function hvCloseCompare() {
 /* ── compare box ───────────────────────────────────────────────────────── */
 
 /**
- * Render the drag-selection comparison panel with deltas between two points.
+ * Render deltas and the average plotted value over the selected time range.
  */
 function hvUpdateCompareBox(chart, startIdx, endIdx, timestamps) {
 	const box = document.getElementById("compare-box");
@@ -73,7 +73,7 @@ function hvUpdateCompareBox(chart, startIdx, endIdx, timestamps) {
 
 	const i1 = Math.min(startIdx, endIdx);
 	const i2 = Math.max(startIdx, endIdx);
-	const timeDiffHours = timestamps?.[i1] && timestamps?.[i2]
+	const timeDiffHours = Number.isFinite(timestamps?.[i1]) && Number.isFinite(timestamps?.[i2])
 		? Math.abs(timestamps[i2] - timestamps[i1]) / 3_600_000 : 0;
 	const velocity = popupState.isVelocityMode;
 	const labels = chart.data.labels;
@@ -110,6 +110,13 @@ function hvUpdateCompareBox(chart, startIdx, endIdx, timestamps) {
 			rate = ds.rolling3h ? "/3h" : "/h";
 		}
 		item.append(swatch, h("span", "cmp-label", ds.label), val, h("span", "cmp-rate", rate));
+		const average = compareRangeAverage(ds.data, timestamps, i1, i2);
+		if (average != null) {
+			const unit = ds.perHour || (velocity && !ds.rolling3h) ? " /h" : ds.rolling3h ? " /3h" : "";
+			const avg = h("span", "cmp-average", `Avg ${fmtCompact(average)}${unit}`);
+			avg.title = `Time-weighted average: ${average.toLocaleString(undefined, { maximumFractionDigits: 2 })}${unit}`;
+			item.append(avg);
+		}
 		list.append(item);
 	});
 

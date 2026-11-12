@@ -1,5 +1,15 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.33 — 2026-11-12
+
+- Fix graph clipping: constrain the view to the popup width and wrap toolbar controls when needed.
+
+## Rank Tracker 5.0.33 — 2026-11-12
+
+- Drag comparisons show the time-weighted average plotted value across the selected range, alongside the change and rate.
+- Now: renamed "With raiding" to "Fields + raiding".
+- Removed the "Avg/h with animals" and "Avg/h without animals" graph metrics.
+
 ## Rank Tracker 5.0.32 — 2026-11-11
 
 - Status shows the refresh from before the popup opened, with the time since (for example `Last refresh 14:02 · 35m ago`).

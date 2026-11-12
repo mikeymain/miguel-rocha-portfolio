@@ -143,7 +143,7 @@ function incomeOf(snapshot, raidRate) {
 /** Collapsible rows under Prod / Hour: production plus raids, and raids alone. */
 function incomeParts(raidRate) {
 	return [
-		{ name: "With raiding", read: (s) => incomeOf(s, raidRate) },
+		{ name: "Fields + raiding", read: (s) => incomeOf(s, raidRate) },
 		{ name: "Raids", read: (s) => { const raid = raidRate(s); return Number.isFinite(raid) ? raid : null; } },
 	];
 }
