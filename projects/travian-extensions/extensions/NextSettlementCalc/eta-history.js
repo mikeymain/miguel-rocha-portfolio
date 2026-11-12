@@ -333,10 +333,16 @@ Object.assign(
 			const plotted = [...smooth.value];
 			for (const key of overlays)
 				for (const v of smooth[key]) if (v !== null) plotted.push(v);
-			const [minV, maxV] = robustBounds(
+			let [minV, maxV] = robustBounds(
 				plotted,
 				options.mode === "cpd" ? 1 : 60000,
 			);
+			// The newest value and a reached arrival are never clipped as
+			// outliers: near a threshold they are what the chart is about.
+			const keep = [smooth.value.at(-1)];
+			if (points.at(-1).reached) keep.push(points.at(-1).value);
+			minV = Math.min(minV, ...keep);
+			maxV = Math.max(maxV, ...keep);
 			const inside = (v) => v >= minV && v <= maxV;
 			const x = (t) =>
 				PAD_X + ((t - minT) / (maxT - minT || 1)) * (WIDTH - 2 * PAD_X);
