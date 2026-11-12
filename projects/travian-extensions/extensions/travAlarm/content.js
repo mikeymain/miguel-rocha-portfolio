@@ -185,6 +185,10 @@ function startLoops(firstAlarms) {
   scan();
 }
 
+// The FNPC label needs only page data, so draw it now instead of after the
+// storage reads below; scan() later skips cost blocks already labelled.
+tryScan(scanNPCBuild, getActiveVillageName());
+
 const { timerWidget, listContainer, toggleBtn, audioBtn } = createWidget();
 loadShortcuts();
 loadWorldTimers().catch((err) =>
