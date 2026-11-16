@@ -1,7 +1,7 @@
 {
 	"manifest_version": 3,
 	"name": "TravAlarm",
-	"version": "3.45",
+	"version": "3.46",
 	"description": "Game timers, custom reminders and notifications for Travian.",
 	"permissions": [
 		"notifications",
@@ -32,6 +32,7 @@
 				"scanners.js",
 				"world-timers.js",
 				"ui.js",
+				"server-ignore.js",
 				"content.js"
 			],
 			"css": ["content.css"],

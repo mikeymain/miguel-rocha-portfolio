@@ -60,6 +60,7 @@ Unknown-age or incomplete readings are excluded. **Errors** shows scan problems,
 2. Click **Add** for a custom reminder. Durations: `15` = 15 minutes, `1:30` = 1 minute 30 seconds, `0:45:00` = 45 minutes. `10pm` schedules the next occurrence on your computer's clock.
 3. Use **Presets** for reusable reminders. Pin or delete timers with their controls.
 4. Set volume, enabled categories and the **All sounds** mute under **Sound Settings**. Allow browser notifications for desktop alerts.
+5. To pause TravAlarm on one server (for example a test world), click the power button in the widget title bar. The server then shows only **TravAlarm · Ignored**; click **Resume** to turn it back on.
 
 All active alarm countdowns use the same green timer text, including settlers and research. Category colors remain on names and accents.
 

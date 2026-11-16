@@ -10,7 +10,7 @@
 // MESSAGE LISTENER
 // ==========================================
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (msg.type === "OPEN_CONTEXT_ADD") {
+  if (msg.type === "OPEN_CONTEXT_ADD" && !serverIgnored) {
     let prefilled = generateSmartBuildingName();
 
     if (
@@ -182,20 +182,32 @@ function startLoops(firstAlarms) {
   scan();
 }
 
-// The FNPC label needs only page data, so draw it now instead of after the
-// storage reads below; scan() later skips cost blocks already labelled.
-tryScan(scanNPCBuild, getActiveVillageName());
+// An ignored server gets no widget, scans or fetches — only the resume pill.
+let serverIgnored = false;
+// Widget refs are globals: ui.js, scanners.js and startLoops read them.
+let timerWidget, listContainer, toggleBtn, audioBtn;
+isHostIgnored().then((ignored) => {
+  serverIgnored = ignored;
+  if (ignored) renderIgnoredPill();
+  else startTravAlarm();
+});
 
-const { timerWidget, listContainer, toggleBtn, audioBtn } = createWidget();
-loadShortcuts();
-loadWorldTimers().catch((err) =>
-  console.warn("[TravAlarm] world timers unavailable:", err),
-);
-// Request the alarms while the saved UI state loads, so the first render
-// waits on one round trip instead of two.
-const firstAlarms = api.runtime
-  .sendMessage({ type: "GET_ACTIVE_ALARMS" })
-  .catch(() => null);
-Promise.all([restoreSectionState(), restoreVillageColors()]).then(() =>
-  startLoops(firstAlarms),
-);
+function startTravAlarm() {
+  // The FNPC label needs only page data, so draw it now instead of after the
+  // storage reads below; scan() later skips cost blocks already labelled.
+  tryScan(scanNPCBuild, getActiveVillageName());
+
+  ({ timerWidget, listContainer, toggleBtn, audioBtn } = createWidget());
+  loadShortcuts();
+  loadWorldTimers().catch((err) =>
+    console.warn("[TravAlarm] world timers unavailable:", err),
+  );
+  // Request the alarms while the saved UI state loads, so the first render
+  // waits on one round trip instead of two.
+  const firstAlarms = api.runtime
+    .sendMessage({ type: "GET_ACTIVE_ALARMS" })
+    .catch(() => null);
+  Promise.all([restoreSectionState(), restoreVillageColors()]).then(() =>
+    startLoops(firstAlarms),
+  );
+}

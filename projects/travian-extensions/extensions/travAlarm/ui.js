@@ -1472,6 +1472,9 @@ const WIDGET_HTML = `
         <span class="tw-title">TravAlarm</span>
         <span class="tw-alarm-count" id="_tw-cnt">0</span>
         <div class="tw-titlebar-actions">
+            <button type="button" id="_tw-ig" class="tw-icon-btn" title="Ignore this server" aria-label="Ignore this server">
+                ${makeUiIcon("power")}
+            </button>
             <button type="button" id="_tw-mb" class="tw-icon-btn" title="Minimize" aria-label="Minimize">
                 ${makeUiIcon("minimize")}
             </button>
@@ -1538,6 +1541,13 @@ function createWidget() {
     minBtn.innerHTML = makeUiIcon(isMin ? "maximize" : "minimize");
     minBtn.setAttribute("aria-label", isMin ? "Expand" : "Minimize");
     minBtn.title = isMin ? "Expand" : "Minimize";
+  };
+
+  // Ignore this server: stops TravAlarm on this host until resumed.
+  div.querySelector("#_tw-ig").onclick = async () => {
+    if (!confirm(`Ignore TravAlarm on ${window.location.hostname}?`)) return;
+    await setHostIgnored(true);
+    window.location.reload();
   };
 
   // Panel close buttons

@@ -1,5 +1,9 @@
 # Changelog
 
+## TravAlarm 3.46 — 2026-11-16
+
+- New: a power button in the widget title bar ignores the current server. An ignored server shows only a **Resume** pill; TravAlarm makes no requests and adds no alarms there.
+
 ## TravAlarm 3.45 — 2026-11-16
 
 - Fixed: the active village no longer flips to another village (and sometimes stays there) after a refresh or click. TravAlarm no longer loads other villages' pages in the background, because each such load switches the game's active village.
