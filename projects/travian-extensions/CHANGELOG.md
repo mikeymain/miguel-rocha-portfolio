@@ -1,5 +1,11 @@
 # Changelog
 
+## TravAlarm 3.45 — 2026-11-16
+
+- Fixed: the active village no longer flips to another village (and sometimes stays there) after a refresh or click. TravAlarm no longer loads other villages' pages in the background, because each such load switches the game's active village.
+- Attack timers are read only from the village you are on. Attacks on other villages get timers when you open that village.
+- Granary-empty timers for villages with negative crop are measured only for the village you are on.
+
 ## Rank Tracker 5.0.34 — 2026-11-12
 
 - Opening the popup within 30 seconds of the last refresh skips the update (was 10 seconds).

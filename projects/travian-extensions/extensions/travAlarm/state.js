@@ -33,7 +33,6 @@ const fetchState = {
   training: { isFetching: false, lastTime: 0 },
   warehouse: { isFetching: false, lastTime: 0 },
   celebrations: { isFetching: false, lastTime: 0 },
-  attackCheck: { isFetching: false, lastTime: 0 },
   hero: { isFetching: false, lastTime: 0 },
 };
 
