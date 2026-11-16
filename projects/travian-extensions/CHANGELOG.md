@@ -1,5 +1,9 @@
 # Changelog
 
+## TravAlarm 3.47 — 2026-11-16
+
+- A category's clear button removes its timers without asking for confirmation. **Clear All** still asks.
+
 ## TravAlarm 3.46 — 2026-11-16
 
 - New: a power button in the widget title bar ignores the current server. An ignored server shows only a **Resume** pill; TravAlarm makes no requests and adds no alarms there.

@@ -708,9 +708,7 @@ function createSectionNode(type, meta) {
     e.stopPropagation();
     const inSection = currentAlarms.filter((a) => classifyAlarm(a) === type);
     if (inSection.length === 0) return;
-    if (confirm(`Clear all ${inSection.length} ${meta.label} timers?`)) {
-      deleteAlarms(inSection);
-    }
+    deleteAlarms(inSection);
   };
 
   const header = section.querySelector(".tw-section-header");
