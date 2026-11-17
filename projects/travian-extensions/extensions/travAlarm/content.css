@@ -69,16 +69,6 @@
   }
 }
 
-@keyframes tw-ring-pulse {
-  0%,
-  100% {
-    filter: drop-shadow(0 0 2px currentColor);
-  }
-  50% {
-    filter: drop-shadow(0 0 6px currentColor);
-  }
-}
-
 @keyframes tw-count-pop {
   0% {
     transform: scale(1);
@@ -112,10 +102,10 @@
 #_tw-w {
   position: fixed;
   right: 5px;
-  top: 146px;
-  width: 224px;
+  top: 75px;
+  width: 225px;
   height: fit-content;
-  max-height: min(750px, calc(100vh - 160px));
+  max-height: min(950px, calc(100vh - 160px));
   z-index: 9999;
   background: var(--tw-bg);
   border-radius: 14px;
@@ -218,68 +208,9 @@
 .is-minimized .tw-toolbar {
   display: none;
 }
-.is-minimized .tw-ring-strip {
-  display: flex !important;
-}
-
-/* When minimized, ring strip moves into titlebar area */
+/* When minimized, keep the titlebar compact. */
 .is-minimized .tw-titlebar {
   border-bottom: none;
-}
-
-/* -----------------------------------------
-   RING STRIP
-   ----------------------------------------- */
-.tw-ring-strip {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  padding: 6px 0px;
-  background: var(--tw-surface);
-  border-bottom: 1px solid var(--tw-border);
-  min-height: 28px;
-  flex-wrap: wrap;
-}
-
-.tw-ring-strip:empty {
-  display: none;
-}
-
-.tw-ring {
-  width: 28px;
-  height: 28px;
-  cursor: pointer;
-  transition: transform 0.15s ease;
-  position: relative;
-}
-.tw-ring:hover {
-  transform: scale(1.15);
-}
-
-.tw-ring-bg {
-  fill: none;
-  stroke: rgba(255, 255, 255, 0.18);
-  stroke-width: 3;
-}
-.tw-ring-fill {
-  fill: none;
-  stroke-width: 3;
-  stroke-linecap: round;
-  transition: stroke-dashoffset 1s linear;
-  transform: rotate(-90deg);
-  transform-origin: center;
-}
-.tw-ring-count {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 10px;
-  font-weight: 700;
-  dominant-baseline: central;
-  text-anchor: middle;
-}
-
-.tw-ring.is-done .tw-ring-fill {
-  animation: tw-ring-pulse 1s infinite;
 }
 
 /* -----------------------------------------
@@ -1095,10 +1026,6 @@
 .tw-section-header:has(.tw-section-label:focus-visible) {
   outline: 2px solid var(--tw-accent);
   outline-offset: -2px;
-}
-#_tw-w .tw-ring:focus-visible {
-  outline-offset: 0;
-  border-radius: 50%;
 }
 .tw-icon-btn:active,
 .tw-tool-btn:active,

@@ -52,7 +52,7 @@ Unknown-age or incomplete readings are excluded. **Errors** shows scan problems,
 
 <a href="images/travalarm.png"><img src="images/travalarm.png" alt="TravAlarm grouped timer dashboard" width="224" /></a>
 
-**Features:** grouped timers for attacks, hero movements, construction, training, Academy research and Smithy upgrades (named by unit, with the Smithy target level), training rows coloured per building, storage, celebrations, and farm lists; village labels/colors; custom reminders; recurring/daily presets; countdowns; pin/delete controls; draggable/collapsible panel; category sound settings; volume; browser alarms and notifications. Research and upgrade alarms update when the Academy or Smithy page is opened. An **Oasis respawn** countdown runs to the end of the world's starting beginner protection, when oasis animals begin to respawn, with alarms 45 minutes before and at the protection end.
+**Features:** grouped timers for attacks, hero movements, construction, training, Academy research and Smithy upgrades (named by unit, with the Smithy target level), training rows coloured per building, storage, celebrations, and farm lists; village labels/colors; custom reminders; recurring/daily presets; countdowns; pin/delete controls; draggable/collapsible panel; category sound settings; volume; browser alarms and notifications. Daily alarms display without an emoji, and the dashboard uses grouped lists without ring gauges. Research and upgrade alarms update when the Academy or Smithy page is opened. An **Oasis respawn** countdown runs to the end of the world's starting beginner protection, when oasis animals begin to respawn, with alarms 45 minutes before and at the protection end.
 
 **Usage:**
 
@@ -104,14 +104,14 @@ The farm-list screenshot uses a sample table with the extension's selection high
 
 1. Open a logged-in Travian tab and click the extension icon to register the server and collect statistics.
 2. Use **Now** for rankings and changes. Expand **Prod / Hour** for Fields + raiding, Raids, and **Raids (no animals)**. The raid rates average the trailing 3 hours; the no-animals row excludes 160 resources per animal killed. The status in the top bar shows the last update. Background collection runs approximately every 30 minutes while the browser and session are available. Weekly tables refresh when the popup is opened; the Weekly header shows when they were observed. Cached weekly values are not recorded as new history.
-3. Use **History** to pick metrics in the sidebar, drag across the chart to compare two points, and scroll on the chart to zoom (Shift + scroll pans), or pick a quick range (3h–1w; click it again to show all). Under **Raids**, select **Avg/h with animals** and **Avg/h without animals** for trailing 3-hour gains divided by 3 (animals × 160 resources). These stay hourly averages in both modes and require 3 hours of saved history. **Daily peaks** aggregates observations; **Per hour** shows change per hour; raid and PvE counters show the total gained in the trailing 3 hours. **Save group** stores the visible metrics; **Clear** hides all. Weekly statistics reset; value changes and hourly rates bridge observed resets rather than reporting the old total as a loss. Gains during missing observations cannot be recovered.
+3. Use **History** to pick metrics in the sidebar, drag across the chart to compare two points, and scroll on the chart to zoom (Shift + scroll pans), or pick a quick range (3h–1w; click it again to show all). The comparison shows the change and time-weighted average plotted value across the selected range. **Daily peaks** aggregates observations; **Per hour** shows change per hour; raid and PvE counters show the total gained in the trailing 3 hours. **Save group** stores the visible metrics; **Clear** hides all. Weekly statistics reset; value changes and hourly rates bridge observed resets rather than reporting the old total as a loss. Gains during missing observations cannot be recovered.
 4. Use the export icon (arrow down) to save data. The import icon (arrow up) restores a backup and asks before deleting data the backup does not contain; export existing data before importing. The star icon lists the rank tiers.
 
 For expired sessions, log in and reopen the popup. Missing observations cannot be reconstructed.
 
 <a href="images/rank-history.png"><img src="images/rank-history.png" alt="Rank Tracker history graph" width="520" /></a>
 
-<a href="images/rank-raid-hourly.jpg"><img src="images/rank-raid-hourly.jpg" alt="Hourly raiding averages with and without animals, using synthetic preview data" width="520" /></a>
+<a href="images/rank-compare.png"><img src="images/rank-compare.png" alt="Drag comparison showing the average across the selected range, using synthetic preview data" width="520" /></a>
 
 ## Next Settlement Calc
 

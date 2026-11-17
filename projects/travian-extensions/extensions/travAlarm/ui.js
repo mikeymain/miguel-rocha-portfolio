@@ -193,9 +193,9 @@ function updateSectionHeights(container) {
   const sections = container.querySelectorAll(".tw-section");
   const expanded = [];
 
-  // Measure chrome (titlebar + ring strip + toolbar + world timers)
+  // Measure chrome (titlebar + toolbar + world timers)
   let chromeH = 0;
-  for (const sel of [".tw-titlebar", ".tw-ring-strip", ".tw-toolbar", ".tw-world"]) {
+  for (const sel of [".tw-titlebar", ".tw-toolbar", ".tw-world"]) {
     const el = widget.querySelector(sel);
     if (el) chromeH += el.getBoundingClientRect().height;
   }
@@ -510,7 +510,6 @@ function rebuildUI() {
     if (!listContainer.querySelector(".tw-empty")) {
       listContainer.innerHTML = `<div class="tw-empty">${makeUiIcon("shield")}<span>No Active Timers</span></div>`;
     }
-    updateRingStrip({});
     return;
   }
 
@@ -675,8 +674,6 @@ function rebuildUI() {
   // Remove sections that no longer have alarms
   existingSections.forEach((section) => section.remove());
 
-  // Update ring strip
-  updateRingStrip(groups);
   markLastExpandedSection(listContainer);
 }
 
@@ -738,105 +735,6 @@ function createSectionNode(type, meta) {
 }
 
 // ==========================================
-// RING STRIP
-// ==========================================
-function updateRingStrip(groups) {
-  const strip = document.getElementById("_tw-rings");
-  if (!strip) return;
-
-  const now = Date.now();
-  const sortedTypes = sortSectionTypes(Object.keys(groups), groups);
-
-  // Reconcile existing rings
-  const existingRings = new Map();
-  strip
-    .querySelectorAll(".tw-ring")
-    .forEach((el) => existingRings.set(el.dataset.type, el));
-
-  sortedTypes.forEach((type, idx) => {
-    const alarms = groups[type];
-    const meta = SECTION_META[type] || SECTION_META.building;
-    const count = alarms.length;
-
-    // Find soonest alarm for progress
-    let soonest = alarms[0];
-    alarms.forEach((a) => {
-      if (a.scheduledTime < soonest.scheduledTime) soonest = a;
-    });
-
-    const uid = soonest.id || soonest.name;
-    const firstSeen = firstSeenTimes.get(uid) || now;
-    const totalDuration = Math.max(1, soonest.scheduledTime - firstSeen);
-    const elapsed = now - firstSeen;
-    let progress = Math.min(1, Math.max(0, elapsed / totalDuration));
-    const isDone = soonest.scheduledTime <= now;
-
-    // Compress the last 15% of the ring so long alarms don't look full
-    // when nearly done: maps 0.85–1.0 → 0.85–0.95, keeping a visible gap
-    if (!isDone && progress > 0.85) {
-      progress = 0.85 + (progress - 0.85) * (2 / 4);
-    }
-
-    const circumference = 2 * Math.PI * 10;
-    const dashOffset = circumference * (1 - progress);
-
-    let ring = existingRings.get(type);
-    if (!ring) {
-      ring = document.createElementNS("http://www.w3.org/1999/xhtml", "div");
-      ring.className = "tw-ring";
-      ring.dataset.type = type;
-      ring.title = meta.label;
-      ring.innerHTML = `<svg viewBox="0 0 28 28" width="28" height="28">
-                <circle class="tw-ring-bg" cx="14" cy="14" r="10"/>
-                <circle class="tw-ring-fill" cx="14" cy="14" r="10"
-                    stroke="${meta.color}"
-                    stroke-dasharray="${circumference}"
-                    stroke-dashoffset="${dashOffset}"/>
-                <text class="tw-ring-count" x="14" y="14" fill="${meta.color}">${count}</text>
-            </svg>`;
-      makeKeyboardButton(ring, `${meta.label}: ${count}`);
-      ring.onclick = () => {
-        const section = listContainer.querySelector(
-          `.tw-section[data-type="${type}"]`,
-        );
-        if (section) {
-          section.classList.remove("is-collapsed");
-          collapsedSections.delete(type);
-          expandedSections.add(type);
-          saveSectionState();
-          section.scrollIntoView({ behavior: "smooth", block: "nearest" });
-        }
-      };
-    } else {
-      // Update existing ring
-      const fillCircle = ring.querySelector(".tw-ring-fill");
-      if (fillCircle) {
-        fillCircle.setAttribute("stroke-dashoffset", dashOffset);
-        fillCircle.setAttribute("stroke", meta.color);
-      }
-      const countText = ring.querySelector(".tw-ring-count");
-      ring.setAttribute("aria-label", `${meta.label}: ${count}`);
-      if (countText) {
-        countText.textContent = count;
-        countText.setAttribute("fill", meta.color);
-      }
-      existingRings.delete(type);
-    }
-
-    ring.classList.toggle("is-done", isDone);
-
-    const currentAtIdx = strip.children[idx];
-    if (currentAtIdx !== ring) {
-      if (currentAtIdx) strip.insertBefore(ring, currentAtIdx);
-      else strip.appendChild(ring);
-    }
-  });
-
-  // Remove rings for types no longer active
-  existingRings.forEach((ring) => ring.remove());
-}
-
-// ==========================================
 // TOOLTIP
 // ==========================================
 function createGlobalTooltip() {
@@ -891,7 +789,8 @@ function escapeHtml(text) {
   return String(text).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 }
 function getNameOnlyDisplay(rawName, isRecurring) {
-  const s = getStructuredName(rawName, isRecurring);
+  const dailyName = rawName.replace(/^📅\s*/u, "");
+  const s = getStructuredName(dailyName, isRecurring);
   let html = "";
   if (s.iconHtml) html += s.iconHtml;
   html += escapeHtml(s.name);
@@ -1012,7 +911,7 @@ function setupAlarmListeners(node, a, uniqueId) {
       if (tagMatch) currentTag = tagMatch[0];
 
       const prefixMatch = a.name.match(/^(⭐|📅|🚜)\s*/u);
-      const namePrefix = prefixMatch ? prefixMatch[1] : "⭐";
+      const namePrefix = prefixMatch ? prefixMatch[1] : a.customType === "daily" ? "" : "⭐";
       let middleContent = a.name
         .replace(currentTag, "")
         .replace(/^(?:⭐|📅|🚜)\s*/u, "")
@@ -1404,7 +1303,7 @@ async function handleDropdownAction(val, label, isFarmList, isDaily) {
     return;
   }
   const vName = getActiveVillageName();
-  const prefix = isDaily ? "📅" : isFarmList ? "🚜" : "⭐";
+  const prefix = isDaily ? "" : isFarmList ? "🚜" : "⭐";
   const customType = isDaily ? "daily" : isFarmList ? "farmlist" : null;
   const isSticky = isFarmList || isDaily;
   api.runtime
@@ -1478,8 +1377,6 @@ const WIDGET_HTML = `
             </button>
         </div>
     </div>
-
-    <div class="tw-ring-strip" id="_tw-rings"></div>
 
     <div class="tw-body">
         <div id="_tw-tl"></div>
