@@ -424,6 +424,11 @@ NPC.TransferDialogObserver = {
     // Re-rendered only when the selected total actually changes.
     let shown = null;
     const recompute = () => {
+      inputs.forEach((input) => {
+        const amount = NPC.Utils.parseNumber(input.value) || 0;
+        input.style.color = amount > 0 ? "#a33420" : "#1a6e1a";
+        input.style.fontWeight = "700";
+      });
       const sel = inputs.reduce(
         (sum, i) => sum + (NPC.Utils.parseNumber(i.value) || 0),
         0,
@@ -477,7 +482,7 @@ NPC.TransferDialogObserver = {
         const need = document.createElement("span");
         need.className = "_npc-need";
         need.textContent = `(${fmt(targets[i])})`;
-        need.style.cssText = "color:#9a6a10;font-weight:700;margin:0 4px;";
+        need.style.cssText = `color:${targets[i] > 0 ? "#a33420" : "#1a6e1a"};font-weight:700;margin:0 4px;`;
         green.after(need);
       });
     }

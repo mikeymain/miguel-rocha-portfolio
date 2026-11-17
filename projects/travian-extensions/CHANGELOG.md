@@ -1,5 +1,9 @@
 # Changelog
 
+## NPC AutoMerchant 3.2.0 — 2026-11-17
+
+- Transfer dialog amounts now use clearer red for resources still needed and green for resources requiring no transfer.
+
 ## TravAlarm 3.47 — 2026-11-16
 
 - A category's clear button removes its timers without asking for confirmation. **Clear All** still asks.
