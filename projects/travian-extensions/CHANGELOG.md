@@ -1,5 +1,9 @@
 # Changelog
 
+## NPC AutoMerchant 3.2.3 — 2026-11-17
+
+- Softened the amber and green transfer amounts in night mode and switched the light theme’s projected stock to the dialog’s neutral text color.
+
 ## NPC AutoMerchant 3.2.2 — 2026-11-17
 
 - Required amounts appear in amber, projected stock turns green at or above the resource target, and transfer inputs use the game's text color.

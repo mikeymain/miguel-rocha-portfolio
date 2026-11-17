@@ -491,16 +491,13 @@
   color: #8a5800;
 }
 body[data-theme="night"] .resourceTransferDialog ._npc-need {
-  color: #ffc15d;
+  color: #d3a34f;
 }
-.resourceTransferDialog .resourceRowHeader [data-npc-target-met="false"] {
+.resourceTransferDialog .resourceRowHeader span.limit {
   color: inherit;
 }
-.resourceTransferDialog .resourceRowHeader [data-npc-target-met="true"] {
-  color: #1a6e1a;
-}
 body[data-theme="night"] .resourceTransferDialog .resourceRowHeader [data-npc-target-met="true"] {
-  color: #55d66b;
+  color: #76b383;
 }
 
 /* ---- Keyboard focus ---- */
