@@ -1250,6 +1250,49 @@
 #_vpdb-modal ._vpdb-input::placeholder { color: #6f7680 !important; }
 #_vpdb-modal ._vpdb-input:focus { border-color: #5bd39466 !important; }
 #_vpdb-modal ._vpdb-input._vpdb-invalid { border-color: #e8786b !important; }
+._vpdb-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  color: #cfd3d8;
+  cursor: pointer;
+  user-select: none;
+}
+/* !important: Travian's global input styles otherwise draw a light native box */
+#_vpdb-modal ._vpdb-check input[type="checkbox"] {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  width: 15px !important;
+  height: 15px !important;
+  margin: 0 !important;
+  border: 1px solid #3a404a !important;
+  border-radius: 4px !important;
+  background: #101216 !important;
+  box-shadow: none !important;
+  display: grid;
+  place-content: center;
+  cursor: pointer;
+}
+#_vpdb-modal ._vpdb-check input[type="checkbox"]::before {
+  content: "";
+  width: 8px;
+  height: 4px;
+  border: 2px solid #0b0d10;
+  border-top: 0;
+  border-right: 0;
+  transform: rotate(-45deg) translate(1px, -1px);
+  opacity: 0;
+}
+#_vpdb-modal ._vpdb-check input[type="checkbox"]:checked {
+  background: #5bd394 !important;
+  border-color: #5bd394 !important;
+}
+#_vpdb-modal ._vpdb-check input[type="checkbox"]:checked::before { opacity: 1; }
+#_vpdb-modal ._vpdb-check input[type="checkbox"]:focus-visible {
+  outline: 2px solid #5bd39499;
+  outline-offset: 1px;
+}
 ._vpdb-q { flex: 1 1 140px; min-width: 120px; }
 ._vpdb-xy { width: 84px; }
 ._vpdb-from { max-width: 190px; }

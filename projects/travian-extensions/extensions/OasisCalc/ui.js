@@ -673,10 +673,9 @@ function createUI() {
                             <option value="animals">With animals</option>
                             <option value="nodata">No animals</option>
                         </select>
-                        <label class="_vphero-switch">
+                        <label class="_vpdb-check">
                             <input type="checkbox" id="_vpdb-no50">
-                            <span class="_vpswitch"><span class="_vpswitch-knob"></span></span>
-                            hide 50%
+                            hide 25+25
                         </label>
                     </div>
                     <div class="_vpdb-toolrow">

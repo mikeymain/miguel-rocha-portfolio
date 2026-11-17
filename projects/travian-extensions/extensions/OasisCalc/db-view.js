@@ -86,9 +86,14 @@ function _dbMatchesQuery(row, query) {
 
 /**
  * filter: { query, type: "any"|"1".."4"|"none", state: "all"|"animals"|"nodata",
- *           radius: number (0 = no limit), hide50: drop oases with a 50% bonus,
+ *           radius: number (0 = no limit),
+ *           hideDouble: drop 25%+25% oases with a lumber, clay or iron bonus,
  *           maxAge: ms (Infinity = any) }
  */
+function _dbIsDoubleRes(types) {
+  return types.length > 1 && types.some((t) => t.r >= 1 && t.r <= 3);
+}
+
 function filterDbRows(rows, filter, now = Date.now()) {
   const query = String(filter.query || "").trim().toLowerCase();
   const typeId = /^[1-4]$/.test(filter.type || "") ? Number(filter.type) : 0;
@@ -98,7 +103,7 @@ function filterDbRows(rows, filter, now = Date.now()) {
     if (filter.state === "nodata" && row.count > 0) return false;
     if (filter.type === "none" && row.types.length) return false;
     if (typeId && !row.types.some((t) => t.r === typeId)) return false;
-    if (filter.hide50 && row.types.some((t) => t.pct >= 50)) return false;
+    if (filter.hideDouble && _dbIsDoubleRes(row.types)) return false;
     if (Number.isFinite(filter.maxAge) && (!row.scannedAt || now - row.scannedAt > filter.maxAge)) return false;
     return _dbMatchesQuery(row, query);
   });
@@ -161,7 +166,7 @@ function _dbReadFilter() {
     type: document.getElementById("_vpdb-type")?.value || "any",
     state: document.getElementById("_vpdb-state")?.value || "all",
     radius: Number.isFinite(radius) && radius > 0 ? radius : 0,
-    hide50: !!document.getElementById("_vpdb-no50")?.checked,
+    hideDouble: !!document.getElementById("_vpdb-no50")?.checked,
     maxAge: Infinity,
   };
 }
