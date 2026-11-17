@@ -1311,7 +1311,7 @@ async function handleDropdownAction(val, label, isFarmList, isDaily) {
       type: "REFRESH_ALARMS",
       buildings: [
         {
-          name: `${prefix} ${label} | ${vName} ${serverTag}`,
+          name: `${prefix ? `${prefix} ` : ""}${label} | ${vName} ${serverTag}`,
           delay: val,
           recurring: isSticky ? val : 0,
           customType,
