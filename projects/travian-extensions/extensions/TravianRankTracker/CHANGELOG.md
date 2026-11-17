@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.39 — 2026-11-17
+
+- Graph: "Reset zoom" moved into the chart so zooming no longer wraps the toolbar and adds scrollbars to the metric list.
+
 ## Rank Tracker 5.0.38 — 2026-11-17
 
 - Graph, Per hour: raid and PvE lines plot resources per hour (trailing 3-hour average) instead of the 3-hour total.

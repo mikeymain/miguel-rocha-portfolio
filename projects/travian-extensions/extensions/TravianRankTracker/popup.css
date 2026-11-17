@@ -624,6 +624,8 @@ td.delta { text-align: right; white-space: nowrap; font-family: var(--font-num);
 	background: var(--surface);
 }
 
+.zoom-reset { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 2; height: 24px; background: var(--surface-2); }
+
 .chart-wrap canvas { display: block; width: 100% !important; height: 100% !important; cursor: crosshair; }
 
 .compare-box {
