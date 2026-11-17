@@ -422,10 +422,13 @@ NPC.TransferDialogObserver = {
     // Re-rendered only when the selected total actually changes.
     let shown = null;
     const recompute = () => {
-      inputs.forEach((input) => {
-        const amount = NPC.Utils.parseNumber(input.value) || 0;
-        input.style.setProperty("color", amount > 0 ? "#ff6b5f" : "#55d66b", "important");
-        input.style.setProperty("font-weight", "700", "important");
+      targets?.forEach((target, i) => {
+        const projected = inputs[i].closest(".resourceRow")
+          ?.querySelector(".resourceRowHeader span.limit");
+        if (!projected) return;
+        const amount = NPC.Utils.parseNumber(projected.textContent);
+        const met = String(/\d/.test(projected.textContent) && amount >= target);
+        if (projected.dataset.npcTargetMet !== met) projected.dataset.npcTargetMet = met;
       });
       const sel = inputs.reduce(
         (sum, i) => sum + (NPC.Utils.parseNumber(i.value) || 0),
@@ -463,17 +466,17 @@ NPC.TransferDialogObserver = {
       content.appendChild(totalsEl);
     }
 
-    // Surface the per-resource amount needed right after Travian's green
+    // Surface the per-resource amount needed right after Travian's
     // "after-pull" number in each row header (.resourceRowHeader span.limit),
     // so the user can compare what they'll have against what each resource
     // needs. Generic inventory transfers have no target.
     if (targets) {
       inputs.forEach((inp, i) => {
         const row = inp.closest(".resourceRow");
-        const green = row?.querySelector(".resourceRowHeader span.limit");
+        const projected = row?.querySelector(".resourceRowHeader span.limit");
         if (
-          !green ||
-          green.nextElementSibling?.classList.contains("_npc-need")
+          !projected ||
+          projected.nextElementSibling?.classList.contains("_npc-need")
         ) {
           return;
         }
@@ -481,7 +484,7 @@ NPC.TransferDialogObserver = {
         need.className = "_npc-need";
         need.textContent = `(${fmt(targets[i])})`;
         need.style.cssText = "font-weight:700;margin-inline-start:4px;white-space:nowrap;";
-        green.after(need);
+        projected.after(need);
       });
     }
 

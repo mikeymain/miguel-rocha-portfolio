@@ -486,6 +486,23 @@
   color: #8a6520;
 }
 
+/* ---- Hero transfer amounts ---- */
+.resourceTransferDialog ._npc-need {
+  color: #8a5800;
+}
+body[data-theme="night"] .resourceTransferDialog ._npc-need {
+  color: #ffc15d;
+}
+.resourceTransferDialog .resourceRowHeader [data-npc-target-met="false"] {
+  color: inherit;
+}
+.resourceTransferDialog .resourceRowHeader [data-npc-target-met="true"] {
+  color: #1a6e1a;
+}
+body[data-theme="night"] .resourceTransferDialog .resourceRowHeader [data-npc-target-met="true"] {
+  color: #55d66b;
+}
+
 /* ---- Keyboard focus ---- */
 ._r-btn:focus-visible,
 ._r-copy-btn:focus-visible,

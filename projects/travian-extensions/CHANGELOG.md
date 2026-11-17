@@ -1,5 +1,9 @@
 # Changelog
 
+## NPC AutoMerchant 3.2.2 — 2026-11-17
+
+- Required amounts appear in amber, projected stock turns green at or above the resource target, and transfer inputs use the game's text color.
+
 ## World Watch 1.7.0 — 2026-11-17
 
 - Shows saved 15c tiles on the World Watch map and compares the best three observed crop oasis bonuses around them. The finder separates potential from bonuses that were free when observed and reports tile coverage.
