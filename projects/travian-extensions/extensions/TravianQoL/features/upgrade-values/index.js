@@ -109,7 +109,43 @@
 		});
 	}
 
+	function annotateProduction() {
+		const table = document.querySelector('#build:is(.gid1, .gid2, .gid3, .gid4) #build_value');
+		if (!table) return;
+		const current = table.querySelector('.currentLevel td .number');
+		const next = table.querySelector('.nextPossible td .number');
+		const row = table.querySelector('[data-tlw-production-change]');
+		const rates = [current, next].map((el) => el?.textContent.replace(BIDI_CHARS, '').trim());
+		if (!rates.every((rate) => /^\d+(?:[,.'’\s]\d{3})*$/.test(rate ?? ''))) {
+			row?.remove();
+			return;
+		}
+
+		const [currentRate, nextRate] = rates.map((rate) => Number(rate.replace(/\D/g, '')));
+		const delta = nextRate - currentRate;
+		const amount = new Intl.NumberFormat(document.documentElement.lang || undefined, {
+			signDisplay: 'exceptZero',
+		}).format(delta);
+		const value = amount + (next.nextSibling?.textContent ?? '');
+		if (row) {
+			if (row.cells[1].textContent !== value) row.cells[1].textContent = value;
+			return;
+		}
+
+		const change = document.createElement('tr');
+		change.dataset.tlwProductionChange = '';
+		const label = document.createElement('th');
+		label.scope = 'row';
+		label.textContent = 'Production change:';
+		const cell = document.createElement('td');
+		cell.textContent = value;
+		change.append(label, cell);
+		next.closest('tr').after(change);
+	}
+
 	function annotateAll() {
+		annotateProduction();
+		if (!location.pathname.startsWith('/build.php')) return;
 		const built = builtLevel();
 		if (built === null) return;
 		const wrappers = new Set([...document.querySelectorAll('.unit')].map((unit) => unit.parentElement));
@@ -117,6 +153,7 @@
 	}
 
 	function restoreAll() {
+		document.querySelectorAll('[data-tlw-production-change]').forEach((row) => row.remove());
 		document.querySelectorAll(`[data-tlw-original]`).forEach((el) => {
 			el.textContent = el.dataset[ORIGINAL_ATTR];
 			delete el.dataset[ORIGINAL_ATTR];
@@ -130,15 +167,15 @@
 			clearTimeout(debounceTimer);
 			debounceTimer = setTimeout(annotateAll, DEBOUNCE_MS);
 		});
-		observer.observe(document.body, { childList: true, subtree: true });
+		observer.observe(document.body, { childList: true, characterData: true, subtree: true });
 	}
 
 	window.TravianQoL.register({
 		id: 'upgrade-values',
 		label: 'Upgrade target values',
-		description: 'On building pages, shows culture points, population and construction time at the built level and the next level.',
+		description: 'Shows hourly production gains on resource fields and compares culture points, population and construction time on building pages.',
 		init() {
-			if (!location.pathname.startsWith('/build.php')) return;
+			if (location.pathname !== '/slot' && !location.pathname.startsWith('/build.php')) return;
 			if (document.body) start();
 			else window.addEventListener('DOMContentLoaded', start, { once: true });
 		},
