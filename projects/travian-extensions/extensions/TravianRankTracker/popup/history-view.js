@@ -107,12 +107,12 @@ function hvUpdateCompareBox(chart, startIdx, endIdx, timestamps) {
 			const hourly = Math.round((diff / timeDiffHours) * 10) / 10;
 			rate = `${sign}${fmtCompact(hourly)}/h`;
 		} else if (velocity) {
-			rate = ds.rolling3h ? "/3h" : "/h";
+			rate = "/h";
 		}
 		item.append(swatch, h("span", "cmp-label", ds.label), val, h("span", "cmp-rate", rate));
 		const average = compareRangeAverage(ds.data, timestamps, i1, i2);
 		if (average != null) {
-			const unit = ds.perHour || (velocity && !ds.rolling3h) ? " /h" : ds.rolling3h ? " /3h" : "";
+			const unit = ds.perHour || velocity ? " /h" : "";
 			const avg = h("span", "cmp-average", `Avg ${fmtCompact(average)}${unit}`);
 			avg.title = `Time-weighted average: ${average.toLocaleString(undefined, { maximumFractionDigits: 2 })}${unit}`;
 			item.append(avg);
@@ -345,12 +345,11 @@ async function loadGraph(filter, storageKey) {
 		return popupState.isVelocityMode ? smoothSeries(raw, RATE_SMOOTH_RADIUS) : raw;
 	};
 	const datasets = DATASETS_CONFIG.map((cfg) => {
-		const rolling3h = popupState.isVelocityMode && RESET_VALUE_KEYS.includes(cfg.key);
+		const raidRate = popupState.isVelocityMode && RESET_VALUE_KEYS.includes(cfg.key);
 		return {
 		label: cfg.label,
-		perHour: !!cfg.perHour,
-		rolling3h,
-		...(rolling3h ? { cubicInterpolationMode: "monotone" } : {}),
+		perHour: !!cfg.perHour || raidRate,
+		...(raidRate ? { cubicInterpolationMode: "monotone" } : {}),
 		data: seriesFor(cfg),
 		comparisonData: !popupState.isVelocityMode && RESET_VALUE_KEYS.includes(cfg.key)
 			? data.map((point) => point[`${cfg.key}Total`] ?? null) : null,
@@ -369,7 +368,7 @@ async function loadGraph(filter, storageKey) {
 		type: "line",
 		data: { labels: data.map((x) => hvPointLabel(x.timestamp, filter)), datasets },
 		options: hvChartOptions(tokens, savedZoom),
-		plugins: [hvDragComparePlugin(timestamps, tokens)],
+		plugins: [hvDragComparePlugin(timestamps, tokens), hvValueAxisPlugin()],
 	});
 	chart.$hvTimestamps = timestamps;
 	window.myChart = chart;

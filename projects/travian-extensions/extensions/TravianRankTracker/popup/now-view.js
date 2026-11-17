@@ -15,9 +15,9 @@ const NOW_WEEKLY_RANK_LABELS = { rankPve: "PvE of the week", rankRob: "Robbers o
 
 /** Short display names for the weekly Top 10 labels stored in history. */
 const NOW_WEEKLY_NAMES = {
-	"PvP of the week": "Attack",
-	"Defenders of the week": "Defense",
-	"PvE of the week": "PvE",
+	"PvP of the week": "Attackers",
+	"Defenders of the week": "Defenders",
+	"PvE of the week": "PVE",
 	"Robbers of the week": "Robbers",
 };
 
@@ -495,7 +495,7 @@ function renderUI(data, history) {
 
 	// Show the refresh from before this popup opened, so the gap since then is visible.
 	const shownAt = popupState.previousRefreshAt || data.timestamp;
-	if (shownAt) setStatus(`Last refresh ${clockTime(shownAt)} · ${formatDuration(Date.now() - shownAt)} ago`, "ok");
+	if (shownAt) setStatus(`${formatDuration(Date.now() - shownAt)} ago`, "ok");
 }
 
 /** Weekly Top 10 rows. */
@@ -503,7 +503,7 @@ function renderWeekly(data, deltaCells) {
 	const body = document.getElementById("weekly-body");
 	if (!body) return;
 	const items = data.top10 || [];
-	const meta = data.weeklyTimestamp ? `Observed ${clockDate(data.weeklyTimestamp)}` : "";
+	const meta = data.weeklyTimestamp ? `` : "";
 	const title = data.weeklyTimestamp ? `Weekly data observed: ${new Date(data.weeklyTimestamp).toLocaleString()}` : "";
 	const rows = [groupRow("Weekly", meta, title)];
 
@@ -566,9 +566,9 @@ function renderGeneral(data, deltaCells, history) {
 
 	add("Population", "rankPop", "valPop");
 	add("Prod / Hour", "rankProd", "valProd", grossProdOf, incomeParts(raidRate, raidingRate));
-	add("Prod So Far", "rankProdSoFar", "valProdSoFar");
+	add("Total Prod", "rankProdSoFar", "valProdSoFar");
 	add("CP / Day", "rankCp", "cpProd");
-	add("CP So Far", "rankCpSoFar", "valCpSoFar");
+	add("Total CP", "rankCpSoFar", "valCpSoFar");
 	add("Offensive Strength", "rankOff", "pointsOff");
 	add("Defensive Strength", "rankDef", "pointsDef");
 	body.replaceChildren(...rows);

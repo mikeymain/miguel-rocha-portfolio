@@ -36,7 +36,7 @@ const DATASETS_CONFIG = [
 /** Picker sections in display order; `keys` lists DATASETS_CONFIG keys. */
 const METRIC_GROUPS = [
 	{ id: "weekly", title: "Weekly", keys: ["rankPvp", "rankDefTop", "rankRob", "rankPve"] },
-	{ id: "raids", title: "Raids", keys: ["valRob", "valRobExcludingPve", "valPve", "valPveResources", "valBounty"] },
+	{ id: "raids", title: "Raiding", keys: ["valRob", "valRobExcludingPve", "valPve", "valPveResources", "valBounty"] },
 	{ id: "population", title: "Population", keys: ["rankPop", "valPop"] },
 	{ id: "production", title: "Production", keys: ["rankProd", "valProd", "rankProdSoFar", "valProdSoFar"] },
 	{ id: "culture", title: "Culture", keys: ["rankCp", "cpProd", "rankCpSoFar", "valCpSoFar"] },
@@ -221,7 +221,7 @@ function toVelocity(data) {
 	});
 }
 
-/** Trailing window for raid counters in rate mode. */
+/** Trailing window for raid counters in rate mode; plotted as gain per hour. */
 const ROLLING_WINDOW_MS = 3 * 60 * 60 * 1000;
 
 /**
@@ -265,7 +265,7 @@ function rollingWindowGain(samples, timestamps, windowMs = ROLLING_WINDOW_MS) {
 }
 
 /**
- * Replace reset-counter rates with the trailing 3h gain from the raw history.
+ * Replace reset-counter rates with the hourly average of the trailing 3h gain.
  *
  * @param {Array<Object>} velocity - Output of toVelocity.
  * @param {Array<Object>} prepared - Output of prepareHistory (raw, sorted).
@@ -282,7 +282,10 @@ function withRolling3h(velocity, prepared) {
 	}
 	return velocity.map((point, i) => {
 		const next = { ...point };
-		for (const key of RESET_VALUE_KEYS) next[key] = gains[key][i];
+		for (const key of RESET_VALUE_KEYS) {
+			const gain = gains[key][i];
+			next[key] = gain == null ? null : Math.round(gain / (ROLLING_WINDOW_MS / 3_600_000));
+		}
 		return next;
 	});
 }
@@ -385,7 +388,7 @@ function hvCompactTick(v) {
 	const sign = Number(v) < 0 ? "-" : "";
 	if (val >= 1e9) return sign + parseFloat((val / 1e9).toFixed(2)) + "B";
 	if (val >= 1e6) return sign + parseFloat((val / 1e6).toFixed(2)) + "M";
-	if (val >= 1e3) return sign + parseFloat((val / 1e3).toFixed(0)) + "k";
+	if (val >= 1e3) return sign + parseFloat((val / 1e3).toFixed(val < 1e5 ? 1 : 0)) + "k";
 	return sign + val;
 }
 
@@ -446,11 +449,31 @@ function hvDragComparePlugin(timestamps, tokens) {
 	};
 }
 
+/**
+ * Move the value axis to the left and hide the rank axis while no rank line
+ * is visible, so value-only charts read value on the left Y axis.
+ */
+function hvValueAxisPlugin() {
+	return {
+		id: "hvValueAxis",
+		afterUpdate(chart) {
+			const rankVisible = chart.data.datasets.some((ds, i) => ds.yAxisID === "y" && chart.isDatasetVisible(i));
+			const { y, y1 } = chart.options.scales;
+			const position = rankVisible ? "right" : "left";
+			if (y.display === rankVisible && y1.position === position) return;
+			y.display = rankVisible;
+			y1.position = position;
+			y1.grid.drawOnChartArea = !rankVisible;
+			chart.update("none");
+		},
+	};
+}
+
 /** Tooltip label: value plus change from the previous non-null point. */
 function hvTooltipLabel(context) {
 	let lbl = context.dataset.label ? `${context.dataset.label}: ` : "";
 	if (context.parsed.y !== null) lbl += context.parsed.y.toLocaleString();
-	if (context.dataset.rolling3h) lbl += " / 3h";
+	if (context.dataset.perHour) lbl += " / h";
 	if (!popupState.isVelocityMode && context.dataIndex > 0) {
 		const values = context.dataset.comparisonData || context.dataset.data;
 		const curr = values[context.dataIndex];
@@ -521,7 +544,7 @@ function hvChartOptions(tokens, savedZoom) {
 				grid: { drawOnChartArea: false },
 				border: { display: false },
 				ticks: { color: tokens.tick, font, callback: hvCompactTick },
-				title: axisTitle(velocity ? "Value Δ / h · raids / 3h" : "Value"),
+				title: axisTitle(velocity ? "Value / h" : "Value"),
 			},
 			x: {
 				min: savedZoom.min,

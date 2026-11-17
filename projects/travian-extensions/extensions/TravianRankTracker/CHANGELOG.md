@@ -1,5 +1,11 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.0.38 — 2026-11-17
+
+- Graph, Per hour: raid and PvE lines plot resources per hour (trailing 3-hour average) instead of the 3-hour total.
+- Graph: with no rank line shown, the value axis moves to the left Y axis and the empty rank axis is hidden.
+- Graph: value axis ticks under 100k show one decimal (8.5k) so narrow ranges no longer repeat labels.
+
 ## Rank Tracker 5.0.37 — 2026-11-12
 
 - Renamed the hourly breakdown row to "Raids (no animals)" to match "Raids".
