@@ -5,11 +5,9 @@
 // ════════════════════════════════════════════════════════════════
 
 const NIGHT_MODE_CONFIG = {
-	styleId: "travian-night-mode",
 	storageKey: "nightMode",
 	defaultEnabled: true,
 	buttonColorKey: "purpleButtonColor",
-	buttonStyleId: "travian-night-mode-buttons",
 	// Sentinel = "leave the game's native buttons untouched". Any hex value
 	// instead opts the round buttons into recoloring.
 	defaultButtonColor: "default",
@@ -58,8 +56,8 @@ const THEME = {
   /* hue rotation */
   --nm-hue-purple:    164deg;
 
-  /* Fallback for the opt-in round-button recolor; the live value is set inline
-     from the popup, and at the default setting buttons are left native. */
+  /* Fallback for the opt-in round-button recolor; the live value comes from the
+     runtime-variables <style>, and at the default setting buttons are left native. */
   --nm-btn-purple:    #71d000;
 }
 `,
@@ -1498,7 +1496,8 @@ button.icon::before {
   z-index: -1; /* Place it behind the image */
   
   /* Apply the background image here */
-  background-image: url("https://cdn.legends.travian.com/gpack/389.1/img_ltr/legacy/components/button/buttonSmall.png");
+  /* Resolved at runtime from the game's current gpack (see runtimeVarsCss) */
+  background-image: var(--nm-icon-btn-img, none);
   background-size: cover;
   
   /* Apply your filter here */
@@ -2409,8 +2408,7 @@ div.cropBalanceContainer .balanceTroops {
 // STATE & DOM HELPERS
 // ════════════════════════════════════════════════════════════════
 
-const { styleId, buttonStyleId, themeAttribute, themeValues, defaultButtonColor } =
-	NIGHT_MODE_CONFIG;
+const { themeAttribute, themeValues, defaultButtonColor } = NIGHT_MODE_CONFIG;
 
 let themeObserver = null; // watches <html> for a (new) <body>
 let bodyObserver = null; // watches <body>'s data-theme
@@ -2419,24 +2417,58 @@ let bodyObserver = null; // watches <body>'s data-theme
 let originalTheme;
 let currentButtonColor = defaultButtonColor;
 
+// Injected <style> elements are tracked by reference, not by id, so the page
+// has no extension-named element id to look up.
+let themeStyle = null; // main theme, static CSS
+let buttonStyle = null; // opt-in round-button recolor, static CSS
+let varsStyle = null; // runtime CSS variables (button color, gpack asset URL)
+
+// Small button background, relative to the game's gpack folder.
+const ICON_BUTTON_IMG = "img_ltr/legacy/components/button/buttonSmall.png";
+
 const isHexColor = (c) => typeof c === "string" && /^#[0-9a-f]{6}$/i.test(c);
 // Anything that isn't the sentinel or a #rrggbb color would silently break the
 // oklch() button styles, so it falls back to the native buttons.
 const validButtonColor = (c) => (c === defaultButtonColor || isHexColor(c) ? c : defaultButtonColor);
 
-// Adds a <style> with the given id once; its CSS never changes afterwards.
-function ensureStyle(id, cssText) {
-	if (document.getElementById(id)) return;
+function addStyle(cssText) {
 	const style = document.createElement("style");
-	style.id = id;
 	style.textContent = cssText;
 	(document.head || document.documentElement).appendChild(style);
+	return style;
+}
+
+// The game's asset base (".../gpack/<version>/"), read from its own <link> or
+// <script> tags, so asset requests match the version the game itself loads.
+// Null until those tags are parsed.
+function gpackBase() {
+	const asset = document.querySelector('link[href*="/gpack/"], script[src*="/gpack/"]');
+	return (asset?.href || asset?.src || "").match(/^(.*\/gpack\/[^/]+\/)/)?.[1] ?? null;
+}
+
+function runtimeVarsCss() {
+	const decls = [];
+	if (currentButtonColor !== defaultButtonColor) decls.push(`--nm-btn-purple: ${currentButtonColor};`);
+	const base = gpackBase();
+	if (base) {
+		const url = (base + ICON_BUTTON_IMG).replace(/["\\n]/g, "");
+		decls.push(`--nm-icon-btn-img: url("${url}");`);
+	}
+	return `:root { ${decls.join(" ")} }`;
+}
+
+// Rewrites the runtime variables while night mode is on.
+function updateRuntimeVars() {
+	if (!themeStyle) return;
+	varsStyle ??= addStyle("");
+	varsStyle.textContent = runtimeVarsCss();
 }
 
 function removeCSS() {
-	document.getElementById(styleId)?.remove();
-	document.getElementById(buttonStyleId)?.remove();
-	document.documentElement.style.removeProperty("--nm-btn-purple");
+	for (const style of [themeStyle, buttonStyle, varsStyle]) style?.remove();
+	themeStyle = null;
+	buttonStyle = null;
+	varsStyle = null;
 }
 
 /**
@@ -2476,7 +2508,7 @@ function stopThemeObserver() {
 
 function setNightMode(isEnabled) {
 	if (isEnabled) {
-		ensureStyle(styleId, Object.values(THEME).join("\n\n"));
+		themeStyle ??= addStyle(Object.values(THEME).join("\n\n"));
 		applyButtonColor();
 		startThemeObserver();
 	} else {
@@ -2522,18 +2554,13 @@ const ROUND_BUTTON_RECOLOR_CSS = `
  * updates the CSS variable; the stylesheet itself is never re-parsed.
  */
 function applyButtonColor() {
-	const rootStyle = document.documentElement.style;
-	if (
-		!document.getElementById(styleId) ||
-		!currentButtonColor ||
-		currentButtonColor === defaultButtonColor
-	) {
-		document.getElementById(buttonStyleId)?.remove();
-		rootStyle.removeProperty("--nm-btn-purple");
-		return;
+	if (!themeStyle || currentButtonColor === defaultButtonColor) {
+		buttonStyle?.remove();
+		buttonStyle = null;
+	} else {
+		buttonStyle ??= addStyle(ROUND_BUTTON_RECOLOR_CSS);
 	}
-	rootStyle.setProperty("--nm-btn-purple", currentButtonColor);
-	ensureStyle(buttonStyleId, ROUND_BUTTON_RECOLOR_CSS);
+	updateRuntimeVars();
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -2558,6 +2585,11 @@ chrome.storage.local
 			setNightMode(NIGHT_MODE_CONFIG.defaultEnabled);
 		},
 	);
+
+// The gpack <link>/<script> tags are usually parsed after document_start.
+if (document.readyState === "loading") {
+	document.addEventListener("DOMContentLoaded", updateRuntimeVars, { once: true });
+}
 
 // Messages from the popup (toggle and/or live color preview).
 chrome.runtime.onMessage.addListener((message) => {
