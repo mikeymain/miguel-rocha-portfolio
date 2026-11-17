@@ -113,8 +113,8 @@ function hvUpdateCompareBox(chart, startIdx, endIdx, timestamps) {
 		const average = compareRangeAverage(ds.data, timestamps, i1, i2);
 		if (average != null) {
 			const unit = ds.perHour || velocity ? " /h" : "";
-			const avg = h("span", "cmp-average", `Avg ${fmtCompact(average)}${unit}`);
-			avg.title = `Time-weighted average: ${average.toLocaleString(undefined, { maximumFractionDigits: 2 })}${unit}`;
+			const avg = h("span", "cmp-average", `Avg ${average.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${unit}`);
+			avg.title = `Time-weighted average: ${average.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${unit}`;
 			item.append(avg);
 		}
 		list.append(item);
