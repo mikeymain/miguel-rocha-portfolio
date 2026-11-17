@@ -1,5 +1,9 @@
 # Changelog
 
+## Rank Tracker 5.1.1 — 2026-11-17
+
+- Removed the Open column from the Now table.
+
 ## NPC AutoMerchant 3.2.1 — 2026-11-17
 
 - Restored the required amounts in parentheses after the green projected stock in transfer dialogs opened from building costs.

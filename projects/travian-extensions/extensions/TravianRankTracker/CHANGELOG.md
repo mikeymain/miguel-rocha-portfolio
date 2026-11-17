@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.1.1 — 2026-11-17
+
+- Removed the Open column from the Now table.
+
 ## Rank Tracker 5.0.39 — 2026-11-17
 
 - Graph: "Reset zoom" moved into the chart so zooming no longer wraps the toolbar and adds scrollbars to the metric list.

@@ -2,7 +2,7 @@
  * Travian Rank Tracker 5.0 — "Now" view.
  *
  * Renders the average-rank hero and the metrics table (weekly Top 10 rows and
- * general ranking rows) with change columns: since last open, 1h, 3h, 1d, 7d.
+ * general ranking rows) with change columns for 1h, 3h, 1d, and 7d.
  * `renderUI` stays a global function declaration: utils.js `processHtmlData`
  * calls it after an on-page scrape.
  */
@@ -21,8 +21,9 @@ const NOW_WEEKLY_NAMES = {
 	"Robbers of the week": "Robbers",
 };
 
-/** Column tags, in table order. */
+/** Average-rank summary labels. */
 const NOW_DELTA_TAGS = ["Open", "1h", "3h", "1d", "7d"];
+const NOW_TABLE_COLUMNS = 7;
 
 /** Average rank shown by the previous renderUI call in this popup session. */
 let lastHeroRank = null;
@@ -236,7 +237,7 @@ function clockDate(ts) {
 function groupRow(name, meta = "", title = "") {
 	const tr = h("tr", "group-row");
 	const th = h("th");
-	th.colSpan = 8;
+	th.colSpan = NOW_TABLE_COLUMNS;
 	th.scope = "colgroup";
 	th.append(h("span", "group-name", name), h("span", "group-meta", meta));
 	tr.append(th);
@@ -254,7 +255,7 @@ function groupRow(name, meta = "", title = "") {
  * @param {string} spec.main - Main value text.
  * @param {string} [spec.sub] - Secondary value text.
  * @param {string} [spec.valueTitle]
- * @param {Array<{rank: object, val: object|null}>} spec.cells - Five delta cells.
+ * @param {Array<{rank: object, val: object|null}>} spec.cells - Four delta cells.
  * @returns {HTMLTableRowElement}
  */
 function metricRow({ name, rank, totalPlayers, main, sub, valueTitle, cells }) {
@@ -357,7 +358,7 @@ function collapsible(parent, key, parts) {
 function stateRow(kind, message) {
 	const tr = h("tr", "state-row");
 	const td = h("td");
-	td.colSpan = 8;
+	td.colSpan = NOW_TABLE_COLUMNS;
 	const p = h("p", "state-msg", message);
 	p.dataset.kind = kind;
 	td.append(p);
@@ -454,12 +455,11 @@ function renderUI(data, history) {
 		now - 24 * 60 * 60 * 1000,
 		now - 7 * 24 * 60 * 60 * 1000,
 	];
-	const baseline = popupState.baselineSnapshot;
-	const generalRefs = [baseline, ...offsets.map((t) => getHistoryPoint(history, t))];
+	const generalRefs = offsets.map((t) => getHistoryPoint(history, t));
 	const weeklyHistory = history.filter((point) => point.top10?.length);
-	const weeklyRefs = [baseline, ...offsets.map((t) => getHistoryPoint(weeklyHistory, t))];
+	const weeklyRefs = offsets.map((t) => getHistoryPoint(weeklyHistory, t));
 
-	/** Five cells of rank/value deltas for one metric. */
+	/** Four cells of rank/value deltas for one metric. */
 	const deltaCells = (currRank, currVal, readRank, readVal, isTop10) =>
 		(isTop10 ? weeklyRefs : generalRefs).map((snapshot) => {
 			const oldRank = readRank(snapshot);
@@ -485,7 +485,7 @@ function renderUI(data, history) {
 			return { rank, val: describeDelta(diff, false) };
 		});
 
-	renderHero(data, generalRefs);
+	renderHero(data, [popupState.baselineSnapshot, ...generalRefs]);
 	renderWeekly(data, deltaCells);
 	renderGeneral(data, deltaCells, history);
 	fitMetricsTable();
@@ -587,7 +587,7 @@ function renderNowState(kind, message = "") {
 	if (kind === "loading") {
 		const skeletons = (count) => Array.from({ length: count }, () => {
 			const tr = h("tr", "row is-skeleton");
-			for (let i = 0; i < 8; i++) {
+			for (let i = 0; i < NOW_TABLE_COLUMNS; i++) {
 				const td = h("td");
 				td.append(h("span", "skeleton"));
 				tr.append(td);
