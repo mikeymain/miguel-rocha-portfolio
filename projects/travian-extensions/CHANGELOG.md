@@ -1,5 +1,9 @@
 # Changelog
 
+## NPC AutoMerchant 3.2.1 — 2026-11-17
+
+- Restored the required amounts in parentheses after the green projected stock in transfer dialogs opened from building costs.
+
 ## OasisCalc 70.7 — 2026-11-17
 
 - The Oasis Database remembers its radius filter between visits.

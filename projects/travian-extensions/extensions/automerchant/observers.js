@@ -357,9 +357,6 @@ NPC.TransferDialogObserver = {
   // for whichever dialog is about to open — regardless of how it was opened.
   _lastTarget: null,
 
-  // _lastTarget is set directly by HeroPuller.requestPull before opening
-  // the dialog — no event listener needed.
-
   _inject(dlg) {
     if (this._injected.has(dlg)) return;
     const names = ["lumber", "clay", "iron", "crop"];
@@ -373,6 +370,7 @@ NPC.TransferDialogObserver = {
     // max(0, target_i - stock_i), which discard any surplus, so the real
     // targets can't be recovered from the DOM — we rely on the capture.
     const cap = this._lastTarget;
+    this._lastTarget = null;
     const targets =
       cap && Array.isArray(cap.target) && Date.now() - cap.ts < 10000
         ? cap.target.map((v) => parseInt(v, 10) || 0)
@@ -387,8 +385,8 @@ NPC.TransferDialogObserver = {
     // targets the real shortfall is
     //   max(0, sum(target) - sum(villageStock))   [stock from #l1..#l4,
     // the same source ui.js reads] — far less than summing Travian's clamped
-    // per-resource deficits, which discards those surpluses. For natively-
-    // opened dialogs (no targets) we fall back to that clamped sum.
+    // per-resource deficits, which discards those surpluses. Without a
+    // target we fall back to that clamped sum.
     const neededTotal = (() => {
       if (targets) {
         const targetTotal = targets.reduce((a, b) => a + b, 0);
@@ -468,7 +466,7 @@ NPC.TransferDialogObserver = {
     // Surface the per-resource amount needed right after Travian's green
     // "after-pull" number in each row header (.resourceRowHeader span.limit),
     // so the user can compare what they'll have against what each resource
-    // needs. Only when we know the targets (extension-opened pull).
+    // needs. Generic inventory transfers have no target.
     if (targets) {
       inputs.forEach((inp, i) => {
         const row = inp.closest(".resourceRow");
@@ -482,7 +480,7 @@ NPC.TransferDialogObserver = {
         const need = document.createElement("span");
         need.className = "_npc-need";
         need.textContent = `(${fmt(targets[i])})`;
-        need.style.cssText = `color:${targets[i] > 0 ? "#a33420" : "#1a6e1a"};font-weight:700;margin:0 4px;`;
+        need.style.cssText = "font-weight:700;margin-inline-start:4px;white-space:nowrap;";
         green.after(need);
       });
     }
@@ -490,6 +488,12 @@ NPC.TransferDialogObserver = {
     recompute();
   },
 };
+
+document.addEventListener("npc:transfer-target", ({ detail }) => {
+  NPC.TransferDialogObserver._lastTarget = Array.isArray(detail)
+    ? { target: detail, ts: Date.now() }
+    : null;
+});
 
 // ---- NPC Dialog Observer ----
 // The only body-wide observer in this extension. Each added element is tested
