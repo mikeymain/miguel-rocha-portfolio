@@ -2,37 +2,6 @@
  * Travian NPC Resource Helper v3.0 Styles
  */
 
-/* Per-resource lock toggle injected next to each NPC desired input. */
-button._npc-lock-btn {
-  display: inline-block !important;
-  vertical-align: middle !important;
-  margin-left: 4px !important;
-  padding: 2px 6px !important;
-  min-height: 24px !important;
-  min-width: 24px !important;
-  border: 1px solid #a87a1a !important;
-  background: #fff4d4 !important;
-  color: #000 !important;
-  border-radius: 4px !important;
-  cursor: pointer !important;
-  font-size: 16px !important;
-  line-height: 1 !important;
-  opacity: 1 !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35) !important;
-  transition: transform 0.1s ease, background-color 0.15s ease !important;
-}
-button._npc-lock-btn:hover {
-  background: #ffe79c !important;
-  transform: translateY(-1px);
-}
-button._npc-lock-btn._npc-lock-on {
-  background: #ffb84d !important;
-  border-color: #b97515 !important;
-}
-input[name^="desired"][readonly] {
-  background: #fff4d4 !important;
-}
-
 /* Smooth transitions for resource rows */
 ._r-resource {
   transition:
@@ -525,11 +494,6 @@ input[name^="desired"][readonly] {
   outline: 2px solid #3a6d12;
   outline-offset: 1px;
 }
-button._npc-lock-btn:focus-visible {
-  outline: 2px solid #3a6d12 !important;
-  outline-offset: 1px !important;
-}
-
 /* ---- Reduced motion ---- */
 @media (prefers-reduced-motion: reduce) {
   ._r-resource,
@@ -538,11 +502,5 @@ button._npc-lock-btn:focus-visible {
   ._r-copy-btn,
   ._r-unit-item {
     transition: none;
-  }
-  button._npc-lock-btn {
-    transition: none !important;
-  }
-  button._npc-lock-btn:hover {
-    transform: none;
   }
 }

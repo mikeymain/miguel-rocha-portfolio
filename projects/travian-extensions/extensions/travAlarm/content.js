@@ -193,21 +193,28 @@ isHostIgnored().then((ignored) => {
 });
 
 function startTravAlarm() {
-  // The FNPC label needs only page data, so draw it now instead of after the
-  // storage reads below; scan() later skips cost blocks already labelled.
-  tryScan(scanNPCBuild, getActiveVillageName());
+  // Remove stale localStorage keys from pre-3.48 versions (STO-01 detection vector).
+  try {
+    const stale = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && (/^_wpt_|^_wpm_|^_twFetchTs_|^_twGranaryTs_|^_twRallyTs_|^_twWorldTry_/.test(k))) {
+        stale.push(k);
+      }
+    }
+    stale.forEach((k) => localStorage.removeItem(k));
+  } catch {}
 
   ({ timerWidget, listContainer, toggleBtn, audioBtn } = createWidget());
   loadShortcuts();
   loadWorldTimers().catch((err) =>
     console.warn("[TravAlarm] world timers unavailable:", err),
   );
-  // Request the alarms while the saved UI state loads, so the first render
-  // waits on one round trip instead of two.
   const firstAlarms = api.runtime
     .sendMessage({ type: "GET_ACTIVE_ALARMS" })
     .catch(() => null);
-  Promise.all([restoreSectionState(), restoreVillageColors()]).then(() =>
-    startLoops(firstAlarms),
-  );
+  Promise.all([loadProdCache(), restoreSectionState(), restoreVillageColors()]).then(() => {
+    tryScan(scanNPCBuild, getActiveVillageName());
+    startLoops(firstAlarms);
+  });
 }

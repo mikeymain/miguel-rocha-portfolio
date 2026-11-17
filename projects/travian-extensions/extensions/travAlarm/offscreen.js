@@ -37,7 +37,7 @@ function play(type, events = []) {
   audio.onended = () => {
     if (current !== playing) return;
     current = null;
-    if (type === "normal") normalCooldownUntil = Date.now() + 3000;
+    if (type === "normal") normalCooldownUntil = Date.now() + 5000;
     pump();
   };
   const failed = () => {

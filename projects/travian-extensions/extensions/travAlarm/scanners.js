@@ -26,14 +26,7 @@ const RAID_INCOME_MAX_AGE_MS = 24 * 60 * 60 * 1000;
  * (raid-income-bridge.js), or 0 when missing or stale.
  */
 function raidIncomePerHour() {
-  try {
-    const data = JSON.parse(localStorage.getItem("_rt_ri") || "null");
-    if (!data || !Number.isFinite(data.perHour) || data.perHour < 0) return 0;
-    if (!(Date.now() - data.updatedAt < RAID_INCOME_MAX_AGE_MS)) return 0;
-    return data.perHour;
-  } catch {
-    return 0;
-  }
+  return 0;
 }
 
 function isResourcesPage() {
@@ -154,11 +147,7 @@ function scanProduction(activeVillage) {
     }
   });
   if (activeVillage) {
-    localStorage.setItem(`_wpt_${serverTag}_${activeVillage}`, total);
-    localStorage.setItem(
-      `_wpm_${serverTag}_${activeVillage}`,
-      JSON.stringify(prodMap),
-    );
+    writeProdCache(`${serverTag}_${activeVillage}`, total, prodMap);
   }
 }
 
@@ -184,12 +173,10 @@ function scanNPCBuild(activeVillage) {
   );
   const currentTotal = l1 + l2 + l3 + l4;
 
-  const prodTotalRaw = localStorage.getItem(
-    `_wpt_${serverTag}_${activeVillage}`,
-  );
-  const prodTotal = parseInt(prodTotalRaw || "0", 10);
+  const prodTotalRaw = readProdTotal(`${serverTag}_${activeVillage}`);
+  const prodTotal = prodTotalRaw ?? 0;
 
-  if (!prodTotalRaw) {
+  if (prodTotalRaw === null) {
     fetchProductionData();
   }
 

@@ -35,37 +35,14 @@ function canFetch(key, cooldownMs) {
 	if (!isPlayerActive()) return false;
 	const f = fetchState[key];
 	const now = Date.now();
-	const last = Math.max(f.lastTime, readFetchCooldown(key, now));
-	if (f.isFetching || now - last < cooldownMs) return false;
+	if (f.isFetching || now - f.lastTime < cooldownMs) return false;
 	f.isFetching = true;
 	f.lastTime = now;
-	try {
-		localStorage.setItem(fetchCooldownKey(key), String(now));
-	} catch {
-		/* Storage blocked: fall back to this page's in-memory cooldown. */
-	}
 	return true;
 }
 
-// Cooldowns live in this origin's localStorage, so a new page load or a second
-// Travian tab continues them instead of firing a fresh burst of requests.
-const fetchCooldownKey = (key) => `_twFetchTs_${key}_${serverTag}`;
-function readFetchCooldown(key, now) {
-	try {
-		const stored = parseInt(localStorage.getItem(fetchCooldownKey(key)), 10) || 0;
-		return stored > now ? 0 : stored; // ignore timestamps from a clock moved back
-	} catch {
-		return 0;
-	}
-}
-/** Clears a cooldown so the next canFetch() for `key` may run immediately. */
 function resetFetchCooldown(key) {
 	fetchState[key].lastTime = 0;
-	try {
-		localStorage.removeItem(fetchCooldownKey(key));
-	} catch {
-		/* nothing stored */
-	}
 }
 
 /**
@@ -124,11 +101,7 @@ async function fetchProductionData() {
 			const total = pW + pC + pI + pCr;
 
 			const prodMap = { w: pW, c: pC, i: pI, cr: pCr };
-			localStorage.setItem(`_wpt_${serverTag}_${vName}`, total);
-			localStorage.setItem(
-				`_wpm_${serverTag}_${vName}`,
-				JSON.stringify(prodMap),
-			);
+			writeProdCache(`${serverTag}_${vName}`, total, prodMap);
 		});
 
 		scan(); // Re-trigger scan to update NPC text
@@ -331,13 +304,8 @@ async function fetchWarehouseData() {
 						// former should fire a done "Granary Full" alarm; gate on the
 						// cached net crop production so a 0-production village doesn't
 						// spawn a bogus already-done alarm.
-						let grCropProd = null;
-						try {
-							const pm = JSON.parse(
-								localStorage.getItem(`_wpm_${serverTag}_${vName}`) || "null",
-							);
-							if (pm) grCropProd = pm.cr;
-						} catch {}
+						const pm = readProdMap(`${serverTag}_${vName}`);
+						const grCropProd = pm?.cr ?? null;
 						const grFull = grAlreadyFull && grCropProd > 0;
 						if ((grFull || delay > 0) && delay < STORAGE_THRESHOLD) {
 							const alarmName = `📦 Granary Full | ${vName} ${serverTag}`;
@@ -509,22 +477,10 @@ function scanForSidebarAttacksAndFetch() {
 	if (!active || !active.querySelector(".incomingTroops svg.attack")) return;
 	const vid = active.getAttribute("data-did") || null;
 
-	// 60s cooldown, persisted so a page reload or another tab doesn't refetch.
 	const now = Date.now();
-	const persistedRallyTs =
-		parseInt(localStorage.getItem(`_twRallyTs_${serverTag}`), 10) || 0;
-	if (
-		isFetchingRally ||
-		!isPlayerActive() ||
-		now - Math.max(lastRallyFetchTime, persistedRallyTs) <= 60000
-	)
+	if (isFetchingRally || !isPlayerActive() || now - lastRallyFetchTime <= 60000)
 		return;
 	lastRallyFetchTime = now;
-	try {
-		localStorage.setItem(`_twRallyTs_${serverTag}`, String(now));
-	} catch {
-		/* silenced */
-	}
 
 	fetchAndParseRallyPoint(vid)
 		.then((alarms) => {

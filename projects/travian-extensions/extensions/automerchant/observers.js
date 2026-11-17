@@ -4,41 +4,37 @@
  */
 /* global NPC */
 
-// ---- Needed Amounts Storage ----
+// ---- Needed Amounts Storage (in-memory + chrome.storage.local) ----
+// Loaded at startup by NPC.loadNeededData() in main.js.
+NPC._neededData = null;
+
 NPC.PullDialogObserver = {
-  STORAGE_KEY: NPC.STORAGE_KEYS.NEEDED_AMOUNTS,
+  _STORAGE_KEY: NPC.STORAGE_KEYS.NEEDED_AMOUNTS,
 
   saveNeededAmounts(amounts, village, remain, source = "npc") {
-    try {
-      localStorage.setItem(
-        this.STORAGE_KEY,
-        JSON.stringify({
-          timestamp: Date.now(),
-          amounts,
-          village: village || null,
-          remain: remain || 0,
-          source,
-        }),
-      );
-    } catch (e) {
-      NPC.log.warn("Failed to save needed amounts", e);
-    }
+    const host = location.host;
+    const data = {
+      timestamp: Date.now(),
+      amounts,
+      village: village || null,
+      remain: remain || 0,
+      source,
+      host,
+    };
+    NPC._neededData = data;
+    chrome.storage.local.set({ [this._STORAGE_KEY]: data }).catch(() => {});
   },
 
-  /** Parses and returns stored data, or null if missing/expired. Removes expired entries. */
   _loadStoredData() {
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      if (!stored) return null;
-      const data = JSON.parse(stored);
-      if (Date.now() - data.timestamp > 30 * 60 * 1000) {
-        localStorage.removeItem(this.STORAGE_KEY);
-        return null;
-      }
-      return data;
-    } catch (e) {
+    const data = NPC._neededData;
+    if (!data) return null;
+    if (data.host && data.host !== location.host) return null;
+    if (Date.now() - data.timestamp > 30 * 60 * 1000) {
+      NPC._neededData = null;
+      chrome.storage.local.remove(this._STORAGE_KEY).catch(() => {});
       return null;
     }
+    return data;
   },
 
   loadNeededAmounts() {
@@ -121,20 +117,16 @@ NPC.HeroPageObserver = {
     }
     if (neededList.length === 0) return;
 
-    // Load saved position (if any). Coordinates are stored as top/left in px.
-    // Clamp to current viewport in case the window shrank since last save —
-    // otherwise an off-screen panel can't be dragged back into view.
+    // Load saved position from in-memory cache (populated at startup by
+    // NPC.loadIndicatorPos in main.js). Clamp to current viewport so an
+    // off-screen panel from a previous window size can still be dragged back.
     let savedPos = null;
-    try {
-      const raw = localStorage.getItem(NPC.STORAGE_KEYS.INDICATOR_POS);
-      if (raw) {
-        const p = JSON.parse(raw);
-        savedPos = {
-          top: Math.max(0, Math.min(window.innerHeight - 20, p.top | 0)),
-          left: Math.max(-240, Math.min(window.innerWidth - 20, p.left | 0)),
-        };
-      }
-    } catch {}
+    if (NPC._indicatorPos) {
+      savedPos = {
+        top: Math.max(0, Math.min(window.innerHeight - 20, NPC._indicatorPos.top | 0)),
+        left: Math.max(-240, Math.min(window.innerWidth - 20, NPC._indicatorPos.left | 0)),
+      };
+    }
 
     const POS_STYLE = savedPos
       ? `top:${savedPos.top}px;left:${savedPos.left}px;`
@@ -270,7 +262,8 @@ NPC.HeroPageObserver = {
       });
 
       indicator.querySelector("#" + ID.close).addEventListener("click", () => {
-        localStorage.removeItem(NPC.PullDialogObserver.STORAGE_KEY);
+        NPC._neededData = null;
+        chrome.storage.local.remove(NPC.PullDialogObserver._STORAGE_KEY).catch(() => {});
         document.removeEventListener("mousemove", onMove);
         document.removeEventListener("mouseup", onUp);
         indicator.remove();
@@ -332,15 +325,12 @@ NPC.HeroPageObserver = {
     const onUp = () => {
       if (!dragState) return;
       dragState = null;
-      try {
-        localStorage.setItem(
-          NPC.STORAGE_KEYS.INDICATOR_POS,
-          JSON.stringify({
-            top: parseInt(indicator.style.top, 10) || 0,
-            left: parseInt(indicator.style.left, 10) || 0,
-          }),
-        );
-      } catch {}
+      const pos = {
+        top: parseInt(indicator.style.top, 10) || 0,
+        left: parseInt(indicator.style.left, 10) || 0,
+      };
+      NPC._indicatorPos = pos;
+      chrome.storage.local.set({ [NPC.STORAGE_KEYS.INDICATOR_POS]: pos }).catch(() => {});
     };
 
     document.addEventListener("mousemove", onMove);
@@ -367,11 +357,8 @@ NPC.TransferDialogObserver = {
   // for whichever dialog is about to open — regardless of how it was opened.
   _lastTarget: null,
 
-  start() {
-    document.addEventListener("npc:transfer-target", (e) => {
-      if (e.detail && Array.isArray(e.detail.target)) this._lastTarget = e.detail;
-    });
-  },
+  // _lastTarget is set directly by HeroPuller.requestPull before opening
+  // the dialog — no event listener needed.
 
   _inject(dlg) {
     if (this._injected.has(dlg)) return;
@@ -598,7 +585,6 @@ NPC.NPCObserver = {
       // upgrade, generic marketplace NPC, etc.) leaves PENDING_TROOP empty
       // and we stay out of the way entirely.
       if (!this._hasFreshPendingTroop()) return;
-      // Lock toggles are owned by page-lock.js (runs in MAIN world via manifest).
       setTimeout(() => NPC.UIManager.createUI(), NPC._rand(80, 180));
     }
   },

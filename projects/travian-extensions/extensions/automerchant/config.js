@@ -15,19 +15,11 @@ var NPC = NPC || {};
 
 NPC.CONFIG = {
 	STEALTH: true,
-
-	// Human-like delays between input value changes (milliseconds)
-	INPUT_DELAYS: {
-		RATIO: { MIN: 50, MAX: 350 }, // NPC ratio distribution (fast, same dialog)
-		MARKET: { MIN: 500, MAX: 900 }, // Market send form (slower, external transfer)
-		HERO: { MIN: 350, MAX: 500 }, // Hero inventory fill
-	},
 };
 
 NPC.STORAGE_KEYS = {
 	NEEDED_AMOUNTS: "_t4na",
 	PENDING_TROOP: "_t4pt",
-	AUTO_PULL: "_t4ap",
 	INDICATOR_POS: "_t4ip",
 };
 
@@ -226,31 +218,21 @@ NPC._readValidTribeIds = function () {
 	return null;
 };
 
-// localStorage key for the per-server tribe id cache. The validTribes list
-// only lives on dorf1 (and a few other pages) — building/training pages
-// often ship an empty buildings array — so we persist the dorf1 reading
-// and reuse it everywhere on the same server.
-NPC._VALID_TRIBES_CACHE_KEY = "_t4vt";
+// In-memory tribe id cache. Loaded from chrome.storage.local at startup
+// (see main.js loadTribeCache). The validTribes list only lives on dorf1
+// (and a few other pages) — building/training pages often ship an empty
+// buildings array — so we persist the dorf1 reading and reuse it everywhere.
+NPC._tribeIdsMemory = null;
 
 NPC._loadCachedTribeIds = function () {
-	try {
-		const raw = localStorage.getItem(NPC._VALID_TRIBES_CACHE_KEY);
-		if (!raw) return null;
-		const data = JSON.parse(raw);
-		if (data && data.host === location.host && Array.isArray(data.ids)) {
-			return data.ids;
-		}
-	} catch {}
-	return null;
+	if (!NPC._tribeIdsMemory) return null;
+	if (NPC._tribeIdsMemory.host !== location.host) return null;
+	return NPC._tribeIdsMemory.ids;
 };
 
 NPC._saveCachedTribeIds = function (ids) {
-	try {
-		localStorage.setItem(
-			NPC._VALID_TRIBES_CACHE_KEY,
-			JSON.stringify({ host: location.host, ids }),
-		);
-	} catch {}
+	NPC._tribeIdsMemory = { host: location.host, ids };
+	chrome.storage.local.set({ _t4vt: NPC._tribeIdsMemory }).catch(() => {});
 };
 
 /**

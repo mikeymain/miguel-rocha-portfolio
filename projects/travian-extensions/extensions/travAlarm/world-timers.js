@@ -12,8 +12,8 @@
 // https://support.travian.com/en/articles/20-game-versions-and-speed
 const WORLD_PROTECTION_DAYS = { 1: 5, 2: 3, 3: 3, 5: 2, 10: 1 };
 const WORLD_CACHE_KEY = "_twWorld";
-const WORLD_RETRY_KEY = `_twWorldTry_${location.hostname}`;
 const WORLD_RETRY_MS = 6 * 60 * 60 * 1000;
+let _worldRetryTs = 0;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 let worldProtectionEnd = null; // ms timestamp, or null when unknown
@@ -45,9 +45,8 @@ async function cacheWorld(world) {
 }
 
 async function fetchWorldFromCalendar() {
-  const lastTry = parseInt(localStorage.getItem(WORLD_RETRY_KEY), 10) || 0;
-  if (Date.now() - lastTry < WORLD_RETRY_MS) return null;
-  localStorage.setItem(WORLD_RETRY_KEY, String(Date.now()));
+  if (Date.now() - _worldRetryTs < WORLD_RETRY_MS) return null;
+  _worldRetryTs = Date.now();
   try {
     const res = await api.runtime.sendMessage({
       type: "GET_WORLD_START",

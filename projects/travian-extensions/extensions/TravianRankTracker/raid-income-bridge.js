@@ -49,12 +49,14 @@ var RankTrackerRaidIncome = {
 	},
 };
 
+// Remove stale localStorage key from pre-5.1 versions (STO-01 detection vector).
+try { localStorage.removeItem("_rt_ri"); } catch {}
+
 // Runs on every page load, so it reads only the small cached summary. The
 // full history (up to 2000 snapshots) is read just once after each history
 // write, which clears the summary (see storeHistory in utils.js).
 (async function publishRaidIncome() {
 	const summaryKey = `raidIncome_${location.origin}`;
-	const pageKey = "_rt_ri";
 
 	let summary = (await chrome.storage.local.get(summaryKey))[summaryKey];
 	if (!summary || !Number.isFinite(summary.updatedAt)) {
@@ -68,12 +70,5 @@ var RankTrackerRaidIncome = {
 		};
 		await chrome.storage.local.set({ [summaryKey]: summary });
 	}
-	if (!Number.isFinite(summary.perHour) || summary.perHour < 0) {
-		localStorage.removeItem(pageKey);
-		return;
-	}
-	localStorage.setItem(
-		pageKey,
-		JSON.stringify({ perHour: summary.perHour, updatedAt: summary.updatedAt }),
-	);
+	if (!Number.isFinite(summary.perHour) || summary.perHour < 0) return;
 })();

@@ -41,6 +41,28 @@ const jitterMs = (ms) => Math.round(ms * (0.7 + Math.random() * 0.8));
 
 let _firedResourceAlarms = new Set();
 
+// Production data cache: replaces localStorage _wpt_/_wpm_ keys.
+// Keyed by `${serverTag}_${villageName}` → { total: number, map: object }.
+// Populated from chrome.storage.local on startup; written back on change.
+const _prodCache = new Map();
+async function loadProdCache() {
+  const data = await api.storage.local.get("_prodCache");
+  if (data._prodCache) {
+    for (const [k, v] of Object.entries(data._prodCache)) _prodCache.set(k, v);
+  }
+}
+function writeProdCache(key, total, prodMap) {
+  _prodCache.set(key, { total, map: prodMap });
+  const obj = Object.fromEntries(_prodCache);
+  api.storage.local.set({ _prodCache: obj });
+}
+function readProdTotal(key) {
+  return _prodCache.get(key)?.total ?? null;
+}
+function readProdMap(key) {
+  return _prodCache.get(key)?.map ?? null;
+}
+
 // ==========================================
 // SERVER TAG GENERATION
 // ==========================================
