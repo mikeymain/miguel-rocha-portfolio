@@ -1,11 +1,36 @@
 // WorldWatch service worker: polls map.sql for each watched world.
-importScripts("lib/mapsql.js", "lib/db.js", "lib/core.js");
+importScripts("lib/mapsql.js", "lib/db.js", "lib/core.js", "lib/croppers.js");
 
 const ALARM = "worldwatch-poll";
 const HOST_GAP_MS = 3000;
 const KEYS = { hosts: "wwHosts", status: "wwStatus", settings: "wwSettings" };
 
 let running = Promise.resolve();
+let cropperWrites = Promise.resolve();
+
+async function saveCroppers(host, observations) {
+	const { wwCroppers = {} } = await chrome.storage.local.get("wwCroppers");
+	const tiles = wwCroppers[host] || {};
+	let changed = false;
+	for (const { x, y } of observations) {
+		const id = `${x}|${y}`;
+		if (tiles[id]) continue;
+		tiles[id] = { x, y, seenAt: Date.now() };
+		changed = true;
+	}
+	if (!changed) return;
+	wwCroppers[host] = tiles;
+	await chrome.storage.local.set({ wwCroppers });
+}
+
+function queueCroppers(host, tiles, sendResponse) {
+	if (!host || !Array.isArray(tiles) || !tiles.length || !tiles.every((tile) =>
+		tile && Number.isSafeInteger(tile.x) && Number.isSafeInteger(tile.y))) return false;
+	const write = cropperWrites.then(() => saveCroppers(host, tiles));
+	cropperWrites = write.catch(() => {});
+	write.then(() => sendResponse({ ok: true }), () => sendResponse({ ok: false }));
+	return true;
+}
 
 async function readState() {
 	const data = await chrome.storage.local.get([KEYS.hosts, KEYS.status, KEYS.settings]);
@@ -65,8 +90,20 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 	if (alarm.name === ALARM) queuePoll();
 });
 
-chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 	if (!msg || typeof msg.type !== "string") return false;
+	if (msg.type === "ww-cropper") {
+		if (!sender.url || sender.frameId !== 0) return false;
+		const url = new URL(sender.url);
+		const { x, y } = msg;
+		if (url.protocol !== "https:" || !["/map", "/karte.php"].includes(url.pathname) ||
+			!WWCore.normalizeHost(url.hostname) || url.hostname === "ts1.x1.europe.travian.com" ||
+			![x, y].every(Number.isSafeInteger)) return false;
+		return queueCroppers(url.hostname, [{ x, y }], sendResponse);
+	}
+	if (msg.type === "ww-cropper-batch" && sender.url === chrome.runtime.getURL("map-capture.html")) {
+		return queueCroppers(WWCroppers.mapResponseHost(msg.url), msg.tiles, sendResponse);
+	}
 	if (msg.type === "ww-poll") {
 		const only = Array.isArray(msg.hosts) ? msg.hosts : null;
 		queuePoll(only).then(() => sendResponse({ ok: true }));

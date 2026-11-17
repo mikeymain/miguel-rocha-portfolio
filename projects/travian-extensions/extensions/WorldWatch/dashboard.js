@@ -47,6 +47,11 @@
 			{ key: "centre", label: "Centre" },
 			{ key: "quadrant", label: "Quadrant" },
 		],
+		croppers: [
+			{ key: "point", label: "Coordinates" },
+			{ key: "layout", label: "Lumber–Clay–Iron–Crop" },
+			{ key: "seen", label: "First seen" },
+		],
 	};
 
 	function fmtTime(t) {
@@ -73,9 +78,11 @@
 	}
 
 	async function loadHosts() {
-		const data = await api.storage.local.get("wwHosts");
-		const hosts = Array.isArray(data.wwHosts) ? data.wwHosts : [];
+		const data = await api.storage.local.get(["wwHosts", "wwCroppers"]);
+		const hosts = [...new Set([...(Array.isArray(data.wwHosts) ? data.wwHosts : []), ...Object.keys(data.wwCroppers || {})])];
+		const selected = $("host").value;
 		$("host").replaceChildren(...hosts.map((h) => option(h, h)));
+		if (hosts.includes(selected)) $("host").value = selected;
 		if (!hosts.length) setMsg("No worlds watched. Add one in the popup.", true);
 		await loadMetas();
 	}
@@ -138,6 +145,14 @@
 
 	async function compute() {
 		const view = state.view;
+		if (view === "croppers") {
+			const host = $("host").value;
+			const { wwCroppers = {} } = await api.storage.local.get("wwCroppers");
+			const rows = Object.values(wwCroppers[host] || {})
+				.sort((a, b) => b.seenAt - a.seenAt)
+				.map(({ x, y, seenAt }) => ({ point: `${x}|${y}`, layout: "1-1-1-15", seen: fmtTime(seenAt), href: `https://${host}/map?x=${x}&y=${y}` }));
+			return { rows, summary: `${rows.length} confirmed 15c ${rows.length === 1 ? "tile" : "tiles"}`, mapHref: host ? `https://${host}/map` : "" };
+		}
 		if (view === "growth") {
 			return { rows: A.growth(state.metas).map((r) => ({ ...r, time: fmtTime(r.t) })).reverse(), summary: `Snapshots: ${state.metas.length}` };
 		}
@@ -226,7 +241,14 @@
 			if (r.flag) tr.className = "flag";
 			for (const c of columns) {
 				const td = document.createElement("td");
-				td.textContent = r[c.key] ?? "";
+				if (c.key === "point" && r.href) {
+					const link = document.createElement("a");
+					link.href = r.href;
+					link.target = "_blank";
+					link.rel = "noopener";
+					link.textContent = r.point;
+					td.append(link);
+				} else td.textContent = r[c.key] ?? "";
 				tr.append(td);
 			}
 			frag.append(tr);
@@ -234,9 +256,14 @@
 		body.replaceChildren(frag);
 	}
 
+	let renderId = 0;
 	async function render() {
+		const id = ++renderId;
 		try {
-			const { rows, summary } = await compute();
+			const { rows, summary, mapHref } = await compute();
+			if (id !== renderId) return;
+			if (mapHref) $("cropper-map").href = mapHref;
+			$("cropper-map").hidden = !mapHref;
 			state.rows = rows;
 			state.columns = COLUMNS[state.view] || [];
 			if (state.view !== "map") renderTable(state.columns, rows);
@@ -262,6 +289,12 @@
 		$("controls-spawn").hidden = view !== "spawn";
 		$("controls-gold").hidden = view !== "gold";
 		$("controls-map").hidden = view !== "map";
+		$("controls-croppers").hidden = view !== "croppers";
+		$("msg").hidden = view === "croppers";
+		for (const id of ["cur", "prev"]) {
+			$(id).hidden = view === "croppers";
+			document.querySelector(`label[for="${id}"]`).hidden = view === "croppers";
+		}
 		$("map-section").hidden = view !== "map";
 		$("table-wrap").hidden = view === "map";
 		$("csv").hidden = view === "map";
@@ -313,7 +346,9 @@
 	});
 	$("csv").addEventListener("click", exportCsv);
 	api.storage.onChanged.addListener((changes, area) => {
-		if (area === "local" && (changes.wwStatus || changes.wwOwn)) loadMetas();
+		if (area !== "local") return;
+		if (changes.wwCroppers || changes.wwHosts) loadHosts();
+		else if (changes.wwStatus || changes.wwOwn) loadMetas();
 	});
 	loadHosts();
 })();

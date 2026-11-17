@@ -29,7 +29,12 @@
 			<button type="button" role="tab" data-view="gold" aria-selected="false">Gold suspects</button>
 			<button type="button" role="tab" data-view="alliances" aria-selected="false">Alliances</button>
 			<button type="button" role="tab" data-view="map" aria-selected="false">Map</button>
+			<button type="button" role="tab" data-view="croppers" aria-selected="false">15c Finder</button>
 		</nav>
+		<section id="controls-croppers" class="row" aria-label="15c Finder" hidden>
+			<a id="cropper-map" target="_blank" rel="noopener" hidden>Open game map</a>
+			<span class="summary">Hover over valleys on the game map to save confirmed 15c tiles. Check availability in-game.</span>
+		</section>
 		<section id="controls-map" class="row" hidden>
 			<label for="map-count">Newest accounts</label>
 			<input id="map-count" type="number" min="5" max="500" value="40" />

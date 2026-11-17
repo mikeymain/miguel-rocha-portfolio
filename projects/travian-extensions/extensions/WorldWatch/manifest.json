@@ -1,7 +1,8 @@
 {
 	"manifest_version": 3,
 	"name": "Travian World Watch",
-	"version": "1.4.0",
+	"version": "1.6.0",
+	"devtools_page": "map-capture.html",
 	"description": "Tracks a world's public map.sql over time: spawn ring, population gains and alliances.",
 	"permissions": ["storage", "alarms", "unlimitedStorage"],
 	"host_permissions": [
@@ -15,6 +16,12 @@
 		"service_worker": "background.js"
 	},
 	"content_scripts": [
+		{
+			"matches": ["https://*.travian.com/map*", "https://*.travian.org/map*", "https://*.travian.net/map*", "https://*.travian.us/map*", "https://*.travian.de/map*", "https://*.travian.com/karte.php*", "https://*.travian.org/karte.php*", "https://*.travian.net/karte.php*", "https://*.travian.us/karte.php*", "https://*.travian.de/karte.php*"],
+			"exclude_matches": ["https://ts1.x1.europe.travian.com/*"],
+			"js": ["cropper-collector.js"],
+			"run_at": "document_idle"
+		},
 		{
 			"matches": ["https://*.travian.com/*", "https://*.travian.org/*", "https://*.travian.net/*", "https://*.travian.us/*", "https://*.travian.de/*"],
 			"js": ["own-village.js"],

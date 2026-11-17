@@ -1,5 +1,9 @@
 # Changelog
 
+## World Watch 1.6.0 — 2026-11-17
+
+- Added the **15c Finder**. It saves confirmed cropper coordinates from valley tooltips or from normal map batches while DevTools is open.
+
 ## Rank Tracker 5.1.1 — 2026-11-17
 
 - Removed the Open column from the Now table.

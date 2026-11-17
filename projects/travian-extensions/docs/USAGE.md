@@ -171,7 +171,8 @@ Refreshes when you open the popup or click **Refresh**; there are no background 
 4. **Growth** lists sign-ups (highest account id) per snapshot. **Spawn ring** shows, per quadrant, the distance range of the newest accounts' first villages; change **Newest accounts** to widen the sample.
 5. **Gold suspects** ranks accounts by population gain between the two snapshots. Enter a point (`x|y`) and a radius to limit the list to accounts with a village nearby. Highlighted rows are above the 99th percentile; check **Δ villages**, because a new or conquered village also raises population.
 6. **Map** opens at 100 % (60 px per field, as in game) on the newest spawn. Yellow villages are the newest accounts; the yellow band is their distance from 0|0. Coloured villages and labels are the top 10 alliances. Drag to pan, use the wheel or **+**/**−** to zoom down to the whole world, and enter **Centre (x|y)** to jump. Lines mark the world edge. Tick **Top 10** or **Top 100** to ring the largest accounts by population; Top 10 are labelled and listed in the legend. Hover a village for its owner.
-7. **CSV** downloads the visible table.
+7. **15c Finder** lists confirmed 1-1-1-15 tiles and links to their map coordinates. Open DevTools (F12) in the game tab, then open or reload the map and pan normally to collect batches. With DevTools closed, hover over individual valleys. Results are saved locally and do not require a snapshot. Confirm availability in-game. Collection is disabled on Europe 1.
+8. **CSV** downloads the visible table.
 
 Snapshot times are when the extension first saw new content, not when Travian generated the dump. Removing a world deletes its snapshots.
 
