@@ -1,5 +1,9 @@
 # Changelog
 
+## TravAlarm 3.51 — 2026-11-17
+
+- Moved the alarm widget 35 px down.
+
 ## TravAlarm 3.50 — 2026-11-17
 
 - Fixed a widget error that left alarm countdowns displaying `--:--`.
