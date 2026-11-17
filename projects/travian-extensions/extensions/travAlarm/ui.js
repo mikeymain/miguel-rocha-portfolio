@@ -1080,7 +1080,7 @@ const _finishFormat = new Intl.DateTimeFormat([], {
 function tick() {
   const now = Date.now();
 
-  // An alarm finishing changes the sort order and section/ring state.
+  // An alarm finishing changes the sort order and section state.
   const doneCount = currentAlarms.reduce((n, a) => n + (a.scheduledTime <= now), 0);
   if (doneCount !== _doneCount) {
     _doneCount = doneCount;
@@ -1115,7 +1115,6 @@ function tick() {
       soonestSpan.textContent = done ? "" : formatHMS(Math.max(0, ((next - now) / 1000) | 0));
     }
   }
-  updateRingStrip(groups);
   renderWorldTimers(now);
 
   currentAlarms.forEach((a) => {

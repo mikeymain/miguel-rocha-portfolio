@@ -1,5 +1,9 @@
 # Changelog
 
+## TravAlarm 3.50 — 2026-11-17
+
+- Fixed a widget error that left alarm countdowns displaying `--:--`.
+
 ## NPC AutoMerchant 3.2.3 — 2026-11-17
 
 - Softened the amber and green transfer amounts in night mode and switched the light theme’s projected stock to the dialog’s neutral text color.
