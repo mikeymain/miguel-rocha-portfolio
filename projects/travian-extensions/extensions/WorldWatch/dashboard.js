@@ -163,7 +163,7 @@
 			const host = $("host").value;
 			const rows = (await scoredCroppers(host)).map((tile) => ({
 				point: `${tile.x}|${tile.y}`, layout: "1-1-1-15", seen: fmtTime(tile.seenAt),
-				potential: bonus(tile.potential, tile.seen), free: bonus(tile.free, tile.seen), coverage: `${tile.seen}/48`,
+				potential: bonus(tile.potential, tile.seen), free: bonus(tile.free, tile.seen), coverage: `${tile.seen}/${tile.total}`,
 				oases: tile.best.map(({ x, y, crop, occupied }) => `${x}|${y} +${crop}% (${occupied ? "occupied" : "free"})`).join(", ") || "—",
 				href: `https://${host}/map?x=${tile.x}&y=${tile.y}`,
 			}));

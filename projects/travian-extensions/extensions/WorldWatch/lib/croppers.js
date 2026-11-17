@@ -3,6 +3,7 @@
 	"use strict";
 	// Travian's map dictionary (karte.json) maps f6 to 1-1-1-15.
 	const cropperTitle = /^\s*\{k\.vt\}\s*\{k\.f6\}\s*$/;
+	const OASIS_RADIUS = 1;
 
 	function mapResponseHost(rawUrl) {
 		const url = URL.parse(rawUrl);
@@ -45,8 +46,8 @@
 		const nearby = [];
 		let seen = 0;
 		const wrap = (n) => ((n + 200) % 401 + 401) % 401 - 200;
-		for (let dy = -3; dy <= 3; dy++) {
-			for (let dx = -3; dx <= 3; dx++) {
+		for (let dy = -OASIS_RADIUS; dy <= OASIS_RADIUS; dy++) {
+			for (let dx = -OASIS_RADIUS; dx <= OASIS_RADIUS; dx++) {
 				if (!dx && !dy) continue;
 				const ox = wrap(x + dx), oy = wrap(y + dy);
 				const observation = observations[`${ox}|${oy}`];
@@ -58,7 +59,7 @@
 		nearby.sort((a, b) => b.crop - a.crop || Number(a.occupied) - Number(b.occupied) || a.distance - b.distance);
 		const best = nearby.slice(0, 3);
 		const sum = (list) => list.reduce((total, oasis) => total + oasis.crop, 0);
-		return { seen, best, potential: sum(best), free: sum(nearby.filter((oasis) => !oasis.occupied).slice(0, 3)) };
+		return { seen, total: (2 * OASIS_RADIUS + 1) ** 2 - 1, best, potential: sum(best), free: sum(nearby.filter((oasis) => !oasis.occupied).slice(0, 3)) };
 	}
 
 	root.WWCroppers = { mapResponseHost, mapTiles, oasisScore };

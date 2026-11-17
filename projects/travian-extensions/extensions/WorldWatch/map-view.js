@@ -471,7 +471,7 @@
 			if (cropper) {
 				lines[0] = `15c (${fx}|${fy})`;
 				lines.push(cropper.seen ? `Crop potential +${cropper.potential}% · Free when seen +${cropper.free}%` : "Oasis bonuses unknown");
-				lines.push(`${cropper.seen}/48 nearby tiles checked`);
+				lines.push(`${cropper.seen}/${cropper.total} adjacent tiles checked`);
 				for (const oasis of cropper.best) lines.push(`${oasis.x}|${oasis.y}  +${oasis.crop}% crop${oasis.occupied ? " · occupied" : ""}`);
 			}
 			if (i != null) {

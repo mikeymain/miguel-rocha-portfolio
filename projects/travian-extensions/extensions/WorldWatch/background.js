@@ -32,10 +32,12 @@ async function saveTiles(host, observations, fromMap) {
 }
 
 function queueTiles(host, tiles, sendResponse, fromMap = false) {
-	if (!host || !Array.isArray(tiles) || !tiles.length || tiles.length > 2000 || !tiles.every((tile) =>
+	if (!host || !Array.isArray(tiles) || !tiles.length || tiles.length > 2000) return false;
+	const valid = tiles.filter((tile) =>
 		tile && [tile.x, tile.y].every((n) => Number.isInteger(n) && Math.abs(n) <= 200) &&
-		(!fromMap || ([0, 25, 50].includes(tile.crop) && (!tile.crop || typeof tile.occupied === "boolean"))))) return false;
-	const write = cropperWrites.then(() => saveTiles(host, tiles, fromMap));
+		(!fromMap || ([0, 25, 50].includes(tile.crop) && (!tile.crop || typeof tile.occupied === "boolean"))));
+	if (!valid.length) return false;
+	const write = cropperWrites.then(() => saveTiles(host, valid, fromMap));
 	cropperWrites = write.catch(() => {});
 	write.then(() => sendResponse({ ok: true }), () => sendResponse({ ok: false }));
 	return true;

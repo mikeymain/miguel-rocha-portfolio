@@ -16,6 +16,10 @@
 
 - Required amounts appear in amber, projected stock turns green at or above the resource target, and transfer inputs use the game's text color.
 
+## World Watch 1.7.1 — 2026-11-17
+
+- Keep valid 15c rows when a map batch includes invalid rows. Opening a confirmed 15c tile in-game also saves it with DevTools closed. Oasis scoring now covers the eight adjacent tiles in a centered 3 × 3 square.
+
 ## World Watch 1.7.0 — 2026-11-17
 
 - Shows saved 15c tiles on the World Watch map and compares the best three observed crop oasis bonuses around them. The finder separates potential from bonuses that were free when observed and reports tile coverage.
