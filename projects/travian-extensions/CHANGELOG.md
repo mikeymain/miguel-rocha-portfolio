@@ -1,5 +1,9 @@
 # Changelog
 
+## OasisCalc 70.7 — 2026-11-17
+
+- The Oasis Database remembers its radius filter between visits.
+
 ## NPC AutoMerchant 3.2.0 — 2026-11-17
 
 - Transfer dialog amounts now use clearer red for resources still needed and green for resources requiring no transfer.

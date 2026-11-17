@@ -315,6 +315,7 @@ function closeDatabaseView() {
 function initDatabaseView() {
   const tools = document.getElementById("_vpdb-tools");
   if (!tools) return;
+  document.getElementById("_vpdb-radius")?.addEventListener("change", saveSettings);
   tools.addEventListener("input", (e) => {
     renderDbList();
   });

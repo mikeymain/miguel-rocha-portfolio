@@ -280,6 +280,7 @@ async function fetchAndStoreTroops() {
 // restored on load — village auto-detection repopulates it.
 const SETTING_FIELDS = [
   "_vpradius",
+  "_vpdb-radius",
   "_vphero-off",
   "_vpdmg-red",
   "_vphero-mounted",
