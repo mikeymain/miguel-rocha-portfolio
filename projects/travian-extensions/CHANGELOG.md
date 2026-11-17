@@ -1,5 +1,9 @@
 # Changelog
 
+## World Watch 1.7.0 — 2026-11-17
+
+- Shows saved 15c tiles on the World Watch map and compares the best three observed crop oasis bonuses around them. The finder separates potential from bonuses that were free when observed and reports tile coverage.
+
 ## World Watch 1.6.0 — 2026-11-17
 
 - Added the **15c Finder**. It saves confirmed cropper coordinates from valley tooltips or from normal map batches while DevTools is open.

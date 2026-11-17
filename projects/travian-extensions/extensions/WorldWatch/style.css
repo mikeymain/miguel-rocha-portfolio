@@ -300,3 +300,11 @@ button.tv-btn {
 .swatch.ring.blue {
 	border-color: #1e88e5;
 }
+.swatch.cropper {
+	width: 11px;
+	height: 11px;
+	margin-inline: 2px 1px;
+	border: 1px solid #fff9ea;
+	border-radius: 0;
+	transform: rotate(45deg);
+}

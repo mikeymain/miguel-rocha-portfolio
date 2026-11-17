@@ -10,7 +10,7 @@ chrome.devtools.network.onRequestFinished.addListener((entry) => {
 		} catch {
 			return;
 		}
-		const tiles = WWCroppers.findCroppers(payload);
-		if (tiles.length) chrome.runtime.sendMessage({ type: "ww-cropper-batch", url, tiles }).catch(console.error);
+		const tiles = WWCroppers.mapTiles(payload);
+		if (tiles.length) chrome.runtime.sendMessage({ type: "ww-tile-batch", url, tiles }).catch(console.error);
 	});
 });

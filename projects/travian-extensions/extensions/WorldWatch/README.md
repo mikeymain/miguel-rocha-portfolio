@@ -19,7 +19,7 @@ Tracks a Travian Legends game world over time from its public `map.sql` dump. Us
 | Spawn ring | Per quadrant (NE/NW/SE/SW): the newest N accounts by uid (default 40). Spawn village = lowest village id per account. Min, median and max distance from 0\|0 and the newest spawn coordinates. |
 | Gold suspects | Population gain per account between two snapshots, gain per hour, Δ villages and distance to a point. Rows above the 99th percentile gain are highlighted. Only accounts present in both snapshots are compared. A Δ villages above 0 means part of the gain comes from a new or conquered village. |
 | Alliances | Members, villages, population, population-weighted centre and main quadrant. |
-| 15c Finder | Confirmed `1-1-1-15` tiles from map batches captured while DevTools is open, or from valley tooltips you view. Select a world and click a coordinate to reopen the tile. No snapshot is needed. |
+| 15c Finder | Confirmed `1-1-1-15` tiles ranked by the best three observed crop bonuses in their 7 × 7 area. The table shows the potential, how much was free when observed, and how much of the area was checked. Click a coordinate to reopen the tile. |
 | Map | Travian-style map: 60 px per field at 100 %, like the in-game map. The window fills the free page area (at least 543 × 401 px, the in-game size). Zoom from 100 % down to the whole world; drag to pan, mouse wheel to zoom. Lines mark the world edge at ±200. Newest spawns are highlighted and their distance band from 0\|0 is shaded; the top 10 alliances are coloured and labelled at their centre. **Top 10** and **Top 100** mark the largest accounts by population (red and white rings); Top 10 are labelled with rank and name at their largest village. Hover a field for player, alliance, population and rank. |
 
 **Your village:** `own-village.js` reads your player name and village list (names and coordinates) from the game sidebar on any page you open in that world, and stores them per world. The dashboard then shows a **Your village** selector, fills **Point (x|y)** and **Centre (x|y)** with the selected village (the inputs stay editable; a typed value is not overwritten), and rings your villages blue on the map.
@@ -27,6 +27,8 @@ Tracks a Travian Legends game world over time from its public `map.sql` dump. Us
 Every table exports to CSV. Nature and Natar villages are ignored. Positive y is north. Distances wrap around the 401 × 401 map.
 
 **Finding a 15c:** Open DevTools (`F12`) in the game tab, then open the map or reload it and pan normally. World Watch reads the game's completed map responses and saves confirmed `1-1-1-15` coordinates locally, even if the world is not on the watch list. You can also hover over valleys to save individual matches with DevTools closed. The finder does not track current occupancy. Check the tile in-game before settling. Collection is disabled on Europe 1 (`ts1.x1.europe.travian.com`).
+
+**Mapping and comparing 15c tiles:** Pan at 100% zoom with DevTools open to collect nearby oasis bonuses. In World Watch, the **Map** tab shows teal diamonds for saved 15c tiles, including worlds without a snapshot. Hover a marker for the best observed bonuses and coverage. Crop potential can include occupied oases. **Free when seen** counts only oases that were unoccupied at their last observation. Both totals are limited to three oases and are partial until all 48 surrounding tiles have been checked. Verify ownership and settlement availability in-game.
 
 ## Live mode
 

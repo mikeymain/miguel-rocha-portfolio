@@ -16,6 +16,7 @@
 	const TOP10 = "#e01e37";
 	const TOP100 = "#ffffff";
 	const OWN = "#1e88e5";
+	const CROPPER = "#124c44";
 	const OUTSIDE = "#3f4a33";
 
 	// Zoom levels for a view; the last one fits the whole world.
@@ -103,14 +104,18 @@
 		// Sizes the map to the container; never smaller than the in-game window.
 		function resize() {
 			const rect = container.getBoundingClientRect();
-			vw = Math.max(VIEW_W, Math.floor(rect.width) - RULER_Y_W);
-			vh = Math.max(VIEW_H, Math.floor(rect.height) - RULER_X_H);
+			const nextW = Math.max(VIEW_W, Math.floor(rect.width) - RULER_Y_W);
+			const nextH = Math.max(VIEW_H, Math.floor(rect.height) - RULER_X_H);
+			if (W && nextW === vw && nextH === vh) return false;
+			vw = nextW;
+			vh = nextH;
 			W = RULER_Y_W + vw;
 			H = vh + RULER_X_H;
 			canvas.width = W * dpr;
 			canvas.height = H * dpr;
 			canvas.style.width = `${W}px`;
 			canvas.style.height = `${H}px`;
+			return true;
 		}
 		canvas.className = "map-canvas";
 		container.replaceChildren(canvas);
@@ -118,12 +123,10 @@
 		resize();
 		if (root.ResizeObserver) {
 			new root.ResizeObserver(() => {
-				const before = `${W}x${H}`;
-				resize();
-				if (`${W}x${H}` !== before) draw();
+				if (resize()) draw();
 			}).observe(container);
 		}
-		const st = { snap: null, layers: null, show: { spawns: true, alliances: true, top10: false, top100: false }, cx: 0, cy: 0, zoom: 0, byField: new Map(), onChange: null };
+		const st = { snap: null, layers: null, croppers: new Map(), show: { spawns: true, alliances: true, top10: false, top100: false, croppers: true }, cx: 0, cy: 0, zoom: 0, byField: new Map(), onChange: null };
 
 		const levels = () => zoomLevels(vw, vh);
 		const zoomValue = () => levels()[Math.min(st.zoom, levels().length - 1)];
@@ -379,6 +382,34 @@
 			}
 		}
 
+		function drawCroppers(s) {
+			if (!st.show.croppers) return;
+			const label = s >= 45;
+			const r = label ? 18 : s >= 12 ? 7 : 4;
+			for (const tile of st.croppers.values()) {
+				const [x, y] = toScreen(tile.x, tile.y);
+				if (x < RULER_Y_W - r || x > RULER_Y_W + vw + r || y < -r || y > vh + r) continue;
+				g.fillStyle = CROPPER;
+				g.strokeStyle = "#fff9ea";
+				g.lineWidth = label ? 2 : 1.5;
+				g.beginPath();
+				g.moveTo(x, y - r);
+				g.lineTo(x + r, y);
+				g.lineTo(x, y + r);
+				g.lineTo(x - r, y);
+				g.closePath();
+				g.fill();
+				g.stroke();
+				if (label) {
+					g.font = "600 12px system-ui";
+					g.textAlign = "center";
+					g.textBaseline = "middle";
+					g.fillStyle = "#fff9ea";
+					g.fillText("15c", x, y);
+				}
+			}
+		}
+
 		function draw() {
 			g.setTransform(dpr, 0, 0, dpr, 0, 0);
 			g.clearRect(0, 0, W, H);
@@ -402,6 +433,7 @@
 				drawLabels();
 			}
 			drawEdges(s);
+			drawCroppers(s);
 			g.restore();
 			drawRulers(s, fx0, fx1, fy0, fy1);
 			if (st.onChange) st.onChange({ cx: Math.round(st.cx), cy: Math.round(st.cy), zoom: zoomValue() });
@@ -410,6 +442,7 @@
 		function indexFields() {
 			st.byField = new Map();
 			const snap = st.snap;
+			if (!snap) return;
 			for (let i = 0; i < snap.uid.length; i++) st.byField.set(snap.x[i] * 1000 + snap.y[i], i);
 		}
 
@@ -417,17 +450,35 @@
 			const rect = canvas.getBoundingClientRect();
 			const px = evt.clientX - rect.left;
 			const py = evt.clientY - rect.top;
-			const [tfx, tfy] = toField(px, py);
-			if (!st.snap || px < RULER_Y_W || py > vh || Math.abs(tfx) > 200 || Math.abs(tfy) > 200) {
+			let [fx, fy] = toField(px, py);
+			if (px < RULER_Y_W || py > vh || Math.abs(fx) > 200 || Math.abs(fy) > 200) {
 				tooltip.hidden = true;
 				return;
 			}
-			const [fx, fy] = toField(px, py);
+			let cropper = st.show.croppers ? st.croppers.get(`${fx}|${fy}`) : null;
+			if (!cropper && st.show.croppers && scale() < 12) {
+				let nearest = 5;
+				for (const tile of st.croppers.values()) {
+					const [sx, sy] = toScreen(tile.x, tile.y);
+					const distance = Math.hypot(px - sx, py - sy);
+					if (distance < nearest) { cropper = tile; nearest = distance; }
+				}
+				if (cropper) ({ x: fx, y: fy } = cropper);
+			}
+			if (!st.snap && !cropper) { tooltip.hidden = true; return; }
 			const i = st.byField.get(fx * 1000 + fy);
 			const lines = [`(${fx}|${fy})`];
+			if (cropper) {
+				lines[0] = `15c (${fx}|${fy})`;
+				lines.push(cropper.seen ? `Crop potential +${cropper.potential}% · Free when seen +${cropper.free}%` : "Oasis bonuses unknown");
+				lines.push(`${cropper.seen}/48 nearby tiles checked`);
+				for (const oasis of cropper.best) lines.push(`${oasis.x}|${oasis.y}  +${oasis.crop}% crop${oasis.occupied ? " · occupied" : ""}`);
+			}
 			if (i != null) {
 				const snap = st.snap;
-				lines.unshift(snap.players[snap.uid[i]] || `uid ${snap.uid[i]}`);
+				const player = snap.players[snap.uid[i]] || `uid ${snap.uid[i]}`;
+				if (cropper) lines.push(player);
+				else lines.unshift(player);
 				if (snap.aid[i]) lines.push(`Alliance: ${snap.alliances[snap.aid[i]] || snap.aid[i]}`);
 				lines.push(`Population: ${snap.pop[i]}`);
 				const rank = st.layers.topRank && st.layers.topRank.get(snap.uid[i]);
@@ -486,14 +537,17 @@
 
 		const api = {
 			ZOOMS,
-			setData(snap, layers) {
+			setData(snap, layers, croppers = []) {
 				st.snap = snap;
 				st.layers = layers;
+				st.croppers = new Map(croppers.map((tile) => [`${tile.x}|${tile.y}`, tile]));
+				tooltip.hidden = true;
 				indexFields();
 				draw();
 			},
 			setShow(show) {
 				st.show = { ...st.show, ...show };
+				tooltip.hidden = true;
 				draw();
 			},
 			centre(x, y) {
@@ -517,5 +571,5 @@
 		return api;
 	}
 
-	root.WWMap = { createMap, zoomLevels, niceStep, signedWrap, wrapCoord, sizeClass, FIELD_PX, ZOOMS, VIEW_W, VIEW_H };
+	root.WWMap = { createMap, zoomLevels, niceStep, signedWrap, wrapCoord, sizeClass, FIELD_PX, ZOOMS, VIEW_W, VIEW_H, CROPPER };
 })(globalThis);

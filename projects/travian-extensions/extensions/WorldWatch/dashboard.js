@@ -50,6 +50,10 @@
 		croppers: [
 			{ key: "point", label: "Coordinates" },
 			{ key: "layout", label: "Lumber–Clay–Iron–Crop" },
+			{ key: "potential", label: "Crop potential" },
+			{ key: "free", label: "Free when seen" },
+			{ key: "coverage", label: "Nearby tiles checked" },
+			{ key: "oases", label: "Best observed oases" },
 			{ key: "seen", label: "First seen" },
 		],
 	};
@@ -103,7 +107,7 @@
 		if (keepPrev) $("prev").value = keepPrev;
 		else if (newestFirst[1]) $("prev").value = newestFirst[1].id;
 		await loadOwn(host);
-		if (host && !state.metas.length) setMsg("No snapshots yet.", true);
+		if (host && !state.metas.length && !["map", "croppers"].includes(state.view)) setMsg("No snapshots yet.", true);
 		else if (host) setMsg("");
 		await render();
 	}
@@ -143,20 +147,37 @@
 		return state.metas.find((m) => m.id === Number(id));
 	}
 
+	const bonus = (value, seen) => seen ? `+${value}%` : "—";
+	async function scoredCroppers(host) {
+		const oasisKey = `wwOasis:${host}`;
+		const data = await api.storage.local.get(["wwCroppers", oasisKey]);
+		const observations = data[oasisKey] || {};
+		return Object.values(data.wwCroppers?.[host] || {})
+			.map((tile) => ({ ...tile, ...WWCroppers.oasisScore(tile, observations) }))
+			.sort((a, b) => b.potential - a.potential || b.free - a.free || b.seen - a.seen || b.seenAt - a.seenAt);
+	}
+
 	async function compute() {
 		const view = state.view;
 		if (view === "croppers") {
 			const host = $("host").value;
-			const { wwCroppers = {} } = await api.storage.local.get("wwCroppers");
-			const rows = Object.values(wwCroppers[host] || {})
-				.sort((a, b) => b.seenAt - a.seenAt)
-				.map(({ x, y, seenAt }) => ({ point: `${x}|${y}`, layout: "1-1-1-15", seen: fmtTime(seenAt), href: `https://${host}/map?x=${x}&y=${y}` }));
+			const rows = (await scoredCroppers(host)).map((tile) => ({
+				point: `${tile.x}|${tile.y}`, layout: "1-1-1-15", seen: fmtTime(tile.seenAt),
+				potential: bonus(tile.potential, tile.seen), free: bonus(tile.free, tile.seen), coverage: `${tile.seen}/48`,
+				oases: tile.best.map(({ x, y, crop, occupied }) => `${x}|${y} +${crop}% (${occupied ? "occupied" : "free"})`).join(", ") || "—",
+				href: `https://${host}/map?x=${tile.x}&y=${tile.y}`,
+			}));
 			return { rows, summary: `${rows.length} confirmed 15c ${rows.length === 1 ? "tile" : "tiles"}`, mapHref: host ? `https://${host}/map` : "" };
 		}
 		if (view === "growth") {
 			return { rows: A.growth(state.metas).map((r) => ({ ...r, time: fmtTime(r.t) })).reverse(), summary: `Snapshots: ${state.metas.length}` };
 		}
 		const cur = metaById($("cur").value);
+		if (view === "map") {
+			const host = $("host").value;
+			const [snap, crops] = await Promise.all([cur ? loadSnap(cur.id) : null, scoredCroppers(host)]);
+			return { rows: [], summary: "", drawMap: () => renderMap(host, cur, snap, crops) };
+		}
 		if (!cur) return { rows: [], summary: "" };
 		const snap = await loadSnap(cur.id);
 		if (view === "spawn") {
@@ -164,7 +185,6 @@
 			return { rows: A.spawnRing(snap, count), summary: `Sign-ups ${cur.maxUid} · accounts ${cur.accounts}` };
 		}
 		if (view === "alliances") return { rows: A.topAlliances(snap, 50), summary: "" };
-		if (view === "map") return renderMap(cur, snap);
 		const prev = metaById($("prev").value);
 		if (!prev || prev.id === cur.id) return { rows: [], summary: "Pick two different snapshots." };
 		const [older, newer] = prev.t < cur.t ? [prev, cur] : [cur, prev];
@@ -204,15 +224,22 @@
 		return li;
 	}
 
-	function renderMap(meta, snap) {
+	function renderMap(host, meta, snap, crops) {
 		const m = mapInstance();
 		const count = Math.max(5, Math.min(500, Number($("map-count").value) || 40));
-		const layers = { ...A.mapLayers(snap, { spawnCount: count, allianceCount: 10 }), own: state.own ? state.own.villages : [] };
-		const key = `${meta.id}:${count}`;
-		m.setData(snap, layers);
-		if (key.split(":")[0] !== mapKey.split(":")[0] && layers.newest) m.centre(layers.newest.sx, layers.newest.sy);
+		const layers = snap ? A.mapLayers(snap, { spawnCount: count, allianceCount: 10 }) : { top: [], alliances: [] };
+		layers.own = state.own?.villages || [];
+		const key = `${host}:${meta?.id ?? ""}:${Boolean(crops.length)}`;
+		m.setData(snap, layers, crops);
+		if (key !== mapKey) {
+			const first = crops[0];
+			if (first && $("map-croppers").checked) m.centre(first.x, first.y);
+			else if (layers.newest) m.centre(layers.newest.sx, layers.newest.sy);
+		}
 		mapKey = key;
+		$("map-newest").disabled = !snap;
 		const items = [];
+		if ($("map-croppers").checked) items.push(legendItem(WWMap.CROPPER, `${crops.length} saved 15c ${crops.length === 1 ? "tile" : "tiles"}`, "cropper"));
 		if (layers.own.length) items.push(legendItem("#1e88e5", `Your villages: ${layers.own.map((v) => `${v.name} (${v.x}|${v.y})`).join(", ")}`, "ring blue"));
 		if (layers.ring) items.push(legendItem("#ffd84a", `Spawns: ${layers.spawnUids.size} · ${layers.ring.min}–${layers.ring.max} (median ${layers.ring.median})`, "spawn"));
 		if ($("map-top10").checked || $("map-top100").checked) {
@@ -223,7 +250,7 @@
 		for (const a of layers.alliances) items.push(legendItem(a.color, `${a.tag || "#" + a.aid} · ${a.members} · ${a.pop} · ${a.centre}`));
 		$("map-legend").replaceChildren(...items);
 		const newest = layers.newest ? ` · newest uid ${layers.newest.uid} at ${layers.newest.sx}|${layers.newest.sy}` : "";
-		return { rows: [], summary: `Sign-ups ${meta.maxUid}${newest}` };
+		return meta ? `Sign-ups ${meta.maxUid}${newest}` : "";
 	}
 
 	function renderTable(columns, rows) {
@@ -260,14 +287,14 @@
 	async function render() {
 		const id = ++renderId;
 		try {
-			const { rows, summary, mapHref } = await compute();
+			const { rows, summary, mapHref, drawMap } = await compute();
 			if (id !== renderId) return;
 			if (mapHref) $("cropper-map").href = mapHref;
 			$("cropper-map").hidden = !mapHref;
 			state.rows = rows;
 			state.columns = COLUMNS[state.view] || [];
 			if (state.view !== "map") renderTable(state.columns, rows);
-			$("summary").textContent = summary + (rows.length > 1000 ? ` · showing 1000 of ${rows.length}` : "");
+			$("summary").textContent = (drawMap ? drawMap() : summary) + (rows.length > 1000 ? ` · showing 1000 of ${rows.length}` : "");
 		} catch (err) {
 			setMsg(err.message, true);
 		}
@@ -290,7 +317,8 @@
 		$("controls-gold").hidden = view !== "gold";
 		$("controls-map").hidden = view !== "map";
 		$("controls-croppers").hidden = view !== "croppers";
-		$("msg").hidden = view === "croppers";
+		setMsg(!$("host").value ? "No worlds watched. Add one in the popup." :
+			!state.metas.length && !["map", "croppers"].includes(view) ? "No snapshots yet." : "");
 		for (const id of ["cur", "prev"]) {
 			$(id).hidden = view === "croppers";
 			document.querySelector(`label[for="${id}"]`).hidden = view === "croppers";
@@ -324,6 +352,10 @@
 	$("map-count").addEventListener("change", render);
 	$("map-spawns").addEventListener("change", () => mapInstance().setShow({ spawns: $("map-spawns").checked }));
 	$("map-alliances").addEventListener("change", () => mapInstance().setShow({ alliances: $("map-alliances").checked }));
+	$("map-croppers").addEventListener("change", () => {
+		mapInstance().setShow({ croppers: $("map-croppers").checked });
+		render();
+	});
 	for (const id of ["map-top10", "map-top100"]) {
 		$(id).addEventListener("change", () => {
 			mapInstance().setShow({ top10: $("map-top10").checked, top100: $("map-top100").checked });
@@ -349,6 +381,7 @@
 		if (area !== "local") return;
 		if (changes.wwCroppers || changes.wwHosts) loadHosts();
 		else if (changes.wwStatus || changes.wwOwn) loadMetas();
+		else if (changes[`wwOasis:${$("host").value}`] && ["map", "croppers"].includes(state.view)) render();
 	});
 	loadHosts();
 })();

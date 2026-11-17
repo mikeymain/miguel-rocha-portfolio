@@ -8,25 +8,34 @@ const KEYS = { hosts: "wwHosts", status: "wwStatus", settings: "wwSettings" };
 let running = Promise.resolve();
 let cropperWrites = Promise.resolve();
 
-async function saveCroppers(host, observations) {
-	const { wwCroppers = {} } = await chrome.storage.local.get("wwCroppers");
+async function saveTiles(host, observations, fromMap) {
+	const oasisKey = `wwOasis:${host}`;
+	const data = await chrome.storage.local.get(fromMap ? ["wwCroppers", oasisKey] : "wwCroppers");
+	const { wwCroppers = {} } = data;
 	const tiles = wwCroppers[host] || {};
-	let changed = false;
-	for (const { x, y } of observations) {
+	const oases = data[oasisKey] || {};
+	const updates = {};
+	for (const { x, y, cropper, crop, occupied } of observations) {
 		const id = `${x}|${y}`;
-		if (tiles[id]) continue;
-		tiles[id] = { x, y, seenAt: Date.now() };
-		changed = true;
+		if (cropper && !tiles[id]) {
+			tiles[id] = { x, y, seenAt: Date.now() };
+			updates.wwCroppers = wwCroppers;
+		}
+		const old = oases[id];
+		if (fromMap && (crop ? old?.crop !== crop || old.occupied !== occupied : old !== 0)) {
+			oases[id] = crop ? { crop, occupied } : 0;
+			updates[oasisKey] = oases;
+		}
 	}
-	if (!changed) return;
-	wwCroppers[host] = tiles;
-	await chrome.storage.local.set({ wwCroppers });
+	if (updates.wwCroppers) wwCroppers[host] = tiles;
+	if (Object.keys(updates).length) await chrome.storage.local.set(updates);
 }
 
-function queueCroppers(host, tiles, sendResponse) {
-	if (!host || !Array.isArray(tiles) || !tiles.length || !tiles.every((tile) =>
-		tile && Number.isSafeInteger(tile.x) && Number.isSafeInteger(tile.y))) return false;
-	const write = cropperWrites.then(() => saveCroppers(host, tiles));
+function queueTiles(host, tiles, sendResponse, fromMap = false) {
+	if (!host || !Array.isArray(tiles) || !tiles.length || tiles.length > 2000 || !tiles.every((tile) =>
+		tile && [tile.x, tile.y].every((n) => Number.isInteger(n) && Math.abs(n) <= 200) &&
+		(!fromMap || ([0, 25, 50].includes(tile.crop) && (!tile.crop || typeof tile.occupied === "boolean"))))) return false;
+	const write = cropperWrites.then(() => saveTiles(host, tiles, fromMap));
 	cropperWrites = write.catch(() => {});
 	write.then(() => sendResponse({ ok: true }), () => sendResponse({ ok: false }));
 	return true;
@@ -99,10 +108,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 		if (url.protocol !== "https:" || !["/map", "/karte.php"].includes(url.pathname) ||
 			!WWCore.normalizeHost(url.hostname) || url.hostname === "ts1.x1.europe.travian.com" ||
 			![x, y].every(Number.isSafeInteger)) return false;
-		return queueCroppers(url.hostname, [{ x, y }], sendResponse);
+		return queueTiles(url.hostname, [{ x, y, cropper: true }], sendResponse);
 	}
-	if (msg.type === "ww-cropper-batch" && sender.url === chrome.runtime.getURL("map-capture.html")) {
-		return queueCroppers(WWCroppers.mapResponseHost(msg.url), msg.tiles, sendResponse);
+	if (msg.type === "ww-tile-batch" && sender.url === chrome.runtime.getURL("map-capture.html")) {
+		return queueTiles(WWCroppers.mapResponseHost(msg.url), msg.tiles, sendResponse, true);
 	}
 	if (msg.type === "ww-poll") {
 		const only = Array.isArray(msg.hosts) ? msg.hosts : null;

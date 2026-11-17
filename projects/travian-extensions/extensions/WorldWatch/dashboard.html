@@ -7,6 +7,7 @@
 		<link rel="stylesheet" href="style.css" />
 		<script src="lib/analysis.js"></script>
 		<script src="lib/db.js"></script>
+		<script src="lib/croppers.js"></script>
 		<script src="map-view.js"></script>
 		<script src="dashboard.js" defer></script>
 	</head>
@@ -33,7 +34,7 @@
 		</nav>
 		<section id="controls-croppers" class="row" aria-label="15c Finder" hidden>
 			<a id="cropper-map" target="_blank" rel="noopener" hidden>Open game map</a>
-			<span class="summary">Hover over valleys on the game map to save confirmed 15c tiles. Check availability in-game.</span>
+			<span class="summary">Pan the game map at 100% with DevTools open to collect 15c tiles and oasis data. Confirm availability in-game.</span>
 		</section>
 		<section id="controls-map" class="row" hidden>
 			<label for="map-count">Newest accounts</label>
@@ -42,6 +43,7 @@
 			<label><input id="map-alliances" type="checkbox" checked /> Alliances</label>
 			<label><input id="map-top10" type="checkbox" /> Top 10</label>
 			<label><input id="map-top100" type="checkbox" /> Top 100</label>
+			<label><input id="map-croppers" type="checkbox" checked /> 15c tiles</label>
 			<label for="map-goto">Centre (x|y)</label>
 			<input id="map-goto" type="text" placeholder="0|0" autocomplete="off" />
 			<button id="map-go" type="button">Go</button>
