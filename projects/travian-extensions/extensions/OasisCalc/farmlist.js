@@ -24,7 +24,7 @@
   }
 
   function readKey(cell) {
-    const link = cell.querySelector('a[href*="karte.php"]');
+    const link = cell.querySelector('a[href*="karte.php"], a[href*="/map"]');
     if (link) {
       const params = new URL(link.getAttribute("href"), location.origin).searchParams;
       const x = parseNum(params.get("x"));

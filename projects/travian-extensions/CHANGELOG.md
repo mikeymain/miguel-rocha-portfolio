@@ -1,5 +1,11 @@
 # Changelog
 
+## OasisCalc 70.8 — 2026-11-18
+
+- Fetch Troops works again after Travian moved the rally point to `/building`. It now fails only when the returned page is not the rally point, and the reason shows on the button.
+- Farm list badges and sorting load on the new `/building` rally point pages.
+- The finder panel loads on the new `/map` page, and result links open there.
+
 ## Travian QoL 1.3.6 — 2026-11-18
 
 - Resource bar tooltips show the clock time when a resource is full or empty.

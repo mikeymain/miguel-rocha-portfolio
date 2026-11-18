@@ -138,18 +138,30 @@ function showErrors() {
   modal.style.display = "flex";
 }
 
+// Routes Travian serves the rally point on (legacy and current).
+const RALLY_PATHS = ["/build.php", "/building"];
+
 async function fetchVillageTroops(did) {
   const base = "/build.php?gid=16&tt=1&filter=3";
   const url = did ? `${base}&newdid=${did}` : base;
   const res = await fetch(url, { credentials: "include" });
   // An error page or a redirect away from the rally point (e.g. to the login
   // page) must not be read as "no troops" and overwrite the stored counts.
-  if (!res.ok || (res.url && new URL(res.url).pathname !== "/build.php")) {
-    throw new Error(`Troops page unavailable (${res.status})`);
+  // Travian now redirects /build.php?gid=16 to /building?id=16, so both
+  // routes are accepted; the page content decides whether it is the rally point.
+  const finalPath = res.url ? new URL(res.url).pathname : "";
+  if (!res.ok || (finalPath && !RALLY_PATHS.includes(finalPath))) {
+    throw new Error(
+      `Troops page unavailable (status ${res.status}, landed on ${finalPath || "?"})`,
+    );
   }
   const text = await res.text();
   const parser = new DOMParser();
   const doc = parser.parseFromString(text, "text/html");
+
+  if (!doc.querySelector("#build.gid16")) {
+    throw new Error("Troops page unavailable (no rally point on the returned page)");
+  }
 
   const troops = {};
 
@@ -264,8 +276,13 @@ async function fetchAndStoreTroops() {
 
     prefillTroopsFromStorage(village.name);
     if (btn) btn.textContent = "Fetched ✓";
-  } catch (_) {
-    if (btn) btn.textContent = "Failed";
+  } catch (err) {
+    const reason = err?.message || String(err);
+    log(`Fetch Troops failed: ${reason}`);
+    if (btn) {
+      btn.textContent = "Failed";
+      btn.title = reason;
+    }
   } finally {
     if (btn) {
       btn.disabled = false;

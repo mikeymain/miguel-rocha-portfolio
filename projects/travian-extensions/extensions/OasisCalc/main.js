@@ -1,7 +1,7 @@
 /**
  * main.js — Entry point: initialise the panel when on the map page
  */
-if (location.pathname.includes("karte.php")) {
+if (location.pathname.includes("karte.php") || location.pathname === "/map") {
   setTimeout(
     () => {
       applyServerTroopData();

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Travian Best Oasis Finder",
-  "version": "70.7",
+  "version": "70.8",
   "description": "Oasis scoring and farm-list sorting for Travian.",
   "icons": { "48": "icon.png", "128": "icon.png" },
   "permissions": ["storage"],
@@ -14,13 +14,13 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://*.travian.com/karte.php*"],
+      "matches": ["*://*.travian.com/karte.php*", "*://*.travian.com/map*"],
       "js": ["page-bridge.js"],
       "world": "MAIN",
       "run_at": "document_idle"
     },
     {
-      "matches": ["*://*.travian.com/karte.php*"],
+      "matches": ["*://*.travian.com/karte.php*", "*://*.travian.com/map*"],
       "js": [
         "constants.js",
         "utils.js",
@@ -38,7 +38,7 @@
       "run_at": "document_idle"
     },
     {
-      "matches": ["*://*.travian.com/build.php*"],
+      "matches": ["*://*.travian.com/build.php*", "*://*.travian.com/building*"],
       "js": ["farmlist.js"],
       "css": ["farmlist.css"],
       "run_at": "document_idle"

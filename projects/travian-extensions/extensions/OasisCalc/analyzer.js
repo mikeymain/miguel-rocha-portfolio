@@ -344,7 +344,7 @@ function _resultRowHTML(p) {
 function _metaHTML(o, safetyHTML) {
   const age = getObservationAge(o);
   return (
-    `<a href="/karte.php?x=${o.x}&y=${o.y}" class="_vpresult-link _vpmap-go">(${o.x}|${o.y})</a>` +
+    `<a href="${location.pathname.includes("karte") ? "/karte.php" : "/map"}?x=${o.x}&y=${o.y}" class="_vpresult-link _vpmap-go">(${o.x}|${o.y})</a>` +
     `<span class="_vpmeta-rpm">${escapeHTML(o.rpm.toFixed(0))}/m</span>` +
     `<span class="_vpmeta-dist">${escapeHTML(o.dist)}◇</span>` +
     `<span class="_vpmeta-time">${escapeHTML(o.time)}m</span>` +
