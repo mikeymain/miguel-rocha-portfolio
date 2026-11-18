@@ -1,5 +1,9 @@
 # Changelog
 
+## Next Settlement Calc 2.6.17 — 2026-11-18
+
+- Adopts the Culture Gate icon for the toolbar, extension listing and notifications.
+
 ## Next Settlement Calc 2.6.16 — 2026-11-18
 
 - Uses an amber village marker and emerald map ring for a clearer toolbar icon.
