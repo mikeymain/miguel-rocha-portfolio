@@ -1,5 +1,9 @@
 # Changelog
 
+## Next Settlement Calc 2.6.15 — 2026-11-18
+
+- Matches the extension icon to the popup’s charcoal, amber, and emerald palette.
+
 ## Next Settlement Calc 2.6.14 — 2026-11-18
 
 - Adds an illustrated village plot icon for the toolbar, extension listing and notifications.
