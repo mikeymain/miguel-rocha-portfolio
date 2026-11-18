@@ -1,5 +1,9 @@
 # Changelog
 
+## Next Settlement Calc 2.6.14 — 2026-11-18
+
+- Adds an illustrated village plot icon for the toolbar, extension listing and notifications.
+
 ## Travian Dark Mod 2.7.1 — 2026-11-18
 
 - The small button background image loads again; its URL lost every letter "n".
