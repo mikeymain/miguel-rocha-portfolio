@@ -1,4 +1,4 @@
-// Travian Night Mode — popup controller.
+// Travian Dark Mod — popup controller.
 // Night-mode toggle + a custom dark HSV color picker (the native <input type=color>
 // dialog can't be themed) with savable favorite colors. Loads state on open;
 // persists & broadcasts to open Travian tabs on change.
@@ -317,4 +317,4 @@ chrome.storage.local
 		if (res[FAV_KEY] === null) saveFavorites();
 		renderFavorites();
 	})
-	.catch((error) => console.error("Travian Night Mode: could not load settings", error));
+	.catch((error) => console.error("Travian Dark Mod: could not load settings", error));

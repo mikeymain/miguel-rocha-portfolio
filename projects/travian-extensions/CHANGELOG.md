@@ -1,5 +1,11 @@
 # Changelog
 
+## Travian Dark Mod 2.7.0 — 2026-11-18
+
+- Night Mode is renamed Travian Dark Mod for the Chrome Web Store.
+- Adds 16, 32, 48 and 128 px icons in place of the single 1440 px icon.
+- The small button background follows the game's current asset version instead of a fixed one.
+
 ## OasisCalc 70.8 — 2026-11-18
 
 - Fetch Troops works again after Travian moved the rally point to `/building`. It now fails only when the returned page is not the rally point, and the reason shows on the button.

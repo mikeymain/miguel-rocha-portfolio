@@ -2581,7 +2581,7 @@ chrome.storage.local
 		// Only a failed read falls back to the default; an error thrown while
 		// applying the theme is no longer masked by a second attempt.
 		(error) => {
-			console.warn("Travian Night Mode: could not read settings", error);
+			console.warn("Travian Dark Mod: could not read settings", error);
 			setNightMode(NIGHT_MODE_CONFIG.defaultEnabled);
 		},
 	);
