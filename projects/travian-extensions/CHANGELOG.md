@@ -8,6 +8,10 @@
 
 - Fixed a widget error that left alarm countdowns displaying `--:--`.
 
+## NPC AutoMerchant 3.2.15 — 2026-11-18
+
+- Slider drag handle offset set to 1 px left of the cursor.
+
 ## NPC AutoMerchant 3.2.14 — 2026-11-18
 
 - Slider drag handle offset changed to 1.5 px left of the cursor.
