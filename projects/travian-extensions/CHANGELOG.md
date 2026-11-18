@@ -8,6 +8,10 @@
 
 - Fixed a widget error that left alarm countdowns displaying `--:--`.
 
+## NPC AutoMerchant 3.2.10 — 2026-11-18
+
+- Slider drag places the handle 5 px to the right of the cursor.
+
 ## NPC AutoMerchant 3.2.9 — 2026-11-18
 
 - Slider drag animates the handle over 60 ms instead of switching the animation off.

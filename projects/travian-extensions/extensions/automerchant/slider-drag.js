@@ -15,6 +15,8 @@
 	const TRACK = ".slider";
 	// Handle/fill animation while dragging (Travian's own is 250 ms).
 	const DRAG_TRANSITION = "60ms";
+	// Handle sits this many pixels to the right of the cursor.
+	const HANDLE_OFFSET_PX = 5;
 	const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
 
 	/** Row parts for a bar: the amount input and its "/ max" cell. */
@@ -77,7 +79,7 @@
 		if (!drag) return;
 		const rect = drag.track.getBoundingClientRect();
 		if (!rect.width) return;
-		const ratio = Math.min(1, Math.max(0, (lastX - rect.left) / rect.width));
+		const ratio = Math.min(1, Math.max(0, (lastX + HANDLE_OFFSET_PX - rect.left) / rect.width));
 		const amount = Math.min(drag.max, Math.round(ratio * drag.capacity));
 		if (String(amount) !== drag.input.value) setAmount(drag.input, amount);
 	}
