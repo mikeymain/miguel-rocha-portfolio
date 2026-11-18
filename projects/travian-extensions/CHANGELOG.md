@@ -23,6 +23,10 @@
 
 - Resource bar tooltips show the clock time when a resource is full or empty.
 
+## TravAlarm 3.52 — 2026-11-18
+
+- The extension has a new watchtower and bell icon in four sizes.
+
 ## TravAlarm 3.51 — 2026-11-17
 
 - Moved the alarm widget 35 px down.

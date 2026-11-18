@@ -1,7 +1,7 @@
 {
 	"manifest_version": 3,
 	"name": "TravAlarm",
-	"version": "3.51",
+	"version": "3.52",
 	"description": "Game timers, custom reminders and notifications for Travian.",
 	"permissions": [
 		"notifications",
@@ -15,7 +15,12 @@
 	"background": {
 		"service_worker": "background.js"
 	},
-	"icons": { "48": "icon.png" },
+	"icons": {
+		"16": "icon16.png",
+		"32": "icon32.png",
+		"48": "icon.png",
+		"128": "icon128.png"
+	},
 	"content_scripts": [
 		{
 			"matches": ["*://*.travian.com/*"],
