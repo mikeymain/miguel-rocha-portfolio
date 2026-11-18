@@ -320,7 +320,10 @@ async function loadGraph(filter, storageKey) {
 	// A quick range (3h … 1w) always anchors to the newest point.
 	const rangeHours = Number(res.graphRange) || 0;
 	hvSetPressed("seg-range", (b) => Number(b.dataset.h) === rangeHours);
-	const win = rangeHours ? rangeWindow(data.map((x) => x.timestamp), rangeHours) : null;
+	// 1w on a raiding-only graph spans the game week: Monday 00:00 to now.
+	const visible = DATASETS_CONFIG.filter((cfg) => !isHidden(cfg.label, cfg.defHidden));
+	const raidingOnly = visible.length > 0 && visible.every((cfg) => cfg.group === "raids");
+	const win = rangeHours ? rangeWindow(data.map((x) => x.timestamp), rangeHours, rangeHours === 168 && raidingOnly) : null;
 	if (win) {
 		savedZoom.min = win.min;
 		savedZoom.max = win.max;

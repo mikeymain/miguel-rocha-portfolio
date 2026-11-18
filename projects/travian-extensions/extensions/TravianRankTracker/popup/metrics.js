@@ -371,10 +371,18 @@ function smoothSeries(values, radius) {
  * @param {number} hours
  * @returns {{min:number, max:number}|null}
  */
-function rangeWindow(timestamps, hours) {
+/** Local Monday 00:00 of the week containing `time`. */
+function mondayMidnight(time) {
+	const d = new Date(time);
+	d.setHours(0, 0, 0, 0);
+	d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+	return d.getTime();
+}
+
+function rangeWindow(timestamps, hours, sinceMonday = false) {
 	const total = timestamps.length;
 	if (total < 2) return null;
-	const cutoff = timestamps[total - 1] - hours * 3_600_000;
+	const cutoff = sinceMonday ? mondayMidnight(timestamps[total - 1]) : timestamps[total - 1] - hours * 3_600_000;
 	let min = timestamps.findIndex((t) => t >= cutoff);
 	if (min < 0) min = 0;
 	return { min: Math.min(min, total - 2), max: total - 1 };
