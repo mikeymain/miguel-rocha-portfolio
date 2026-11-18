@@ -10,6 +10,9 @@
 	"use strict";
 
 	const BAR = ".resourceSelector .progressBar";
+	// The handle travels along ".slider" (between the end caps), so the cursor
+	// maps onto that track, not the whole bar.
+	const TRACK = ".slider";
 	const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
 
 	/** Row parts for a bar: the amount input and its "/ max" cell. */
@@ -47,7 +50,11 @@
 			const parts = rowParts(bar);
 			const capacity = carryCapacity();
 			if (!parts || !capacity) return;
-			drag = { bar, ...parts, capacity };
+			const track = bar.querySelector(TRACK) || bar;
+			drag = { track, ...parts, capacity, userSelect: document.documentElement.style.userSelect };
+			// No text selection while dragging.
+			document.documentElement.style.userSelect = "none";
+			getSelection()?.removeAllRanges();
 		},
 		true,
 	);
@@ -59,7 +66,7 @@
 	function apply() {
 		frame = 0;
 		if (!drag) return;
-		const rect = drag.bar.getBoundingClientRect();
+		const rect = drag.track.getBoundingClientRect();
 		if (!rect.width) return;
 		const ratio = Math.min(1, Math.max(0, (lastX - rect.left) / rect.width));
 		const amount = Math.min(drag.max, Math.round(ratio * drag.capacity));
@@ -71,7 +78,7 @@
 		(e) => {
 			if (!drag) return;
 			if (e.buttons !== 1) {
-				drag = null;
+				stop();
 				return;
 			}
 			lastX = e.clientX;
@@ -81,9 +88,12 @@
 	);
 
 	const stop = () => {
-		if (drag) {
+		if (!drag) return;
+		if (frame) {
+			cancelAnimationFrame(frame);
 			apply();
 		}
+		document.documentElement.style.userSelect = drag.userSelect;
 		drag = null;
 	};
 	document.addEventListener("pointerup", stop, true);

@@ -8,6 +8,10 @@
 
 - Fixed a widget error that left alarm countdowns displaying `--:--`.
 
+## NPC AutoMerchant 3.2.7 — 2026-11-18
+
+- Slider drag keeps the handle under the cursor (it now maps onto the slider track, not the whole bar) and no longer selects text while dragging.
+
 ## NPC AutoMerchant 3.2.6 — 2026-11-18
 
 - Slider drag now scales to the full merchant capacity (it stopped at one merchant's load) and updates once per frame to remove lag.
