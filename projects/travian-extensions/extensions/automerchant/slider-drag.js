@@ -51,7 +51,14 @@
 			const capacity = carryCapacity();
 			if (!parts || !capacity) return;
 			const track = bar.querySelector(TRACK) || bar;
-			drag = { track, ...parts, capacity, userSelect: document.documentElement.style.userSelect };
+			// Travian animates the handle and fill (about 250 ms) on every value
+			// change, which reads as lag under a drag. Switch it off until release.
+			const animated = [...bar.querySelectorAll(".handle, .filling")].map((el) => ({
+				el,
+				duration: el.style.transitionDuration,
+			}));
+			animated.forEach(({ el }) => el.style.setProperty("transition-duration", "0s"));
+			drag = { track, ...parts, capacity, animated, userSelect: document.documentElement.style.userSelect };
 			// No text selection while dragging.
 			document.documentElement.style.userSelect = "none";
 			getSelection()?.removeAllRanges();
@@ -82,7 +89,12 @@
 				return;
 			}
 			lastX = e.clientX;
-			if (!frame) frame = requestAnimationFrame(apply);
+			if (!drag.moved) {
+				drag.moved = true;
+				apply();
+			} else if (!frame) {
+				frame = requestAnimationFrame(apply);
+			}
 		},
 		true,
 	);
@@ -94,6 +106,10 @@
 			apply();
 		}
 		document.documentElement.style.userSelect = drag.userSelect;
+		drag.animated.forEach(({ el, duration }) => {
+			if (duration) el.style.transitionDuration = duration;
+			else el.style.removeProperty("transition-duration");
+		});
 		drag = null;
 	};
 	document.addEventListener("pointerup", stop, true);

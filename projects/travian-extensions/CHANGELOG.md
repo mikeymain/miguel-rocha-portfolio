@@ -8,6 +8,10 @@
 
 - Fixed a widget error that left alarm countdowns displaying `--:--`.
 
+## NPC AutoMerchant 3.2.8 — 2026-11-18
+
+- Slider drag feels snappier: the handle's 250 ms animation is switched off while dragging, and the first move applies immediately.
+
 ## NPC AutoMerchant 3.2.7 — 2026-11-18
 
 - Slider drag keeps the handle under the cursor (it now maps onto the slider track, not the whole bar) and no longer selects text while dragging.
