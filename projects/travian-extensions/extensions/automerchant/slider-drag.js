@@ -17,6 +17,8 @@
 	const DRAG_TRANSITION = "60ms";
 	// Handle offset in pixels from the cursor (positive = right).
 	const HANDLE_OFFSET_PX = -1;
+	// Extra pixels added to the track length used for the cursor-to-amount scale.
+	const TRACK_EXTRA_PX = 2;
 	const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
 
 	/** Row parts for a bar: the amount input and its "/ max" cell. */
@@ -79,7 +81,7 @@
 		if (!drag) return;
 		const rect = drag.track.getBoundingClientRect();
 		if (!rect.width) return;
-		const ratio = Math.min(1, Math.max(0, (lastX + HANDLE_OFFSET_PX - rect.left) / rect.width));
+		const ratio = Math.min(1, Math.max(0, (lastX + HANDLE_OFFSET_PX - rect.left) / (rect.width + TRACK_EXTRA_PX)));
 		const amount = Math.min(drag.max, Math.round(ratio * drag.capacity));
 		if (String(amount) !== drag.input.value) setAmount(drag.input, amount);
 	}
