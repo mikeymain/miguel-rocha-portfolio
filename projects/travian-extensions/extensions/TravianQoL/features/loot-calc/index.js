@@ -354,12 +354,37 @@
 			<td></td>`;
 		return row;
 	}
+	// Hero health lost, from the report's own combat strengths. Same raid
+	// formula as OasisCalc's calculateTroopMetrics (attacker loss share x 100);
+	// hero armor damage reduction is not on the report, so it is not applied.
+	function calcHeroHpLoss(statsTable) {
+		const row = statsTable.querySelector('td i.offence_medium')?.closest('tr');
+		const cells = row ? row.querySelectorAll('td') : [];
+		const atk = parseValueFromElement(cells[0]);
+		const def = parseValueFromElement(cells[1]);
+		if (atk <= 0 || def <= 0) return null;
+		const stronger = atk > def;
+		const L = Math.pow(stronger ? def / atk : atk / def, 1.5);
+		const lossFrac = stronger ? L / (1 + L) : 1 / (1 + L);
+		return Math.max(0, Math.min(100, Math.round(lossFrac * 100)));
+	}
+	function createHeroHpRow(hpLoss) {
+		const row = document.createElement('tr');
+		row.className = 'tlw-xp-row tlw-hp-row';
+		row.innerHTML = `
+			<th>Hero health</th>
+			<td><div class="inlineIcon " title=""><img src="/img/x.gif" class="unit uhero" alt="Hero"><span class="value ">−${hpLoss}%</span></div></td>
+			<td></td>`;
+		return row;
+	}
 	function applyOasisReport(statsTable) {
 		const natureTable = getNatureTable();
 		if (!natureTable) return;
 		zeroDefenderLost(statsTable);
 		if (heroSent(natureTable) && !statsTable.querySelector('.tlw-xp-row')) {
 			statsTable.appendChild(createXpRow(calcNatureXp(natureTable)));
+			const hpLoss = calcHeroHpLoss(statsTable);
+			if (hpLoss != null) statsTable.appendChild(createHeroHpRow(hpLoss));
 		}
 	}
 	function sumOasisResources() {
