@@ -8,6 +8,10 @@
 
 - Fixed a widget error that left alarm countdowns displaying `--:--`.
 
+## NPC AutoMerchant 3.2.5 — 2026-11-18
+
+- Marketplace Send resources sliders can now be dragged; before, only clicking set the amount.
+
 ## NPC AutoMerchant 3.2.4 — 2026-11-17
 
 - Restored the per-resource lock buttons in the NPC trade screen. Locks now run in the extension's isolated world with no page-level hooks or globals.

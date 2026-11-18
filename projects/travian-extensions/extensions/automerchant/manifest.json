@@ -1,7 +1,7 @@
 {
 	"manifest_version": 3,
 	"name": "Travian NPC AutoMerchant",
-	"version": "3.2.4",
+	"version": "3.2.5",
 	"description": "NPC resource helper with troop calculator, ratio distribution, and auto-tribe detection for Travian.",
 	"author": "Miguel Rocha",
 	"icons": { "48": "icon.png", "128": "icon.png" },
@@ -17,6 +17,7 @@
 				"observers.js",
 				"hero-puller.js",
 				"npc-lock.js",
+				"slider-drag.js",
 				"ui.js",
 				"main.js"
 			],
