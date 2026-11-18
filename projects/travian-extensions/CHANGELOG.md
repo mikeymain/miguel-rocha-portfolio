@@ -1,5 +1,9 @@
 # Changelog
 
+## Next Settlement Calc 2.6.16 — 2026-11-18
+
+- Uses an amber village marker and emerald map ring for a clearer toolbar icon.
+
 ## Next Settlement Calc 2.6.15 — 2026-11-18
 
 - Matches the extension icon to the popup’s charcoal, amber, and emerald palette.
