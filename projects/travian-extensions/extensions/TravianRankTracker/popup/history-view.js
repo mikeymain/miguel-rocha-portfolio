@@ -42,6 +42,12 @@ function hvSetPressed(groupId, match) {
 	});
 }
 
+/** True when at least one metric is shown and every shown metric is a raiding one. */
+function hvRaidingOnly(shown) {
+	const visible = DATASETS_CONFIG.filter((_, i) => shown[i]);
+	return visible.length > 0 && visible.every((cfg) => cfg.group === "raids");
+}
+
 /** Persist dataset visibility as `graphPrefs` (true = hidden). */
 async function hvPersistPrefs(chart) {
 	const r = await api.storage.local.get(["graphPrefs"]);
@@ -321,8 +327,7 @@ async function loadGraph(filter, storageKey) {
 	const rangeHours = Number(res.graphRange) || 0;
 	hvSetPressed("seg-range", (b) => Number(b.dataset.h) === rangeHours);
 	// 1w on a raiding-only graph spans the game week: Monday 00:00 to now.
-	const visible = DATASETS_CONFIG.filter((cfg) => !isHidden(cfg.label, cfg.defHidden));
-	const raidingOnly = visible.length > 0 && visible.every((cfg) => cfg.group === "raids");
+	const raidingOnly = hvRaidingOnly(DATASETS_CONFIG.map((cfg) => !isHidden(cfg.label, cfg.defHidden)));
 	const win = rangeHours ? rangeWindow(data.map((x) => x.timestamp), rangeHours, rangeHours === 168 && raidingOnly) : null;
 	if (win) {
 		savedZoom.min = win.min;
@@ -448,7 +453,8 @@ function initHistoryControls() {
 			const active = btn.getAttribute("aria-pressed") === "true";
 			const hours = Number(btn.dataset.h);
 			const chart = window.myChart;
-			const win = chart && !active ? rangeWindow(chart.$hvTimestamps || [], hours) : null;
+			const raidingOnly = chart && hvRaidingOnly(DATASETS_CONFIG.map((_, i) => chart.isDatasetVisible(i)));
+			const win = chart && !active ? rangeWindow(chart.$hvTimestamps || [], hours, hours === 168 && raidingOnly) : null;
 			hvSetPressed("seg-range", (b) => !active && b === btn);
 			if (active) await api.storage.local.remove(["graphRange", "graphZoom"]);
 			else {
