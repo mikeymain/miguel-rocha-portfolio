@@ -13,6 +13,8 @@
 	// The handle travels along ".slider" (between the end caps), so the cursor
 	// maps onto that track, not the whole bar.
 	const TRACK = ".slider";
+	// Handle/fill animation while dragging (Travian's own is 250 ms).
+	const DRAG_TRANSITION = "60ms";
 	const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
 
 	/** Row parts for a bar: the amount input and its "/ max" cell. */
@@ -52,12 +54,12 @@
 			if (!parts || !capacity) return;
 			const track = bar.querySelector(TRACK) || bar;
 			// Travian animates the handle and fill (about 250 ms) on every value
-			// change, which reads as lag under a drag. Switch it off until release.
+			// change, which reads as lag under a drag. Shorten it until release.
 			const animated = [...bar.querySelectorAll(".handle, .filling")].map((el) => ({
 				el,
 				duration: el.style.transitionDuration,
 			}));
-			animated.forEach(({ el }) => el.style.setProperty("transition-duration", "0s"));
+			animated.forEach(({ el }) => el.style.setProperty("transition-duration", DRAG_TRANSITION));
 			drag = { track, ...parts, capacity, animated, userSelect: document.documentElement.style.userSelect };
 			// No text selection while dragging.
 			document.documentElement.style.userSelect = "none";
