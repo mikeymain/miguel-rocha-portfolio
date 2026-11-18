@@ -16,7 +16,7 @@
 	// Handle/fill animation while dragging (Travian's own is 250 ms).
 	const DRAG_TRANSITION = "60ms";
 	// Handle offset in pixels from the cursor (positive = right).
-	const HANDLE_OFFSET_PX = -1;
+	const HANDLE_OFFSET_PX = -2;
 	const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
 
 	/** Row parts for a bar: the amount input and its "/ max" cell. */
