@@ -8,6 +8,10 @@
 
 - Fixed a widget error that left alarm countdowns displaying `--:--`.
 
+## NPC AutoMerchant 3.2.6 — 2026-11-18
+
+- Slider drag now scales to the full merchant capacity (it stopped at one merchant's load) and updates once per frame to remove lag.
+
 ## NPC AutoMerchant 3.2.5 — 2026-11-18
 
 - Marketplace Send resources sliders can now be dragged; before, only clicking set the amount.

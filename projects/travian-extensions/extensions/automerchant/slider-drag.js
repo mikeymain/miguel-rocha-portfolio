@@ -22,11 +22,12 @@
 		return { input, max: Number.isFinite(max) ? max : 0 };
 	}
 
-	/** Merchant capacity: the number the bar's full width stands for. */
+	/** Bar full width = total carry capacity: the "/ N" after "Total" (all merchants). */
 	function carryCapacity() {
-		const info = document.querySelector(".merchantCarryInfo");
-		const nums = (info?.textContent || "").match(/\d[\d.,\s]*/g) || [];
-		const n = parseInt((nums[nums.length - 1] || "").replace(/\D/g, ""), 10);
+		const text = (document.querySelector(".resourceSelector")?.parentElement
+			?.querySelector(".summary")?.textContent || "").replace(/[\u200e\u200f\u202a-\u202e]/g, "");
+		const m = text.match(/Total[^/]*\/\s*([\d.,\s]+)/i);
+		const n = m ? parseInt(m[1].replace(/\D/g, ""), 10) : NaN;
 		return Number.isFinite(n) ? n : 0;
 	}
 
@@ -51,6 +52,20 @@
 		true,
 	);
 
+	// One write per frame with the latest pointer position: React re-renders
+	// the whole form per input event, so per-move writes lag.
+	let frame = 0;
+	let lastX = 0;
+	function apply() {
+		frame = 0;
+		if (!drag) return;
+		const rect = drag.bar.getBoundingClientRect();
+		if (!rect.width) return;
+		const ratio = Math.min(1, Math.max(0, (lastX - rect.left) / rect.width));
+		const amount = Math.min(drag.max, Math.round(ratio * drag.capacity));
+		if (String(amount) !== drag.input.value) setAmount(drag.input, amount);
+	}
+
 	document.addEventListener(
 		"pointermove",
 		(e) => {
@@ -59,16 +74,16 @@
 				drag = null;
 				return;
 			}
-			const rect = drag.bar.getBoundingClientRect();
-			if (!rect.width) return;
-			const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
-			const amount = Math.min(drag.max, Math.round(ratio * drag.capacity));
-			if (String(amount) !== drag.input.value) setAmount(drag.input, amount);
+			lastX = e.clientX;
+			if (!frame) frame = requestAnimationFrame(apply);
 		},
 		true,
 	);
 
 	const stop = () => {
+		if (drag) {
+			apply();
+		}
 		drag = null;
 	};
 	document.addEventListener("pointerup", stop, true);
