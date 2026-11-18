@@ -1,7 +1,7 @@
 {
 	"manifest_version": 3,
 	"name": "Travian Dark Mod",
-	"version": "2.7.0",
+	"version": "2.7.1",
 	"description": "Unofficial dark theme for Travian: Legends, with an on/off toggle and custom button colours.",
 	"author": "Miguel Rocha",
 	"icons": {

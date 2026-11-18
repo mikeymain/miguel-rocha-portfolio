@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
 	<head>
 		<meta charset="utf-8" />
 		<style>
@@ -16,7 +16,7 @@
 				color: #e0e0e0; /* Light Text */
 			}
 
-			h3 {
+			h1 {
 				margin-top: 0;
 				margin-bottom: 14px;
 				font-size: 16px;
@@ -68,8 +68,22 @@
 				background-color: #71d000;
 			}
 
-			input:focus + .slider {
-				box-shadow: 0 0 1px #71d000;
+			input:focus-visible + .slider {
+				outline: 2px solid #71d000;
+				outline-offset: 2px;
+			}
+
+			/* No switch slide while the stored state loads, or under reduced motion. */
+			.loading .slider,
+			.loading .slider:before {
+				transition: none;
+			}
+
+			@media (prefers-reduced-motion: reduce) {
+				.slider,
+				.slider:before {
+					transition: none;
+				}
 			}
 
 			input:checked + .slider:before {
@@ -241,7 +255,7 @@
 				height: 24px;
 				padding: 0;
 				border-radius: 5px;
-				border: 1px dashed #555;
+				border: 1px dashed #777;
 				background: none;
 				color: #888;
 				font-size: 16px;
@@ -263,15 +277,17 @@
 				border: none;
 				color: #888;
 				font-size: 10px;
+				padding: 6px 8px;
+				min-height: 24px;
 				text-decoration: underline;
 				cursor: pointer;
 			}
 		</style>
 	</head>
-	<body>
-		<h3>Dark Mod</h3>
+	<body class="loading">
+		<h1>Dark Mod</h1>
 		<label class="switch">
-			<input type="checkbox" id="toggleNight" />
+			<input type="checkbox" id="toggleNight" aria-label="Dark Mod" />
 			<span class="slider"></span>
 		</label>
 

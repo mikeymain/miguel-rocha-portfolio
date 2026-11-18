@@ -1,5 +1,12 @@
 # Changelog
 
+## Travian Dark Mod 2.7.1 — 2026-11-18
+
+- The small button background image loads again; its URL lost every letter "n".
+- Loading a page with Dark Mod switched off no longer replaces the game's own theme.
+- Popup: the switch has a screen-reader name and a visible focus ring, favourites have colour names, and motion respects reduced-motion settings.
+- Failed setting saves are logged instead of failing silently.
+
 ## Travian Dark Mod 2.7.0 — 2026-11-18
 
 - Night Mode is renamed Travian Dark Mod for the Chrome Web Store.

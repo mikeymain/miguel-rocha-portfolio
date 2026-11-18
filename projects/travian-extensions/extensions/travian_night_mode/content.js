@@ -73,7 +73,7 @@ const THEME = {
 }
 
 
-/* aliance */
+/* alliance */
 #allianceBonusWrapper #contributionBox #bonusSelection label,
 .roundedCornersBox h4 {
   filter: hue-rotate(var(--nm-hue-purple)) saturate(2) brightness(0.8) contrast(1.3) !important;
@@ -429,7 +429,7 @@ tr.hover:hover td{
   color: var(--nm-white) !important;
 }
 
-/* 1. Make the main backdrop pink */
+/* 1. Dark backdrop for feature dialogs */
 .dialogContainer,
 .dialogContainer .dialogContents,
 .dialogContainer .content,
@@ -972,7 +972,7 @@ div.a2b table#short_info {
 	// BUTTONS
 	// ────────────────────────────────────────────────────────────
 	buttons: `
-/* Green rectangular buttons */
+/* Gold rectangular buttons */
 .buttonFramed.rectangle.gold:before {
   filter: hue-rotate(198deg) saturate(2) !important;
 }
@@ -1199,15 +1199,11 @@ button.textButtonV1.gold.disabled, button.textButtonV1.gold:disabled { color: va
 }
 
 /* Waterworks "Bonus level" node (Annexed oasis flow diagram) keeps its
-   native near-white background while night mode lightens the text, leaving
+   native near-white background while the theme lightens the text, leaving
    a glaring white box. Match it to the dark surface. */
 .bonusLevelInformation,
 .bonusLevelInformation .levelAbove {
   background-color: var(--nm-base) !important;
-}
-
-#tradeRoutes > div.tradeRouteCollection > div > div {
-  color: var(--nm-base) !important;
 }
 
 div.a2b table#troops td {
@@ -1495,12 +1491,10 @@ button.icon::before {
   inset: 0;
   z-index: -1; /* Place it behind the image */
   
-  /* Apply the background image here */
   /* Resolved at runtime from the game's current gpack (see runtimeVarsCss) */
   background-image: var(--nm-icon-btn-img, none);
   background-size: cover;
   
-  /* Apply your filter here */
   filter: grayscale(1) brightness(0.5) opacity(0.5);
   
   pointer-events: none; /* Make sure it doesn't block clicks */
@@ -2246,13 +2240,13 @@ td.vil.fc {
 .quests .dailyQuest .titleDecoration::before,
 .quests .dailyQuest .titleDecoration::after,
 .quests .dailyQuest .tasks > div {
-  background-color: var(--nm-elevated) !important; /* Change this color */
+  background-color: var(--nm-elevated) !important;
   background-image: none !important;
 }
 
 #dailyQuestsRewardScreen > div.rewardWrapper > div.titleDecoration::before,
 #dailyQuestsRewardScreen > div.rewardWrapper > div.titleDecoration::after {
-  background-color: var(--nm-elevated) !important; /* Change this color */
+  background-color: var(--nm-elevated) !important;
   background-image: none !important;
 }
 
@@ -2270,7 +2264,7 @@ td.vil.fc {
 .quests .dailyQuest .questAchievedPoints .points,
 .quests .dailyQuest .questAchievedPoints::before,
 .quests .dailyQuest .questAchievedPoints::after {
-  background-color: transparent !important; /* Change this color */
+  background-color: transparent !important;
   background-image: none !important;
 }
 
@@ -2412,8 +2406,8 @@ const { themeAttribute, themeValues, defaultButtonColor } = NIGHT_MODE_CONFIG;
 
 let themeObserver = null; // watches <html> for a (new) <body>
 let bodyObserver = null; // watches <body>'s data-theme
-// The game's own data-theme before night mode overrode it; restored when
-// night mode is switched off, so the player's in-game choice survives.
+// The game's own data-theme before Dark Mod overrode it; restored when
+// Dark Mod is switched off, so the player's in-game choice survives.
 let originalTheme;
 let currentButtonColor = defaultButtonColor;
 
@@ -2451,13 +2445,13 @@ function runtimeVarsCss() {
 	if (currentButtonColor !== defaultButtonColor) decls.push(`--nm-btn-purple: ${currentButtonColor};`);
 	const base = gpackBase();
 	if (base) {
-		const url = (base + ICON_BUTTON_IMG).replace(/["\\n]/g, "");
+		const url = (base + ICON_BUTTON_IMG).replace(/["\\\r\n]/g, "");
 		decls.push(`--nm-icon-btn-img: url("${url}");`);
 	}
 	return `:root { ${decls.join(" ")} }`;
 }
 
-// Rewrites the runtime variables while night mode is on.
+// Rewrites the runtime variables while Dark Mod is on.
 function updateRuntimeVars() {
 	if (!themeStyle) return;
 	varsStyle ??= addStyle("");
@@ -2513,7 +2507,10 @@ function setNightMode(isEnabled) {
 		startThemeObserver();
 	} else {
 		stopThemeObserver();
-		document.body?.setAttribute(themeAttribute, originalTheme ?? themeValues.light);
+		// Only restore a theme this script captured (and therefore overrode).
+		if (originalTheme !== undefined) {
+			document.body?.setAttribute(themeAttribute, originalTheme ?? themeValues.light);
+		}
 		removeCSS();
 	}
 }
@@ -2550,7 +2547,7 @@ const ROUND_BUTTON_RECOLOR_CSS = `
  * Adds or removes the round-button recolor based on the current setting:
  *   - default sentinel → remove the override → the game's native buttons
  *   - any hex color    → inject the override, tinted to that color
- * Also removes the override when night mode is off. A color change only
+ * Also removes the override when Dark Mod is off. A color change only
  * updates the CSS variable; the stylesheet itself is never re-parsed.
  */
 function applyButtonColor() {

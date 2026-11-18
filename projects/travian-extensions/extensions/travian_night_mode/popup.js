@@ -1,5 +1,5 @@
 // Travian Dark Mod — popup controller.
-// Night-mode toggle + a custom dark HSV color picker (the native <input type=color>
+// Dark Mod toggle + a custom dark HSV color picker (the native <input type=color>
 // dialog can't be themed) with savable favorite colors. Loads state on open;
 // persists & broadcasts to open Travian tabs on change.
 
@@ -22,6 +22,8 @@ const DEFAULT_SWATCH = "#71d000";
 // Favorites: stored as an array of hex strings; seeded once with the signature
 // purple so the strip isn't empty on first run.
 const FAV_KEY = "favoriteColors";
+const NIGHT_KEY = "nightMode";
+const COLOR_KEY = "purpleButtonColor";
 const MAX_FAVS = 12;
 const SEED_FAVS = ["#7e31e4"];
 
@@ -44,9 +46,19 @@ const TRAVIAN_URL_PATTERNS = [
 // Broadcast a message to every open Travian tab so changes apply without a refresh.
 // Tabs without the content script yet pick up the stored preference on load.
 function broadcast(message) {
-	chrome.tabs.query({ url: TRAVIAN_URL_PATTERNS }).then((tabs) => {
-		for (const tab of tabs) chrome.tabs.sendMessage(tab.id, message).catch(() => {});
-	});
+	chrome.tabs
+		.query({ url: TRAVIAN_URL_PATTERNS })
+		.then((tabs) => {
+			for (const tab of tabs) chrome.tabs.sendMessage(tab.id, message).catch(() => {});
+		})
+		.catch((error) => console.error("Travian Dark Mod: could not reach Travian tabs", error));
+}
+
+// Persists settings; a failed write is logged instead of becoming an unhandled rejection.
+function save(items) {
+	chrome.storage.local
+		.set(items)
+		.catch((error) => console.error("Travian Dark Mod: could not save settings", error));
 }
 
 // Live preview while dragging or typing: at most one broadcast per frame.
@@ -155,7 +167,7 @@ function setFromHex(hex) {
 // Persist the current color as the chosen button color and push it to tabs.
 function persistCurrent() {
 	const hex = currentHex();
-	chrome.storage.local.set({ purpleButtonColor: hex });
+	save({ [COLOR_KEY]: hex });
 	broadcast({ buttonColor: hex });
 }
 
@@ -237,12 +249,14 @@ function renderFavorites() {
 		swatch.className = "fav-swatch";
 		swatch.style.backgroundColor = hex;
 		swatch.title = hex.toUpperCase();
+		swatch.setAttribute("aria-label", hex.toUpperCase());
 		swatch.addEventListener("click", () => applyColor(hex));
 
 		const remove = document.createElement("span");
 		remove.className = "fav-remove";
 		remove.textContent = "×";
 		remove.title = "Remove";
+		remove.setAttribute("aria-hidden", "true");
 		remove.addEventListener("click", (e) => {
 			e.stopPropagation();
 			removeFavorite(hex);
@@ -258,20 +272,21 @@ function renderFavorites() {
 		add.className = "fav-add";
 		add.textContent = "+";
 		add.title = "Save current color";
+		add.setAttribute("aria-label", "Save current color");
 		add.addEventListener("click", addCurrentFavorite);
 		favRow.appendChild(add);
 	}
 }
 
 function saveFavorites() {
-	chrome.storage.local.set({ [FAV_KEY]: favorites });
+	save({ [FAV_KEY]: favorites });
 }
 
 function addCurrentFavorite() {
 	const hex = currentHex().toLowerCase();
 	if (favorites.length >= MAX_FAVS) return;
 	if (favorites.some((c) => c.toLowerCase() === hex)) return;
-	favorites.push(hex);
+	favorites = [...favorites, hex];
 	saveFavorites();
 	renderFavorites();
 }
@@ -286,7 +301,7 @@ function removeFavorite(hex) {
 
 toggle.addEventListener("change", () => {
 	const isNight = toggle.checked;
-	chrome.storage.local.set({ nightMode: isNight });
+	save({ [NIGHT_KEY]: isNight });
 	broadcast({ nightMode: isNight });
 });
 
@@ -294,18 +309,18 @@ resetColor.addEventListener("click", () => {
 	// Show the native-green swatch in the picker, but store/broadcast the sentinel
 	// so the content script drops the override entirely (vanilla buttons).
 	setFromHex(DEFAULT_SWATCH);
-	chrome.storage.local.set({ purpleButtonColor: DEFAULT_STATE });
+	save({ [COLOR_KEY]: DEFAULT_STATE });
 	broadcast({ buttonColor: DEFAULT_STATE });
 });
 
 // ── Initial load ──────────────────────────────────────────────────────────────
 
 chrome.storage.local
-	.get({ nightMode: true, purpleButtonColor: DEFAULT_STATE, [FAV_KEY]: null })
+	.get({ [NIGHT_KEY]: true, [COLOR_KEY]: DEFAULT_STATE, [FAV_KEY]: null })
 	.then((res) => {
-		toggle.checked = res.nightMode !== false;
+		toggle.checked = res[NIGHT_KEY] !== false;
 		// An unreadable stored color shows the default swatch, not black.
-		if (res.purpleButtonColor === DEFAULT_STATE || !setFromHex(res.purpleButtonColor)) {
+		if (res[COLOR_KEY] === DEFAULT_STATE || !setFromHex(res[COLOR_KEY])) {
 			setFromHex(DEFAULT_SWATCH);
 		}
 		// Drop anything in the favorites list that isn't a #rrggbb color, so one
@@ -317,4 +332,5 @@ chrome.storage.local
 		if (res[FAV_KEY] === null) saveFavorites();
 		renderFavorites();
 	})
-	.catch((error) => console.error("Travian Dark Mod: could not load settings", error));
+	.catch((error) => console.error("Travian Dark Mod: could not load settings", error))
+	.finally(() => requestAnimationFrame(() => document.body.classList.remove("loading")));
