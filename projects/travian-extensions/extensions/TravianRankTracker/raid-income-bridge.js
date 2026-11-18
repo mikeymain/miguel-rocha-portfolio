@@ -6,11 +6,11 @@
  */
 var RankTrackerRaidIncome = {
 	/** Trailing window, matching the popup's "Raids" row (NOW_RAID_WINDOW_HOURS). */
-	WINDOW_HOURS: 3,
+	WINDOW_HOURS: 1,
 
 	/**
-	 * Bounty per hour over the trailing 3h ending at the latest sample, so
-	 * helpers see the same rate as the popup. Histories shorter than 3h use
+	 * Bounty per hour over the trailing 1h ending at the latest sample, so
+	 * helpers see the same rate as the popup. Histories shorter than 1h use
 	 * their whole span. Daily counter resets are unwrapped first.
 	 */
 	hourlyAverage(history) {
