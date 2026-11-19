@@ -285,7 +285,7 @@ function hvShowEmpty(empty) {
 /**
  * Load history from storage, process it, and render the Chart.js graph.
  *
- * @param {"all"|"daily"} filter - Raw points or daily peaks.
+ * @param {string} filter      - "all" for raw points, or a GRAPH_INTERVALS key.
  * @param {string} storageKey    - `history_<origin>`.
  */
 async function loadGraph(filter, storageKey) {
@@ -314,14 +314,17 @@ async function loadGraph(filter, storageKey) {
 	hvShowEmpty(false);
 
 	const prepared = prepareHistory(hist);
-	let data = filter === "daily" ? aggregateDaily(prepared) : interpolateGaps(prepared);
+	const intervalMs = GRAPH_INTERVALS[filter];
+	let data = intervalMs ? aggregateInterval(prepared, intervalMs) : interpolateGaps(prepared);
 	if (!(savedZoom.min >= 0 && savedZoom.max > savedZoom.min && savedZoom.max < data.length)) {
 		delete savedZoom.min;
 		delete savedZoom.max;
 		if (resetZoomBtn) resetZoomBtn.hidden = true;
 	}
-	if (popupState.isVelocityMode) data = withRolling3h(toVelocity(data), prepared);
-	data = withRaidHourly(data, prepared);
+	if (popupState.isVelocityMode) {
+		data = intervalMs ? intervalVelocity(data, prepared) : withRolling3h(toVelocity(data), prepared);
+	}
+	data = intervalMs ? withRaidIntervalHourly(data, prepared, intervalMs) : withRaidHourly(data, prepared);
 
 	// A quick range (3h … 1w) always anchors to the newest point.
 	const rangeHours = Number(res.graphRange) || 0;
@@ -350,7 +353,7 @@ async function loadGraph(filter, storageKey) {
 	const timestamps = data.map((x) => x.timestamp);
 	const seriesFor = (cfg) => {
 		const raw = data.map((x) => (cfg.ceil ? (x[cfg.key] != null ? Math.ceil(x[cfg.key]) : null) : x[cfg.key] ?? null));
-		return popupState.isVelocityMode ? smoothSeries(raw, RATE_SMOOTH_RADIUS) : raw;
+		return popupState.isVelocityMode && !intervalMs ? smoothSeries(raw, RATE_SMOOTH_RADIUS) : raw;
 	};
 	const datasets = DATASETS_CONFIG.map((cfg) => {
 		const raidRate = popupState.isVelocityMode && RESET_VALUE_KEYS.includes(cfg.key);
@@ -397,7 +400,7 @@ async function hvReload() {
 	const key = hvStorageKey();
 	if (!key) return;
 	const { graphFilter } = await api.storage.local.get(["graphFilter"]);
-	loadGraph(graphFilter || "all", key);
+	loadGraph(normalizeGraphFilter(graphFilter), key);
 }
 
 /** Close the group form. */
@@ -519,11 +522,11 @@ function initHistoryControls() {
 /**
  * Reflect stored graphFilter / velocityMode into the toolbar and popupState.
  *
- * @returns {Promise<"all"|"daily">} The stored filter.
+ * @returns {Promise<string>} The stored filter.
  */
 async function syncHistoryControls() {
 	const { graphFilter, velocityMode } = await api.storage.local.get(["graphFilter", "velocityMode"]);
-	const filter = graphFilter === "daily" ? "daily" : "all";
+	const filter = normalizeGraphFilter(graphFilter);
 	popupState.isVelocityMode = velocityMode === true;
 	hvSetPressed("seg-filter", (b) => b.dataset.f === filter);
 	hvSetPressed("seg-mode", (b) => (b.dataset.mode === "rate") === popupState.isVelocityMode);

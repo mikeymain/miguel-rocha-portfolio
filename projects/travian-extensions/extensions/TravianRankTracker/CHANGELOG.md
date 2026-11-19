@@ -1,5 +1,11 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.1.2 — 2026-11-19
+
+- Graph: "Daily peaks" is replaced by interval averages: Raw, 1h, 3h, 6h, 12h, 24h, 48h, 72h and 1w. Each point is the mean of the snapshots in that interval.
+- Per hour with an interval shows the average gain per hour inside each interval, without extra smoothing. Raw keeps the 3-hour raid window.
+- A stored "Daily peaks" choice opens as 24h.
+
 ## Rank Tracker 5.1.1 — 2026-11-17
 
 - Removed the Open column from the Now table.

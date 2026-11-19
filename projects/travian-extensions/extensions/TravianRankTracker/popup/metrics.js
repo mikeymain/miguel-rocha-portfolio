@@ -56,7 +56,7 @@ const METRIC_SHORT_LABELS = {
 /** Weekly counters that reset; compared via their unwrapped `*Total` keys. */
 const RESET_VALUE_KEYS = ["valRob", "valPve", "valPveResources", "valRobExcludingPve", "valBounty"];
 
-/** Value keys where the daily peak is the maximum. */
+/** Value keys (higher is better). */
 const VALUE_KEYS = [
 	"pointsOff",
 	"pointsDef",
@@ -72,7 +72,7 @@ const VALUE_KEYS = [
 	"valBounty",
 ];
 
-/** Rank keys where the daily peak is the minimum (rank 1 > rank 10). */
+/** Rank keys (lower is better). */
 const RANK_KEYS = [
 	"rankPvp",
 	"rankDefTop",
@@ -120,43 +120,131 @@ function prepareHistory(hist) {
 	return points;
 }
 
+const HOUR_MS = 60 * 60 * 1000;
+
+/** Graph intervals: bucket length per filter key. "all" is raw points. */
+const GRAPH_INTERVALS = {
+	"1h": HOUR_MS,
+	"3h": 3 * HOUR_MS,
+	"6h": 6 * HOUR_MS,
+	"12h": 12 * HOUR_MS,
+	"24h": 24 * HOUR_MS,
+	"48h": 48 * HOUR_MS,
+	"72h": 72 * HOUR_MS,
+	"1w": 168 * HOUR_MS,
+};
+
+/** Valid stored graph filters. */
+const GRAPH_FILTERS = ["all", ...Object.keys(GRAPH_INTERVALS)];
+
 /**
- * Collapse raw history into one data-point per day, keeping the best
- * rank (min) and the highest value (max) for each field.
+ * Stored graph filter, with the retired "daily" mapped to "24h".
  *
- * @param {Array<Object>} rawData
- * @returns {Array<Object>}
+ * @param {*} value
+ * @returns {string} A GRAPH_FILTERS entry.
  */
-function aggregateDaily(rawData) {
-	const groups = {};
+function normalizeGraphFilter(value) {
+	if (value === "daily") return "24h";
+	return GRAPH_FILTERS.includes(value) ? value : "all";
+}
 
+/** Monday 00:00 offset from the epoch (a Thursday), for weekly buckets. */
+const WEEK_ALIGN_MS = 4 * 24 * HOUR_MS;
+
+/**
+ * Start of the local-time bucket holding `timestamp`. Buckets up to one day
+ * align to local midnight; weekly buckets start on Monday.
+ *
+ * @param {number} timestamp
+ * @param {number} intervalMs
+ * @returns {number}
+ */
+function bucketStart(timestamp, intervalMs) {
+	const offset = new Date(timestamp).getTimezoneOffset() * 60_000;
+	const align = intervalMs === GRAPH_INTERVALS["1w"] ? WEEK_ALIGN_MS : 0;
+	const local = timestamp - offset - align;
+	return Math.floor(local / intervalMs) * intervalMs + offset + align;
+}
+
+/**
+ * Group prepared history into fixed time buckets. Each bucket holds the mean
+ * of every numeric field, the last `*Total` counter value, and `bucketEnd`.
+ *
+ * @param {Array<Object>} rawData - Output of prepareHistory (sorted).
+ * @param {number} intervalMs
+ * @returns {Array<Object>} One point per non-empty bucket; timestamp is the bucket start.
+ */
+function aggregateInterval(rawData, intervalMs) {
+	const groups = new Map();
 	for (const pt of rawData) {
-		const d = new Date(pt.timestamp);
-		const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-
-		if (!groups[dateKey]) {
-			groups[dateKey] = JSON.parse(JSON.stringify(pt));
-			const noon = new Date(pt.timestamp);
-			noon.setHours(12, 0, 0, 0);
-			groups[dateKey].timestamp = noon.getTime();
-			continue;
+		const start = bucketStart(pt.timestamp, intervalMs);
+		let g = groups.get(start);
+		if (!g) {
+			g = { sums: {}, counts: {}, last: {} };
+			groups.set(start, g);
 		}
-
-		const g = groups[dateKey];
-		for (const k of VALUE_KEYS) {
-			if (pt[k] != null) g[k] = g[k] != null ? Math.max(g[k], pt[k]) : pt[k];
-		}
-		// Carry the final cumulative observation through a daily bucket.
-		for (const key of RESET_VALUE_KEYS) {
-			const totalKey = `${key}Total`;
-			if (pt[totalKey] != null) g[totalKey] = pt[totalKey];
-		}
-		for (const k of RANK_KEYS) {
-			if (pt[k] != null) g[k] = g[k] != null ? Math.min(g[k], pt[k]) : pt[k];
+		for (const [key, value] of Object.entries(pt)) {
+			if (key === "timestamp" || !Number.isFinite(value)) continue;
+			if (key.endsWith("Total")) {
+				g.last[key] = value;
+				continue;
+			}
+			g.sums[key] = (g.sums[key] || 0) + value;
+			g.counts[key] = (g.counts[key] || 0) + 1;
 		}
 	}
+	return [...groups.entries()]
+		.sort((a, b) => a[0] - b[0])
+		.map(([start, g]) => {
+			const point = { timestamp: start, bucketEnd: start + intervalMs, ...g.last };
+			for (const key of Object.keys(g.sums)) point[key] = g.sums[key] / g.counts[key];
+			return point;
+		});
+}
 
-	return Object.values(groups).sort((a, b) => a.timestamp - b.timestamp);
+/** Shortest sampled share of a bucket that yields a rate (avoids partial-bucket spikes). */
+const MIN_RATE_SHARE = 0.25;
+
+/**
+ * Average gain per hour of a cumulative series between `start` and `end`,
+ * clamped to the sampled range. Null when the sampled part is too short.
+ *
+ * @param {Array<{timestamp: number, value: number}>} samples - Sorted samples.
+ * @param {number} start
+ * @param {number} end
+ * @returns {number|null}
+ */
+function bucketRate(samples, start, end) {
+	if (samples.length < 2) return null;
+	const from = Math.max(start, samples[0].timestamp);
+	const to = Math.min(end, samples[samples.length - 1].timestamp);
+	if (to - from < (end - start) * MIN_RATE_SHARE) return null;
+	const gain = cumulativeAt(samples, to) - cumulativeAt(samples, from);
+	return Math.round((gain / ((to - from) / HOUR_MS)) * 10) / 10;
+}
+
+/**
+ * Average change per hour inside each bucket, from linear interpolation of
+ * the raw samples at the bucket edges (clamped to the sampled range).
+ * Reset counters use their `*Total` keys.
+ *
+ * @param {Array<Object>} buckets  - Output of aggregateInterval.
+ * @param {Array<Object>} prepared - Output of prepareHistory (raw, sorted).
+ * @returns {Array<Object>} Points holding hourly rates per dataset key.
+ */
+function intervalVelocity(buckets, prepared) {
+	const samplesByKey = {};
+	for (const { key } of DATASETS_CONFIG) {
+		const valueKey = RESET_VALUE_KEYS.includes(key) ? `${key}Total` : key;
+		samplesByKey[key] = prepared
+			.filter((point) => Number.isFinite(point[valueKey]))
+			.map((point) => ({ timestamp: point.timestamp, value: point[valueKey] }));
+	}
+	return buckets.map((bucket) => {
+		const rate = { timestamp: bucket.timestamp };
+		for (const { key } of DATASETS_CONFIG) rate[key] = bucketRate(samplesByKey[key], bucket.timestamp, bucket.bucketEnd);
+		return rate;
+	});
 }
 
 /**
@@ -300,6 +388,25 @@ function withRaidHourly(data, prepared) {
 		rates[key] = rollingWindowGain(samples, timestamps).map((gain) => gain == null ? null : Math.round(gain / 3));
 	}
 	return data.map((point, i) => ({ ...point, valRaidHourly: rates.valRaidHourly[i], valRaidHourlyExcludingPve: rates.valRaidHourlyExcludingPve[i] }));
+}
+
+/**
+ * Hourly raid averages for interval buckets: the average gain per hour
+ * inside each bucket, in place of the trailing 3h window.
+ *
+ * @param {Array<Object>} buckets  - Output of aggregateInterval (or its rates).
+ * @param {Array<Object>} prepared - Output of prepareHistory (raw, sorted).
+ * @param {number} intervalMs
+ * @returns {Array<Object>} New points.
+ */
+function withRaidIntervalHourly(buckets, prepared, intervalMs) {
+	const rates = {};
+	for (const [key, source] of [["valRaidHourly", "valRobTotal"], ["valRaidHourlyExcludingPve", "valRobExcludingPveTotal"]]) {
+		const samples = prepared.filter((point) => Number.isFinite(point[source]))
+			.map((point) => ({ timestamp: point.timestamp, value: point[source] }));
+		rates[key] = buckets.map((bucket) => bucketRate(samples, bucket.timestamp, bucket.timestamp + intervalMs));
+	}
+	return buckets.map((point, i) => ({ ...point, valRaidHourly: rates.valRaidHourly[i], valRaidHourlyExcludingPve: rates.valRaidHourlyExcludingPve[i] }));
 }
 
 /**
@@ -500,12 +607,12 @@ function hvTooltipLabel(context) {
 	return lbl;
 }
 
-/** Point labels: "dd/mm" for daily, "dd/mm hh:mm" otherwise. */
+/** Point labels: "dd/mm" for intervals of a day or more, "dd/mm hh:mm" otherwise. */
 function hvPointLabel(timestamp, filter) {
 	const d = new Date(timestamp);
 	const dd = String(d.getDate()).padStart(2, "0");
 	const mm = String(d.getMonth() + 1).padStart(2, "0");
-	if (filter === "daily") return `${dd}/${mm}`;
+	if ((GRAPH_INTERVALS[filter] || 0) >= GRAPH_INTERVALS["24h"]) return `${dd}/${mm}`;
 	return `${dd}/${mm} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 

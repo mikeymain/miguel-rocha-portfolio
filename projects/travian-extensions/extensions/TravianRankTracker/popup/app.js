@@ -292,7 +292,7 @@ async function selectTab(tabId) {
 
 	const { graphFilter } = await api.storage.local.get(["graphFilter"]);
 	await syncHistoryControls();
-	loadGraph(graphFilter || "all", storageKey);
+	loadGraph(normalizeGraphFilter(graphFilter), storageKey);
 }
 
 /* ── Popup zoom ──────────────────────────────────────────────────────── */
