@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian NPC Calculator 3.2.19 — 2026-11-19
+
+- Replaces the abacus icon with a merchant's balance scale.
+
 ## TravAlarm 3.57 and Travian NPC Calculator 3.2.18 — 2026-11-19
 
 - TravAlarm has a new hourglass icon and a description that highlights incoming attack alerts and timers.
