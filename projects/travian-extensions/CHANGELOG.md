@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.3.7 — 2026-11-19
+
+- The "(at HH:MM)" time in the resource bar tooltips no longer disappears a second after hovering: it is re-added whenever the game re-renders the tooltip. If the countdown is live, the clock follows it.
+
 ## TravAlarm 3.55 — 2026-11-19
 
 - FNPC time uses the game's own production and storage figures embedded in each page (net crop, hero and oasis bonuses included) instead of cached statistics that went stale after upgrades. The shown minute rounds up so it is never earlier than the real time.
