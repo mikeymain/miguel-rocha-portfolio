@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.1.5 — 2026-11-19
+
+- Now: the average rank no longer shows the change since the last open; 1h, 3h, 1d and 7d remain.
+
 ## Rank Tracker 5.1.4 — 2026-11-19
 
 - Graph: Military adds Offensive Strength Rank and Defensive Strength Rank.

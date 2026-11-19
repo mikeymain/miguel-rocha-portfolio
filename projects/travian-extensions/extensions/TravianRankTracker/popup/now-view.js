@@ -22,7 +22,7 @@ const NOW_WEEKLY_NAMES = {
 };
 
 /** Average-rank summary labels. */
-const NOW_DELTA_TAGS = ["Open", "1h", "3h", "1d", "7d"];
+const NOW_DELTA_TAGS = ["1h", "3h", "1d", "7d"];
 const NOW_TABLE_COLUMNS = 7;
 
 /** Average rank shown by the previous renderUI call in this popup session. */
@@ -485,7 +485,7 @@ function renderUI(data, history) {
 			return { rank, val: describeDelta(diff, false) };
 		});
 
-	renderHero(data, [popupState.baselineSnapshot, ...generalRefs]);
+	renderHero(data, generalRefs);
 	renderWeekly(data, deltaCells);
 	renderGeneral(data, deltaCells, history);
 	fitMetricsTable();
