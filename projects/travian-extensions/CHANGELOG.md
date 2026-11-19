@@ -1,5 +1,9 @@
 # Changelog
 
+## World Watch 1.7.3 — 2026-11-19
+
+- Enlarges the globe within the extension icon so it reads more clearly in the toolbar.
+
 ## Next Settlement Calc 2.6.19 — 2026-11-19
 
 - With the ETA history open, the forecast card and spacing are tighter so the whole chart fits in the popup without scrolling.
