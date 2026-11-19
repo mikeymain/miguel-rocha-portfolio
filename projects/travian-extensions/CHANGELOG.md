@@ -1,5 +1,9 @@
 # Changelog
 
+## TravAlarm 3.58 — 2026-11-19
+
+- Refines the hourglass icon with two-tone gold caps and emerald sand in both chambers.
+
 ## Travian NPC Calculator 3.2.20 — 2026-11-19
 
 - Adds a darker emerald rim to the green pan of the balance icon.
