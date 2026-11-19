@@ -1,5 +1,9 @@
 # Changelog
 
+## TravAlarm 3.54 — 2026-11-19
+
+- FNPC time now simulates each resource: production stops at warehouse/granary capacity and draining crop stops at 0. Shows "NPC: Storage too small" when a single cost exceeds capacity, and adds "(+Nd)" when the time falls on a later day.
+
 ## Next Settlement Calc 2.6.17 — 2026-11-18
 
 - Adopts the Culture Gate icon for the toolbar, extension listing and notifications.

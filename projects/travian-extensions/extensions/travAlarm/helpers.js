@@ -272,6 +272,58 @@ function isPlayerActive() {
   return !document.hidden && _systemIdleState === "active";
 }
 
+/**
+ * Warehouse (wood/clay/iron) and granary (crop) capacity from the page's
+ * stockBar, as [w, c, i, cr]. Missing values become Infinity (no cap).
+ */
+function readStorageCaps(doc = document) {
+  const read = (sel) => {
+    const el = doc.querySelector(`#stockBar ${sel} .capacity .value`);
+    const v = el ? parseInt(el.textContent.replace(/\D/g, ""), 10) : NaN;
+    return v > 0 ? v : Infinity;
+  };
+  const wh = read(".warehouse");
+  return [wh, wh, wh, read(".granary")];
+}
+
+/**
+ * Hours until stock reaches costTotal, simulating each resource separately:
+ * a resource stops growing at its storage cap and a negative one stops at 0.
+ * Returns 0 if already affordable, Infinity if never reached.
+ * @param {number[]} stock current amounts [w, c, i, cr]
+ * @param {number[]} prod hourly production [w, c, i, cr]
+ * @param {number[]} caps storage caps [w, c, i, cr]
+ * @param {number} costTotal summed cost
+ */
+function npcEtaHours(stock, prod, caps, costTotal) {
+  const amt = stock.map((v, i) => Math.min(Math.max(v, 0), caps[i]));
+  const sum = () => amt.reduce((a, b) => a + b, 0);
+  let t = 0;
+  for (let step = 0; step <= amt.length; step++) {
+    const total = sum();
+    if (total >= costTotal) return t;
+    const active = prod.map(
+      (p, i) => (p > 0 && amt[i] < caps[i]) || (p < 0 && amt[i] > 0),
+    );
+    const rate = prod.reduce((r, p, i) => r + (active[i] ? p : 0), 0);
+    let dt = Infinity;
+    prod.forEach((p, i) => {
+      if (active[i]) dt = Math.min(dt, p > 0 ? (caps[i] - amt[i]) / p : amt[i] / -p);
+    });
+    // A flat or falling total can still rise once draining crop hits 0.
+    if (rate <= 0 && !(isFinite(dt) && prod.some((p, i) => active[i] && p > 0))) {
+      return Infinity;
+    }
+    const need = rate > 0 ? (costTotal - total) / rate : Infinity;
+    if (need <= dt) return t + need;
+    t += dt;
+    prod.forEach((p, i) => {
+      if (active[i]) amt[i] = Math.min(caps[i], Math.max(0, amt[i] + p * dt));
+    });
+  }
+  return Infinity;
+}
+
 function getResourceValue(wrapper, typePrefix) {
   const icon = wrapper.querySelector(`.${typePrefix}, .${typePrefix}Big`);
   if (!icon) return 0;

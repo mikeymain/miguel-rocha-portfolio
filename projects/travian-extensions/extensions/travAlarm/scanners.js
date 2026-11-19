@@ -172,6 +172,8 @@ function scanNPCBuild(activeVillage) {
     document.getElementById("l4")?.innerText.replace(/\D/g, "") || "0",
   );
   const currentTotal = l1 + l2 + l3 + l4;
+  const stock = [l1, l2, l3, l4];
+  const caps = readStorageCaps();
 
   const prodTotalRaw = readProdTotal(`${serverTag}_${activeVillage}`);
   const prodTotal = prodTotalRaw ?? 0;
@@ -239,20 +241,31 @@ function scanNPCBuild(activeVillage) {
       isFetching = true;
     } else if (prodTotal === 0) {
       msg = "NPC: Visit 'Resources' tab";
-    } else if (prodTotal + raidIncomePerHour() <= 0) {
-      msg = "NPC: Negative Prod";
+    } else if ([c1, c2, c3, c4].some((c, i) => c > caps[i])) {
+      msg = "NPC: Storage too small";
     } else {
-      const missing = costTotal - currentTotal;
-      const hours = missing / (prodTotal + raidIncomePerHour());
-      const seconds = Math.ceil(hours * 3600);
-      const now = new Date();
-      const doneTime = new Date(now.getTime() + seconds * 1000);
-      const timeStr = doneTime.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      });
-      msg = `FNPC: ${timeStr}`;
+      const map = readProdMap(`${serverTag}_${activeVillage}`);
+      const raid = raidIncomePerHour() / 4;
+      const prod = map
+        ? [map.w, map.c, map.i, map.cr].map((p) => (p || 0) + raid)
+        : [prodTotal + raid * 4, 0, 0, 0];
+      const noCaps = stock.map(() => Infinity);
+      const hours = npcEtaHours(stock, prod, map ? caps : noCaps, costTotal);
+      if (!isFinite(hours)) {
+        msg = "NPC: Negative Prod";
+      } else {
+        const now = new Date();
+        const doneTime = new Date(now.getTime() + Math.ceil(hours * 3600) * 1000);
+        const timeStr = doneTime.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        });
+        const days = Math.round(
+          (new Date(doneTime).setHours(0, 0, 0, 0) - new Date(now).setHours(0, 0, 0, 0)) / 86400000,
+        );
+        msg = `FNPC: ${timeStr}${days > 0 ? ` (+${days}d)` : ""}`;
+      }
     }
     if (!msg) return;
 
