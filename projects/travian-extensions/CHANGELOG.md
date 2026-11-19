@@ -1,5 +1,9 @@
 # Changelog
 
+## World Watch 1.7.4 — 2026-11-19
+
+- Replaces the globe with a broad folded map and an emerald location marker.
+
 ## World Watch 1.7.3 — 2026-11-19
 
 - Enlarges the globe within the extension icon so it reads more clearly in the toolbar.
