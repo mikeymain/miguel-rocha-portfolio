@@ -40,84 +40,92 @@ Object.assign(
 		 * the observation meets the target. An ETA equal to the sample time
 		 * is not enough, since "start the planned celebrations" also gives 0.
 		 */
-		function isReached(entry) {
-			if (!(entry.target > 0) || !Number.isFinite(entry.cp)) return false;
+		function isReached(entry, level) {
+			if (!(level > 0) || !Number.isFinite(entry.cp)) return false;
 			const since =
 				Number.isFinite(entry.obsAt) && entry.daily > 0
 					? (entry.daily * Math.max(0, entry.t - entry.obsAt)) / DAY
 					: 0;
-			return entry.cp + since >= entry.target;
+			return entry.cp + since >= level;
 		}
 		/**
-		 * When CP actually crossed `target`: the sample's observation time
-		 * minus the CP above target at the logged rate, kept after the
-		 * previous sample. Scans are throttled, so the sample itself can
-		 * land hours after the crossing.
+		 * When CP actually crossed `level`: the sample's observation time
+		 * minus the CP above it at the logged rate, kept after the previous
+		 * sample. Scans are throttled, so the sample itself can land hours
+		 * after the crossing.
 		 */
-		function crossingTime(entry, previous) {
+		function crossingTime(entry, previous, level) {
 			const observed = Number.isFinite(entry.obsAt) ? entry.obsAt : entry.t;
 			let at = observed;
 			if (Number.isFinite(entry.cp) && entry.daily > 0)
-				at = observed - (Math.max(0, entry.cp - entry.target) / entry.daily) * DAY;
+				at = observed - (Math.max(0, entry.cp - level) / entry.daily) * DAY;
 			const floor = previous ? previous.t : -Infinity;
 			return Math.round(Math.min(entry.t, Math.max(floor, at)));
 		}
 		/**
-		 * First sample that met `target` ({t, at}) or null. Later samples
-		 * only repeat "now" as the ETA, so the chart stops there.
+		 * First sample whose CP met `level` ({t, at, entry}) or null. Every
+		 * sample counts, whatever target it was logged for, so a threshold
+		 * ends at the same moment in every chart.
 		 */
-		function reachedAt(log, target) {
+		function reachedAt(log, level) {
 			const entries = (Array.isArray(log) ? log : [])
-				.filter(
-					(entry) =>
-						Number.isFinite(entry?.t) &&
-						entry.target === target &&
-						Number.isFinite(entry.eta?.parties),
-				)
+				.filter((entry) => Number.isFinite(entry?.t))
 				.sort((a, b) => a.t - b.t);
-			const index = entries.findIndex(isReached);
+			const index = entries.findIndex((entry) => isReached(entry, level));
 			if (index < 0) return null;
 			const entry = entries[index];
-			return { t: entry.t, at: crossingTime(entry, entries[index - 1]) };
+			return { t: entry.t, at: crossingTime(entry, entries[index - 1], level), entry };
 		}
 
 		/**
 		 * Chart points for one target, oldest first. The range filter runs
 		 * before downsampling so short windows keep their full resolution.
-		 * ETA points end at the sample that reached the target.
+		 * Each target has its own window: from the sample that reached the
+		 * previous threshold (`floor`) to the sample that reached this one.
 		 */
 		function historyPoints(log, options = {}) {
 			const {
 				target,
+				floor = 0,
 				mode = "eta",
 				range = Infinity,
 				now = Date.now(),
 				view = null,
 			} = options;
-			const reached = mode === "eta" ? reachedAt(log, target) : null;
+			const reached = reachedAt(log, target);
+			const started = floor > 0 ? reachedAt(log, floor) : null;
 			const from = Math.max(
 				Number.isFinite(range) ? now - range : -Infinity,
 				view ? view[0] : -Infinity,
+				started?.t ?? -Infinity,
 			);
 			const to = Math.min(view ? view[1] : Infinity, reached?.t ?? Infinity);
-			const points = (Array.isArray(log) ? log : [])
-				.filter(
-					(entry) =>
-						Number.isFinite(entry?.t) &&
-						entry.t >= from &&
-						entry.t <= to &&
-						(mode === "cpd"
-							? Number.isFinite(entry.daily)
-							: entry.target === target &&
-								Number.isFinite(entry.eta?.parties)),
-				)
+			const inWindow = (entry) =>
+				Number.isFinite(entry?.t) && entry.t >= from && entry.t <= to;
+			const entries = (Array.isArray(log) ? log : []).filter(
+				(entry) =>
+					inWindow(entry) &&
+					(mode === "cpd"
+						? Number.isFinite(entry.daily)
+						: entry.target === target && Number.isFinite(entry.eta?.parties)),
+			);
+			// The crossing sample ends the ETA line even when it was logged
+			// for another target: its value is the real arrival.
+			if (
+				mode === "eta" &&
+				reached &&
+				inWindow(reached.entry) &&
+				!entries.includes(reached.entry)
+			)
+				entries.push(reached.entry);
+			const points = entries
 				.map((entry) => {
 					// Every series of the crossing sample ends at the real arrival.
-					const hit = reached !== null && entry.t === reached.t;
+					const hit = mode === "eta" && reached !== null && entry.t === reached.t;
 					const eta = (v) => (hit ? reached.at : finiteOrNull(v));
 					return {
 						t: entry.t,
-						value: mode === "cpd" ? entry.daily : eta(entry.eta.parties),
+						value: mode === "cpd" ? entry.daily : eta(entry.eta?.parties),
 						baseline: eta(entry.eta?.baseline),
 						growth: eta(entry.eta?.growth),
 						cp: finiteOrNull(entry.cp),
@@ -514,7 +522,8 @@ Object.assign(
 			let chart = null,
 				signature = "",
 				log = [],
-				target = 0;
+				target = 0,
+				floor = 0;
 
 			const settings = () => ({
 				range: state.range,
@@ -687,6 +696,7 @@ Object.assign(
 			function render() {
 				const query = {
 					target,
+					floor,
 					mode: state.mode,
 					range: RANGES[state.range],
 				};
@@ -704,6 +714,7 @@ Object.assign(
 						: [];
 				const next = [
 					target,
+					floor,
 					state.mode,
 					state.range,
 					state.view?.join("-"),
@@ -822,10 +833,15 @@ Object.assign(
 			});
 
 			return {
-				update(nextLog, nextTarget) {
-					if (nextTarget !== target) state.selection = null;
+				/** `nextFloor` is the threshold before `nextTarget` (0 for the first). */
+				update(nextLog, nextTarget, nextFloor = 0) {
+					if (nextTarget !== target) {
+						state.selection = null;
+						state.view = null;
+					}
 					log = nextLog;
 					target = nextTarget;
+					floor = nextFloor;
 					render();
 				},
 				setSettings(next) {

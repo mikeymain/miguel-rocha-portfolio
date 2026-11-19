@@ -118,7 +118,7 @@ For expired sessions, log in and reopen the popup. Missing observations cannot b
 
 <a href="images/cp-planner.png"><img src="images/cp-planner.png" alt="Next Settlement Calc forecast and celebration controls" width="300" /></a>
 
-**Features:** measured CP totals/production, settlement targets and ETA, per-village Town Hall levels, small/large celebration plans, cooldowns, repeated celebration queues, passive-growth projection, baseline forecast, readiness alarm/mute, total time from your account start and the server start to the ETA, ETA history chart (24h/7d/30d/All ranges, ETA or CP/d series, baseline/growth overlays, trend, version markers, drag-to-compare), refresh, and forecast-log export.
+**Features:** measured CP totals/production, settlement targets and ETA, per-village Town Hall levels, small/large celebration plans, cooldowns, repeated celebration queues, passive-growth projection, baseline forecast, readiness alarm/mute, total time from your account start and the server start to the ETA, ETA history chart (one chart per CP target, from the previous threshold to this one; 8h/24h/7d/30d/All ranges, ETA or CP/d series, baseline/growth overlays, trend, version markers, drag-to-compare), refresh, and forecast-log export.
 
 **Usage:**
 

@@ -294,7 +294,13 @@
 		dom.etaHistory.hidden = !etaOpen;
 		dom.etaHistoryToggle.setAttribute("aria-pressed", String(etaOpen));
 		if (!etaOpen || !etaChart) return;
-		etaChart.update(etaLog, Number(dom.targetSlot.value));
+		const target = Number(dom.targetSlot.value);
+		const thresholds = data
+			? CP_REQUIREMENTS[normalizeSpeed(data.speed)].slice(1)
+			: [];
+		// Each target charts from the previous threshold onwards.
+		const floor = thresholds.filter((cp) => cp < target).at(-1) || 0;
+		etaChart.update(etaLog, target, floor);
 	}
 	/** Elapsed time from the account and server start to the settle moment. */
 	function renderTotals(settleAt) {
