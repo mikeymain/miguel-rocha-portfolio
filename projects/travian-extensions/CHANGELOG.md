@@ -1,5 +1,9 @@
 # Changelog
 
+## World Watch 1.7.5 — 2026-11-19
+
+- Uses a sandstone watchtower on an emerald terrain tile as the extension icon.
+
 ## World Watch 1.7.4 — 2026-11-19
 
 - Replaces the globe with a broad folded map and an emerald location marker.
