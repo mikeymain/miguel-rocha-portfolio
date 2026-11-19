@@ -12,7 +12,7 @@ Eight standalone browser extensions for Travian: forecasting, statistics history
 | --- | --- | --- |
 | <a id="oasis-finder"></a>[Oasis Finder](extensions/OasisCalc/) | Oasis scoring and farm-list sorting | 70.4 |
 | <a id="travalarm"></a>[TravAlarm](extensions/travAlarm/) | Game timers, custom reminders and notifications | 3.55 |
-| <a id="travian-qol"></a>[Travian QoL](extensions/TravianQoL/) | Farm-list selection, reports and interface utilities | 1.3.1 |
+| <a id="travian-qol"></a>[Travian QoL](extensions/TravianQoL/) | Farm-list selection, reports and interface utilities | 1.3.7 |
 | <a id="rank-tracker"></a>[Rank Tracker](extensions/TravianRankTracker/) | Rankings, statistics history and comparison graphs | 5.1.1 |
 | <a id="next-settlement-calc"></a>[Next Settlement Calc](extensions/NextSettlementCalc/) | Culture-point forecasts and celebration planning | 2.6.17 |
 | <a id="npc-automerchant"></a>[NPC AutoMerchant](extensions/automerchant/) | Troop resource calculations and hero-transfer assistance | 3.2.3 |
