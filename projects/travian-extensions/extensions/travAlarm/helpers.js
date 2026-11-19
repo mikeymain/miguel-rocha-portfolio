@@ -287,6 +287,35 @@ function readStorageCaps(doc = document) {
 }
 
 /**
+ * The game's own resource data from the page's inline
+ * `var resources = { production, storage, maxStorage }` script.
+ * production.l4 is net crop. Returns { prod, caps } as [w, c, i, cr]
+ * arrays, or null when the script is missing or malformed.
+ */
+function readPageResources(doc = document) {
+  for (const s of doc.querySelectorAll("script:not([src])")) {
+    const t = s.textContent;
+    if (!t.includes("var resources")) continue;
+    const block = (key) => {
+      const m = t.match(new RegExp(`\\b${key}\\s*:\\s*(\\{[^}]*\\})`));
+      if (!m) return null;
+      try {
+        const o = JSON.parse(m[1]);
+        const v = ["l1", "l2", "l3", "l4"].map((k) => Number(o[k]));
+        return v.every(Number.isFinite) ? v : null;
+      } catch {
+        return null;
+      }
+    };
+    const prod = block("production");
+    const caps = block("maxStorage");
+    if (!prod) return null;
+    return { prod, caps: caps?.every((c) => c > 0) ? caps : null };
+  }
+  return null;
+}
+
+/**
  * Hours until stock reaches costTotal, simulating each resource separately:
  * a resource stops growing at its storage cap and a negative one stops at 0.
  * Returns 0 if already affordable, Infinity if never reached.

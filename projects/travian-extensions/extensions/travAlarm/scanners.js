@@ -173,9 +173,14 @@ function scanNPCBuild(activeVillage) {
   );
   const currentTotal = l1 + l2 + l3 + l4;
   const stock = [l1, l2, l3, l4];
-  const caps = readStorageCaps();
+  // The page's own rates (net crop, hero and oasis bonuses included) are
+  // exact and current; the cached statistics figures are only a fallback.
+  const page = readPageResources();
+  const caps = page?.caps ?? readStorageCaps();
 
-  const prodTotalRaw = readProdTotal(`${serverTag}_${activeVillage}`);
+  const prodTotalRaw = page
+    ? page.prod.reduce((a, b) => a + b, 0)
+    : readProdTotal(`${serverTag}_${activeVillage}`);
   const prodTotal = prodTotalRaw ?? 0;
 
   if (prodTotalRaw === null) {
@@ -236,15 +241,18 @@ function scanNPCBuild(activeVillage) {
     let msg = "";
     let isFetching = false;
 
-    if (!prodTotalRaw) {
+    if (prodTotalRaw === null) {
       msg = "NPC: Fetching Prod...";
       isFetching = true;
-    } else if (prodTotal === 0) {
+    } else if (!page && prodTotal === 0) {
       msg = "NPC: Visit 'Resources' tab";
     } else if ([c1, c2, c3, c4].some((c, i) => c > caps[i])) {
       msg = "NPC: Storage too small";
     } else {
-      const map = readProdMap(`${serverTag}_${activeVillage}`);
+      const cached = readProdMap(`${serverTag}_${activeVillage}`);
+      const map = page
+        ? { w: page.prod[0], c: page.prod[1], i: page.prod[2], cr: page.prod[3] }
+        : cached;
       const raid = raidIncomePerHour() / 4;
       const prod = map
         ? [map.w, map.c, map.i, map.cr].map((p) => (p || 0) + raid)
@@ -255,7 +263,8 @@ function scanNPCBuild(activeVillage) {
         msg = "NPC: Negative Prod";
       } else {
         const now = new Date();
-        const doneTime = new Date(now.getTime() + Math.ceil(hours * 3600) * 1000);
+        // Round up to the minute: HH:MM must not show a time before it's affordable.
+        const doneTime = new Date(Math.ceil((now.getTime() + hours * 3600000) / 60000) * 60000);
         const timeStr = doneTime.toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
