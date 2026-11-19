@@ -1,5 +1,10 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.1.4 — 2026-11-19
+
+- Graph: Military adds Offensive Strength Rank and Defensive Strength Rank.
+- The metric list runs the full height beside the toolbar, so every metric fits without a scroll bar.
+
 ## Rank Tracker 5.1.3 — 2026-11-19
 
 - Graph: metric list rows are 1px shorter so all metrics fit without a scroll bar.

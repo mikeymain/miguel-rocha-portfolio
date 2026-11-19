@@ -576,7 +576,7 @@ td.delta { text-align: right; white-space: nowrap; font-family: var(--font-num);
 }
 
 .picker-group { display: flex; flex-direction: column; min-width: 0; }
-.picker-title { padding: 1px 8px 2px; color: var(--accent); font: 600 9.5px/11px var(--font-num); letter-spacing: 0.14em; text-transform: uppercase; }
+.picker-title { padding: 2px 8px 3px; color: var(--accent); font: 600 9.5px/11px var(--font-num); letter-spacing: 0.14em; text-transform: uppercase; }
 .picker-chips { display: flex; flex-direction: column; }
 
 .chip-metric {
@@ -585,7 +585,7 @@ td.delta { text-align: right; white-space: nowrap; font-family: var(--font-num);
 	align-items: center;
 	gap: 7px;
 	width: 100%;
-	height: 17px;
+	height: 18px;
 	padding: 0 8px;
 	border: 0;
 	border-radius: 4px;
@@ -817,3 +817,10 @@ td.delta { text-align: right; white-space: nowrap; font-family: var(--font-num);
 		transform: none;
 	}
 }
+
+/* History: the metric list runs the full height beside the toolbar and chart. */
+.view-hist:not([hidden]) { display: grid; grid-template-columns: 172px minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: 8px; }
+.view-hist .hist-toolbar { grid-column: 2; grid-row: 1; }
+.view-hist .hist-body { display: contents; }
+.view-hist .metric-picker { grid-column: 1; grid-row: 1 / span 2; }
+.view-hist .chart-wrap { grid-column: 2; grid-row: 2; }

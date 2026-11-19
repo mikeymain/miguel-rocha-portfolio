@@ -12,6 +12,8 @@
 const DATASETS_CONFIG = [
 	{ key: "pointsOff", label: "Offensive Strength", color: "#ff9a9a", dash: [2, 2], axis: "y1", defHidden: true, ceil: true, group: "military" },
 	{ key: "pointsDef", label: "Defensive Strength", color: "#9de8a0", dash: [2, 2], axis: "y1", defHidden: true, ceil: true, group: "military" },
+	{ key: "rankOff", label: "Offensive Strength Rank", color: "#e06666", dash: null, axis: "y", defHidden: true, group: "military" },
+	{ key: "rankDef", label: "Defensive Strength Rank", color: "#5cbf72", dash: null, axis: "y", defHidden: true, group: "military" },
 	{ key: "rankPvp", label: "Attacker of the week", color: "#ff6b6b", dash: null, axis: "y", defHidden: false, group: "weekly" },
 	{ key: "rankDefTop", label: "Defenders of the week", color: "#5fd38d", dash: null, axis: "y", defHidden: false, group: "weekly" },
 	{ key: "valRob", label: "Res Raided This Week", color: "#62c6e8", dash: [5, 5], axis: "y1", defHidden: false, group: "raids" },
@@ -40,7 +42,7 @@ const METRIC_GROUPS = [
 	{ id: "population", title: "Population", keys: ["rankPop", "valPop"] },
 	{ id: "production", title: "Production", keys: ["rankProd", "valProd", "rankProdSoFar", "valProdSoFar"] },
 	{ id: "culture", title: "Culture", keys: ["rankCp", "cpProd", "rankCpSoFar", "valCpSoFar"] },
-	{ id: "military", title: "Military", keys: ["pointsOff", "pointsDef"] },
+	{ id: "military", title: "Military", keys: ["rankOff", "pointsOff", "rankDef", "pointsDef"] },
 ];
 
 /** Picker labels inside a section; the full dataset label stays the storage key and tooltip. */
@@ -50,7 +52,7 @@ const METRIC_SHORT_LABELS = {
 	rankPop: "Rank", valPop: "Population",
 	rankProd: "Rank", valProd: "Per hour", rankProdSoFar: "Total rank", valProdSoFar: "Total",
 	rankCp: "Rank", cpProd: "Per day", rankCpSoFar: "Total rank", valCpSoFar: "Total",
-	pointsOff: "Offense", pointsDef: "Defense",
+	rankOff: "Offense rank", pointsOff: "Offense", rankDef: "Defense rank", pointsDef: "Defense",
 };
 
 /** Weekly counters that reset; compared via their unwrapped `*Total` keys. */
@@ -74,6 +76,8 @@ const VALUE_KEYS = [
 
 /** Rank keys (lower is better). */
 const RANK_KEYS = [
+	"rankOff",
+	"rankDef",
 	"rankPvp",
 	"rankDefTop",
 	"rankRob",
