@@ -1,8 +1,8 @@
 {
 	"manifest_version": 3,
-	"name": "Travian NPC AutoMerchant",
-	"version": "3.2.17",
-	"description": "NPC resource helper with troop calculator, ratio distribution, and auto-tribe detection for Travian.",
+	"name": "Travian NPC Calculator",
+	"version": "3.2.18",
+	"description": "See how many troops you can train with the Travian NPC Merchant. Calculate resource splits and plan hero resource transfers.",
 	"author": "Miguel Rocha",
 	"icons": {
 		"16": "icon16.png",

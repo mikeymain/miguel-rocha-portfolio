@@ -9,13 +9,13 @@
 3. Enable **Developer mode**.
 4. Select **Load unpacked**, then choose the extracted extension folder (the one containing `manifest.json`).
 5. Repeat for each extension you want to install. Refresh Travian tabs.
-6. Pin extensions with toolbar popups. Oasis Finder, TravAlarm, and NPC AutoMerchant add controls to their matching pages.
+6. Pin extensions with toolbar popups. Oasis Finder, TravAlarm, and Travian NPC Calculator add controls to their matching pages.
 
 No build step is required. Game features requiring a paid Travian option still require that option.
 
 **Browsers:** desktop Chromium. Used in Brave; Chrome and Edge compatibility needs feedback. Firefox installation is not covered.
 
-**Domains:** Oasis Finder, TravAlarm, and NPC AutoMerchant target `*.travian.com`. Rank Tracker also supports `.org`, `.net`, `.us`, and `.de`. Next Settlement Calc, QoL, and Night Mode support multiple regional domains; see their manifests. World Watch reads `map.sql` from `.com`, `.org`, `.net`, `.us`, and `.de` worlds.
+**Domains:** Oasis Finder, TravAlarm, and Travian NPC Calculator target `*.travian.com`. Rank Tracker also supports `.org`, `.net`, `.us`, and `.de`. Next Settlement Calc, QoL, and Night Mode support multiple regional domains; see their manifests. World Watch reads `map.sql` from `.com`, `.org`, `.net`, `.us`, and `.de` worlds.
 
 ### Updating and keeping your settings
 
@@ -131,7 +131,9 @@ Click the chart button to show how the planned ETA for the selected target chang
 
 Refreshes when you open the popup or click **Refresh**; there are no background requests. The account start is read once from the oldest system message in your inbox. Failed refreshes retain the last snapshot. Export the forecast log when reporting an incorrect ETA.
 
-## NPC AutoMerchant
+<a id="npc-automerchant"></a>
+
+## Travian NPC Calculator
 
 <a href="images/npc-calculator.png"><img src="images/npc-calculator.png" alt="NPC troop calculator panel" width="320" /></a>
 

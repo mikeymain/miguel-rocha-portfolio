@@ -1,5 +1,10 @@
 # Changelog
 
+## TravAlarm 3.57 and Travian NPC Calculator 3.2.18 — 2026-11-19
+
+- TravAlarm has a new hourglass icon and a description that highlights incoming attack alerts and timers.
+- NPC AutoMerchant is now Travian NPC Calculator. The new abacus icon and description highlight troop and resource calculations.
+
 ## Extension icon refresh — 2026-11-19
 
 - Updated NPC AutoMerchant 3.2.17, Oasis Finder 70.9, TravAlarm 3.56, Travian QoL 1.3.8, Rank Tracker 5.1.6, World Watch 1.7.2 with new charcoal, amber and emerald icons that match Next Settlement Calc. Each icon ships at 16, 32, 48 and 128 pixels.

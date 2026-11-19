@@ -11,11 +11,11 @@ Eight standalone browser extensions for Travian: forecasting, statistics history
 | Extension | Purpose | Version |
 | --- | --- | --- |
 | <a id="oasis-finder"></a>[Oasis Finder](extensions/OasisCalc/) | Oasis scoring and farm-list sorting | 70.9 |
-| <a id="travalarm"></a>[TravAlarm](extensions/travAlarm/) | Game timers, custom reminders and notifications | 3.56 |
+| <a id="travalarm"></a>[TravAlarm](extensions/travAlarm/) | Incoming attack alerts, game timers and custom reminders | 3.57 |
 | <a id="travian-qol"></a>[Travian QoL](extensions/TravianQoL/) | Farm-list selection, reports and interface utilities | 1.3.8 |
 | <a id="rank-tracker"></a>[Rank Tracker](extensions/TravianRankTracker/) | Rankings, statistics history and comparison graphs | 5.1.6 |
 | <a id="next-settlement-calc"></a>[Next Settlement Calc](extensions/NextSettlementCalc/) | Culture-point forecasts and celebration planning | 2.6.18 |
-| <a id="npc-automerchant"></a>[NPC AutoMerchant](extensions/automerchant/) | Troop resource calculations and hero-transfer assistance | 3.2.17 |
+| <a id="npc-automerchant"></a>[Travian NPC Calculator](extensions/automerchant/) | Maximum troop counts and resource splits for the NPC Merchant | 3.2.18 |
 | <a id="night-mode"></a>[Night Mode](extensions/travian_night_mode/) | Persistent dark theme and button colours | 2.6.1 |
 | <a id="world-watch"></a>[World Watch](extensions/WorldWatch/) | World snapshots, spawn map, population gains, alliances and a 15c finder with oasis scoring | 1.7.2 |
 
@@ -36,7 +36,7 @@ Each extension declares its entry points and permissions in `manifest.json`. See
 
 Used in desktop Brave; Chrome and Edge compatibility requires feedback. Domain support varies by manifest. The portfolio does not run automated extension tests; live page compatibility, notifications and data accuracy require manual verification.
 
-These are unofficial tools, unaffiliated with Travian Games. Travian's game rules restrict bots and automated actions, and some features act for you: NPC AutoMerchant's hero transfer clicks the game's transfer controls, and TravAlarm requests game pages in the background to refresh timers. Using them may break those rules and can lead to account penalties. See [data and permissions](docs/USAGE.md#data-and-permissions) before use.
+These are unofficial tools, unaffiliated with Travian Games. Travian's game rules restrict bots and automated actions, and some features act for you: Travian NPC Calculator's hero transfer clicks the game's transfer controls, and TravAlarm requests game pages in the background to refresh timers. Using them may break those rules and can lead to account penalties. See [data and permissions](docs/USAGE.md#data-and-permissions) before use.
 
 ## Attribution and feedback
 

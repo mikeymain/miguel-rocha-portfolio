@@ -1,9 +1,9 @@
-# NPC AutoMerchant
+# Travian NPC Calculator
 
-Calculates troop resource requirements and assists with NPC allocation and hero transfers.
+See how many troops you can train after exchanging resources with the NPC Merchant. Calculate resource splits and see what your hero can cover without leaving Travian.
 
-**Version 3.2.16 · JavaScript · Manifest V3**
+**Version 3.2.18 · JavaScript · Manifest V3**
 
-[Usage guide](../../docs/USAGE.md#npc-automerchant) · [Installation](../../README.md#install-in-brave-chrome-or-edge) · [All extensions](../../README.md)
+[Usage guide](../../docs/USAGE.md#travian-npc-calculator) · [Installation](../../README.md#install-in-brave-chrome-or-edge) · [All extensions](../../README.md)
 
 Load this directory with **Load unpacked** in a desktop Chromium browser. No build step is required. Refresh the game page after installation or updates.
