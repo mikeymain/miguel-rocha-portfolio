@@ -576,7 +576,7 @@ td.delta { text-align: right; white-space: nowrap; font-family: var(--font-num);
 }
 
 .picker-group { display: flex; flex-direction: column; min-width: 0; }
-.picker-title { padding: 2px 8px 3px; color: var(--accent); font: 600 9.5px/11px var(--font-num); letter-spacing: 0.14em; text-transform: uppercase; }
+.picker-title { padding: 1px 8px 2px; color: var(--accent); font: 600 9.5px/11px var(--font-num); letter-spacing: 0.14em; text-transform: uppercase; }
 .picker-chips { display: flex; flex-direction: column; }
 
 .chip-metric {
@@ -585,7 +585,7 @@ td.delta { text-align: right; white-space: nowrap; font-family: var(--font-num);
 	align-items: center;
 	gap: 7px;
 	width: 100%;
-	height: 18px;
+	height: 17px;
 	padding: 0 8px;
 	border: 0;
 	border-radius: 4px;

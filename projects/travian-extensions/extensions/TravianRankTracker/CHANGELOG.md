@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.1.3 — 2026-11-19
+
+- Graph: metric list rows are 1px shorter so all metrics fit without a scroll bar.
+
 ## Rank Tracker 5.1.2 — 2026-11-19
 
 - Graph: "Daily peaks" is replaced by interval averages: Raw, 1h, 3h, 6h, 12h, 24h, 48h, 72h and 1w. Each point is the mean of the snapshots in that interval.
