@@ -1,5 +1,9 @@
 # Changelog
 
+## Extension icon refresh — 2026-11-19
+
+- Updated NPC AutoMerchant 3.2.17, Oasis Finder 70.9, TravAlarm 3.56, Travian QoL 1.3.8, Rank Tracker 5.1.6, World Watch 1.7.2 with new charcoal, amber and emerald icons that match Next Settlement Calc. Each icon ships at 16, 32, 48 and 128 pixels.
+
 ## Next Settlement Calc 2.6.18 — 2026-11-19
 
 - The ETA history is split per CP target: each village's chart starts when the previous threshold was reached and ends when this one was reached. CP/d follows the same window.
