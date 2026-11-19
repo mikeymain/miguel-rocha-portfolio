@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian NPC Calculator 3.2.20 — 2026-11-19
+
+- Adds a darker emerald rim to the green pan of the balance icon.
+
 ## Travian NPC Calculator 3.2.19 — 2026-11-19
 
 - Replaces the abacus icon with a merchant's balance scale.
