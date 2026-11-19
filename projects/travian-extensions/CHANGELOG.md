@@ -1,5 +1,9 @@
 # Changelog
 
+## Next Settlement Calc 2.6.19 — 2026-11-19
+
+- With the ETA history open, the forecast card and spacing are tighter so the whole chart fits in the popup without scrolling.
+
 ## TravAlarm 3.58 — 2026-11-19
 
 - Refines the hourglass icon with two-tone gold caps and emerald sand in both chambers.

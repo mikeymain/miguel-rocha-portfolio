@@ -292,6 +292,7 @@
 	/** Chart of logged forecasts for the selected target. */
 	function renderEtaHistory() {
 		dom.etaHistory.hidden = !etaOpen;
+		document.body.classList.toggle("eta-open", etaOpen);
 		dom.etaHistoryToggle.setAttribute("aria-pressed", String(etaOpen));
 		if (!etaOpen || !etaChart) return;
 		const target = Number(dom.targetSlot.value);
