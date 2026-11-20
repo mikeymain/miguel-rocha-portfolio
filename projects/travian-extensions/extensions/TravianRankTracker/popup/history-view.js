@@ -144,8 +144,12 @@ function hvSyncPicker(chart) {
 function hvRenderPicker(chart) {
 	const picker = document.getElementById("metric-picker");
 	if (!picker) return;
+	const openGroup = picker.querySelector("details[open]")?.dataset.group ?? (picker.childElementCount ? null : "production");
 	const sections = METRIC_GROUPS.map((group) => {
-		const section = h("div", "picker-group");
+		const section = h("details", "picker-group");
+		section.name = "graph-metrics";
+		section.dataset.group = group.id;
+		section.open = group.id === openGroup;
 		const chips = h("div", "picker-chips");
 		for (const key of group.keys) {
 			const index = DATASETS_CONFIG.findIndex((cfg) => cfg.key === key);
@@ -169,7 +173,7 @@ function hvRenderPicker(chart) {
 			});
 			chips.append(btn);
 		}
-		section.append(h("span", "picker-title", group.title), chips);
+		section.append(h("summary", "picker-title", group.title), chips);
 		return section;
 	});
 	picker.replaceChildren(...sections);

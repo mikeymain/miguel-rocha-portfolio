@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.1.9 — 2026-11-20
+
+- Graph metric categories expand one at a time so the picker fits without scrolling.
+
 ## Rank Tracker 5.1.8 — 2026-11-20
 
 - History → Production now plots **Fields + raiding**, **Raids**, and **Raids (no animals)** in resources per hour. Each uses the same trailing hour as Now. Only the combined line includes field production.

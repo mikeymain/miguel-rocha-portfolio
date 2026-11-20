@@ -1,5 +1,9 @@
 # Changelog
 
+## Rank Tracker 5.1.9 — 2026-11-20
+
+- Makes Graph metric categories collapsible so all categories fit without scrolling.
+
 ## Rank Tracker 5.1.8 — 2026-11-20
 
 - Adds the hourly income breakdown to the Production graph.
