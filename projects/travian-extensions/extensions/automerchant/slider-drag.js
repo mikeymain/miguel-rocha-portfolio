@@ -16,9 +16,9 @@
 	// Handle/fill animation while dragging (Travian's own is 250 ms).
 	const DRAG_TRANSITION = "60ms";
 	// Handle offset in pixels from the cursor (positive = right).
-	const HANDLE_OFFSET_PX = -1;
+	const HANDLE_OFFSET_PX = -3;
 	// Extra pixels added to the track length used for the cursor-to-amount scale.
-	const TRACK_EXTRA_PX = 2;
+	const TRACK_EXTRA_PX = -3.5;
 	const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
 
 	/** Row parts for a bar: the amount input and its "/ max" cell. */

@@ -1,5 +1,10 @@
 # Changelog
 
+## Travian NPC Calculator 3.2.22, Travian Dark Mod 2.7.2 — 2026-11-20
+
+- Travian NPC Calculator: the dragged slider handle sits 3 px left of the cursor, and the drag scale uses a track 3.5 px shorter, matching the installed build.
+- Travian Dark Mod: version 2.7.2 matches the installed build. No behaviour change.
+
 ## TravAlarm 3.60, Travian NPC Calculator 3.2.21, Travian QoL 1.4.1 — 2026-11-20
 
 Travian renamed its pages: `dorf1.php` is now `/resources`, `dorf2.php` is `/village`, `karte.php` is `/map` and `build.php` is `/building`.

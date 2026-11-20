@@ -2,7 +2,7 @@
 
 Adds a persistent dark theme and configurable button colours to Travian pages.
 
-**Version 2.7.1 · JavaScript · Manifest V3**
+**Version 2.7.2 · JavaScript · Manifest V3**
 
 [Usage guide](../../docs/USAGE.md#night-mode) · [Installation](../../README.md#installing) · [All extensions](../../README.md)
 
