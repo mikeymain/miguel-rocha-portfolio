@@ -1,5 +1,9 @@
 # Changelog
 
+## World Watch 1.7.6 — 2026-11-20
+
+- Redraws the watchtower straight-on with flat amber shading and an emerald base.
+
 ## Travian NPC Calculator 3.2.22, Travian Dark Mod 2.7.2 — 2026-11-20
 
 - Travian NPC Calculator: the dragged slider handle sits 3 px left of the cursor, and the drag scale uses a track 3.5 px shorter, matching the installed build.
