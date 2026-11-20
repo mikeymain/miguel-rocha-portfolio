@@ -123,6 +123,10 @@ const NOW_RAID_WINDOW_HOURS = 1;
  */
 function raidRateReader(history, data, valueKey = "valBountyTotal") {
 	const points = prepareHistory([...history.filter((p) => p.timestamp !== data.timestamp), data]);
+	return preparedRaidRateReader(points, valueKey);
+}
+
+function preparedRaidRateReader(points, valueKey) {
 	const samples = points
 		.filter((point) => Number.isFinite(point[valueKey]))
 		.map((point) => ({ timestamp: point.timestamp, value: point[valueKey] }));

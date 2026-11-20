@@ -313,9 +313,10 @@ async function loadGraph(filter, storageKey) {
 	}
 	hvShowEmpty(false);
 
-	const prepared = prepareHistory(hist);
+	const prepared = withHourlyIncome(prepareHistory(hist));
 	const intervalMs = GRAPH_INTERVALS[filter];
-	let data = intervalMs ? aggregateInterval(prepared, intervalMs) : interpolateGaps(prepared);
+	const observations = intervalMs ? aggregateInterval(prepared, intervalMs) : interpolateGaps(prepared);
+	let data = observations;
 	if (!(savedZoom.min >= 0 && savedZoom.max > savedZoom.min && savedZoom.max < data.length)) {
 		delete savedZoom.min;
 		delete savedZoom.max;
@@ -324,7 +325,6 @@ async function loadGraph(filter, storageKey) {
 	if (popupState.isVelocityMode) {
 		data = intervalMs ? intervalVelocity(data, prepared) : withRolling3h(toVelocity(data), prepared);
 	}
-	data = intervalMs ? withRaidIntervalHourly(data, prepared, intervalMs) : withRaidHourly(data, prepared);
 
 	// A quick range (3h … 1w) always anchors to the newest point.
 	const rangeHours = Number(res.graphRange) || 0;
@@ -352,6 +352,7 @@ async function loadGraph(filter, storageKey) {
 
 	const timestamps = data.map((x) => x.timestamp);
 	const seriesFor = (cfg) => {
+		if (cfg.perHour) return observations.map(point => point[cfg.key] ?? null);
 		const raw = data.map((x) => (cfg.ceil ? (x[cfg.key] != null ? Math.ceil(x[cfg.key]) : null) : x[cfg.key] ?? null));
 		return popupState.isVelocityMode && !intervalMs ? smoothSeries(raw, RATE_SMOOTH_RADIUS) : raw;
 	};
@@ -360,6 +361,7 @@ async function loadGraph(filter, storageKey) {
 		return {
 		label: cfg.label,
 		perHour: !!cfg.perHour || raidRate,
+		hourlyResources: !!cfg.perHour || (!popupState.isVelocityMode && cfg.key === "valProd"),
 		...(raidRate ? { cubicInterpolationMode: "monotone" } : {}),
 		data: seriesFor(cfg),
 		comparisonData: !popupState.isVelocityMode && RESET_VALUE_KEYS.includes(cfg.key)

@@ -1,5 +1,9 @@
 # Changelog
 
+## Rank Tracker 5.1.8 — 2026-11-20
+
+- Adds the hourly income breakdown to the Production graph.
+
 ## Next Settlement Calc 2.6.21 — 2026-11-20
 
 - Makes the gate icon slightly taller while keeping its width.

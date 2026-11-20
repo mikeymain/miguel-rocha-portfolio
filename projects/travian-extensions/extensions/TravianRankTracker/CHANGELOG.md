@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.1.8 — 2026-11-20
+
+- History → Production now plots **Fields + raiding**, **Raids**, and **Raids (no animals)** in resources per hour. Each uses the same trailing hour as Now. Only the combined line includes field production.
+
 ## Rank Tracker 5.1.5 — 2026-11-19
 
 - Now: the average rank no longer shows the change since the last open; 1h, 3h, 1d and 7d remain.

@@ -26,6 +26,9 @@ const DATASETS_CONFIG = [
 	{ key: "valPop", label: "Population", color: "#f1efe9", dash: [2, 2], axis: "y1", defHidden: true, group: "population" },
 	{ key: "rankProd", label: "Prod/Day Rank", color: "#e7c24a", dash: null, axis: "y", defHidden: true, group: "production" },
 	{ key: "valProd", label: "Production per Hour", color: "#4fe0d2", dash: [2, 2], axis: "y1", defHidden: false, group: "production" },
+	{ key: "fieldsAndRaids", label: "Fields + raiding", color: "#a8df73", dash: [4, 2], axis: "y1", defHidden: true, perHour: true, group: "production" },
+	{ key: "raidIncome", label: "Raids", color: "#ff9d60", dash: [4, 2], axis: "y1", defHidden: true, perHour: true, group: "production" },
+	{ key: "raidIncomeNoAnimals", label: "Raids (no animals)", color: "#e3b45f", dash: [4, 2], axis: "y1", defHidden: true, perHour: true, group: "production" },
 	{ key: "rankProdSoFar", label: "Prod So Far Rank", color: "#b8952c", dash: null, axis: "y", defHidden: true, group: "production" },
 	{ key: "valProdSoFar", label: "Total Production", color: "#2fb5a8", dash: [4, 2], axis: "y1", defHidden: false, group: "production" },
 	{ key: "valBounty", label: "Bounty (Raid Gained)", color: "#ff8f4d", dash: [4, 2], axis: "y1", defHidden: false, group: "raids" },
@@ -40,7 +43,7 @@ const METRIC_GROUPS = [
 	{ id: "weekly", title: "Weekly", keys: ["rankPvp", "rankDefTop", "rankRob", "rankPve"] },
 	{ id: "raids", title: "Raiding", keys: ["valRob", "valRobExcludingPve", "valPve", "valPveResources", "valBounty"] },
 	{ id: "population", title: "Population", keys: ["rankPop", "valPop"] },
-	{ id: "production", title: "Production", keys: ["rankProd", "valProd", "rankProdSoFar", "valProdSoFar"] },
+	{ id: "production", title: "Production", keys: ["rankProd", "valProd", "fieldsAndRaids", "raidIncome", "raidIncomeNoAnimals", "rankProdSoFar", "valProdSoFar"] },
 	{ id: "culture", title: "Culture", keys: ["rankCp", "cpProd", "rankCpSoFar", "valCpSoFar"] },
 	{ id: "military", title: "Military", keys: ["rankOff", "pointsOff", "rankDef", "pointsDef"] },
 ];
@@ -382,35 +385,16 @@ function withRolling3h(velocity, prepared) {
 	});
 }
 
-/** Hourly raid averages from raw, reset-safe totals, in either graph mode. */
-function withRaidHourly(data, prepared) {
-	const timestamps = data.map((point) => point.timestamp);
-	const rates = {};
-	for (const [key, source] of [["valRaidHourly", "valRobTotal"], ["valRaidHourlyExcludingPve", "valRobExcludingPveTotal"]]) {
-		const samples = prepared.filter((point) => Number.isFinite(point[source]))
-			.map((point) => ({ timestamp: point.timestamp, value: point[source] }));
-		rates[key] = rollingWindowGain(samples, timestamps).map((gain) => gain == null ? null : Math.round(gain / 3));
-	}
-	return data.map((point, i) => ({ ...point, valRaidHourly: rates.valRaidHourly[i], valRaidHourlyExcludingPve: rates.valRaidHourlyExcludingPve[i] }));
-}
-
-/**
- * Hourly raid averages for interval buckets: the average gain per hour
- * inside each bucket, in place of the trailing 3h window.
- *
- * @param {Array<Object>} buckets  - Output of aggregateInterval (or its rates).
- * @param {Array<Object>} prepared - Output of prepareHistory (raw, sorted).
- * @param {number} intervalMs
- * @returns {Array<Object>} New points.
- */
-function withRaidIntervalHourly(buckets, prepared, intervalMs) {
-	const rates = {};
-	for (const [key, source] of [["valRaidHourly", "valRobTotal"], ["valRaidHourlyExcludingPve", "valRobExcludingPveTotal"]]) {
-		const samples = prepared.filter((point) => Number.isFinite(point[source]))
-			.map((point) => ({ timestamp: point.timestamp, value: point[source] }));
-		rates[key] = buckets.map((bucket) => bucketRate(samples, bucket.timestamp, bucket.timestamp + intervalMs));
-	}
-	return buckets.map((point, i) => ({ ...point, valRaidHourly: rates.valRaidHourly[i], valRaidHourlyExcludingPve: rates.valRaidHourlyExcludingPve[i] }));
+/** Hourly income at each saved observation, using the same readers as Now. */
+function withHourlyIncome(prepared) {
+	const raids = preparedRaidRateReader(prepared, "valBountyTotal");
+	const noAnimals = preparedRaidRateReader(prepared, "valRobExcludingPveTotal");
+	return prepared.map(point => ({
+		...point,
+		fieldsAndRaids: incomeOf(point, raids),
+		raidIncome: raids(point),
+		raidIncomeNoAnimals: noAnimals(point),
+	}));
 }
 
 /**
@@ -579,7 +563,11 @@ function hvValueAxisPlugin() {
 			const rankVisible = chart.data.datasets.some((ds, i) => ds.yAxisID === "y" && chart.isDatasetVisible(i));
 			const { y, y1 } = chart.options.scales;
 			const position = rankVisible ? "right" : "left";
-			if (y.display === rankVisible && y1.position === position) return;
+			const values = chart.data.datasets.filter((ds, i) => ds.yAxisID === "y1" && chart.isDatasetVisible(i));
+			const title = values.length && values.every(ds => ds.hourlyResources)
+				? "Resources / h" : popupState.isVelocityMode ? "Value / h" : "Value";
+			if (y.display === rankVisible && y1.position === position && y1.title.text === title) return;
+			y1.title.text = title;
 			y.display = rankVisible;
 			y1.position = position;
 			y1.grid.drawOnChartArea = !rankVisible;
