@@ -1,5 +1,9 @@
 # Changelog
 
+## Next Settlement Calc 2.6.21 — 2026-11-20
+
+- Makes the gate icon slightly taller while keeping its width.
+
 ## Larger Next Settlement Calc icon — 2026-11-20
 
 - Enlarges the gate artwork to match World Watch at toolbar size.
