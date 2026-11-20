@@ -911,7 +911,7 @@ function setupAlarmListeners(node, a, uniqueId) {
       if (tagMatch) currentTag = tagMatch[0];
 
       const prefixMatch = a.name.match(/^(⭐|📅|🚜)\s*/u);
-      const namePrefix = prefixMatch ? prefixMatch[1] : a.customType === "daily" ? "" : "⭐";
+      const namePrefix = prefixMatch ? (prefixMatch[1] === "🚜" ? "" : prefixMatch[1]) : a.customType === "daily" || a.customType === "farmlist" ? "" : "⭐";
       let middleContent = a.name
         .replace(currentTag, "")
         .replace(/^(?:⭐|📅|🚜)\s*/u, "")
@@ -1302,7 +1302,7 @@ async function handleDropdownAction(val, label, isFarmList, isDaily) {
     return;
   }
   const vName = getActiveVillageName();
-  const prefix = isDaily ? "" : isFarmList ? "🚜" : "⭐";
+  const prefix = isDaily || isFarmList ? "" : "⭐";
   const customType = isDaily ? "daily" : isFarmList ? "farmlist" : null;
   const isSticky = isFarmList || isDaily;
   api.runtime

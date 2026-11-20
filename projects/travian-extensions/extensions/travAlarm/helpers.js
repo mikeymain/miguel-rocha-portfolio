@@ -170,7 +170,7 @@ function calculateDelayFromSmartText(text, node = null) {
 function cleanAlarmName(rawName) {
   let clean = rawName.replace(/\[[^\]]+\]/g, "").trim();
   clean = clean.replace(/\s{2,}/g, " ");
-  clean = clean.replace(/^(?:⭐|📅|⚔️|⚔|🎓|📦|🌾|🪵|🧱|🔩|🎉|🚨|⚠️|⚠)\s*/u, "");
+  clean = clean.replace(/^(?:⭐|📅|🚜|⚔️|⚔|🎓|📦|🌾|🪵|🧱|🔩|🎉|🚨|⚠️|⚠)\s*/u, "");
   clean = clean.replace(/<span class="hero-icon">⚔️?<\/span>\s*/g, "");
   return clean.trim();
 }

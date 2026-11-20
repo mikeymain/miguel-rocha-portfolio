@@ -12,6 +12,10 @@
 
 - Enlarges the globe within the extension icon so it reads more clearly in the toolbar.
 
+## TravAlarm 3.59 — 2026-11-20
+
+- Farm list alarms no longer show a tractor emoji in their names. Existing farm list alarms display without it too.
+
 ## Next Settlement Calc 2.6.19 — 2026-11-19
 
 - With the ETA history open, the forecast card and spacing are tighter so the whole chart fits in the popup without scrolling.
