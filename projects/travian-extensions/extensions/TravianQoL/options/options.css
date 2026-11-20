@@ -616,16 +616,6 @@ input.lc-num:focus,
 .lc-row input[type="number"] + input[type="number"] { margin-left: 8px; }
 
 /* Buttons */
-/* Skip Ads rows expand to fill the card height proportionally, while the
-   reset button keeps its fixed 10px gap above. Same separation ratio as
-   the rest of the form. */
-#tab-skip-ads .lc-row,
-#tab-skip-ads .formfield {
-	flex: 1 1 auto;
-	min-height: 34px;
-	padding: 4px 0;
-}
-
 /* --- Counter-attack tab ------------------------------------------------- */
 /* The counter-attack output (status + timeline + minimap + numeric rows)
    is taller than the 560px popup floor. When this tab is active, let

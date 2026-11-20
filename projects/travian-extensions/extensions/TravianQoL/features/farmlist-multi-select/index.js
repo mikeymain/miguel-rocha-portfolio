@@ -220,7 +220,8 @@
 			// — previously, hijacking row clicks site-wide was blocking the
 			// reports page from opening individual reports.
 			const url = location.pathname + location.search;
-			const onFarmListUrl = /build\.php/.test(url) && /\btt=99\b/.test(url);
+			// build.php was renamed to /building; accept both.
+			const onFarmListUrl = /^\/(build\.php|building)\b/.test(url) && /\btt=99\b/.test(url);
 			const hasFarmListDom = document.querySelector('.raidList, [class*="raidList"], [class*="farmList"]') !== null;
 			if (!onFarmListUrl && !hasFarmListDom) return;
 

@@ -145,7 +145,7 @@
 
 	function annotateAll() {
 		annotateProduction();
-		if (!location.pathname.startsWith('/build.php')) return;
+		if (!/^\/(build\.php|building)\b/.test(location.pathname)) return;
 		const built = builtLevel();
 		if (built === null) return;
 		const wrappers = new Set([...document.querySelectorAll('.unit')].map((unit) => unit.parentElement));
@@ -175,7 +175,7 @@
 		label: 'Upgrade target values',
 		description: 'Shows hourly production gains on resource fields and compares culture points, population and construction time on building pages.',
 		init() {
-			if (location.pathname !== '/slot' && !location.pathname.startsWith('/build.php')) return;
+			if (location.pathname !== '/slot' && !/^\/(build\.php|building)\b/.test(location.pathname)) return;
 			if (document.body) start();
 			else window.addEventListener('DOMContentLoaded', start, { once: true });
 		},

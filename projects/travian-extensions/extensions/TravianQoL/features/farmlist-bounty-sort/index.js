@@ -1,7 +1,8 @@
 // Farm-list bounty sort.
 // When the user picks "By bounty" from Travian's sort menu, we enter a
 // persistent "bounty mode" that sorts every farm list on the page by:
-//   * Last raid bounty, DESCENDING (most profitable targets first).
+//   * Last raid bounty, DESCENDING by default (most profitable first).
+//     Picking "By bounty" again while the mode is on flips the direction.
 //   * Distance from the sending village, ASCENDING, as a tie-breaker.
 //
 // Mode persistence is important because Travian's React tree re-renders the
@@ -19,7 +20,10 @@
 // no timers run. Equivalent to the user clicking column headers manually.
 (function () {
 	const STATE_KEY = 'travianQoL.bountySort.active';
+	const DIR_KEY = 'travianQoL.bountySort.dir'; // 'desc' | 'asc'
+	const RESORT_DELAY_MS = 120;
 	let active = false;
+	let dir = 'desc';
 	let applying = false; // re-entry guard for our own appendChild calls
 	let clickHandler = null;
 	let storageListener = null;
@@ -54,22 +58,31 @@
 		const rowData = rows.map((row) => ({ row, ...readRow(row) }));
 		// Quick check: if the rows are already in the desired order, skip the
 		// appendChild loop entirely. Avoids triggering our own observer.
+		// Rows without a bounty always go last, whichever the direction.
+		const missing = dir === 'asc' ? Infinity : -Infinity;
 		const sorted = rowData.slice().sort((a, b) => {
-			const aB = Number.isFinite(a.bounty) ? a.bounty : -Infinity;
-			const bB = Number.isFinite(b.bounty) ? b.bounty : -Infinity;
-			if (aB !== bB) return bB - aB;
+			const aB = Number.isFinite(a.bounty) ? a.bounty : missing;
+			const bB = Number.isFinite(b.bounty) ? b.bounty : missing;
+			if (aB !== bB) return dir === 'asc' ? aB - bB : bB - aB;
 			const aD = Number.isFinite(a.distance) ? a.distance : Infinity;
 			const bD = Number.isFinite(b.distance) ? b.distance : Infinity;
 			return aD - bD;
 		});
 		const identical = sorted.every((s, i) => s.row === rowData[i].row);
 		if (identical) return;
+		// Moving rows must not move the page. Browser scroll anchoring picks a
+		// visible row as anchor and scrolls to follow it when we move it, which
+		// made the page jump whenever a farm list was opened. Exclude the rows
+		// from anchor selection and restore the scroll position as a backup.
+		tbody.style.overflowAnchor = 'none';
+		const { scrollX, scrollY } = window;
 		for (const { row } of sorted) tbody.appendChild(row);
 		// The "Add target" row and any other non-.slot trailing row belong
 		// at the very bottom of the list — our loop above would otherwise
 		// push them above the sorted slots.
 		const trailing = tbody.querySelectorAll(':scope > tr:not(.slot)');
 		for (const t of trailing) tbody.appendChild(t);
+		if (window.scrollX !== scrollX || window.scrollY !== scrollY) window.scrollTo(scrollX, scrollY);
 	}
 
 	function sortNow() {
@@ -108,14 +121,16 @@
 		if (!root) return;
 		rootObserver = new MutationObserver(() => {
 			if (!active || applying) return;
-			// Debounce so we sort the FINAL post-render order (and coalesce the
-			// burst of mutations a single re-render produces) rather than an
-			// intermediate one. sortTable() early-returns when already sorted, so
+			// Sort at once: the observer runs before the browser paints, so a
+			// newly opened farm list never shows its native order first. A
+			// debounced second pass then sorts the FINAL order of a multi-step
+			// re-render. sortTable() early-returns when already sorted, so
 			// mutations caused by our own appendChild converge without looping.
+			sortNow();
 			clearTimeout(resortTimer);
 			resortTimer = setTimeout(() => {
 				if (active && !applying) sortNow();
-			}, 120);
+			}, RESORT_DELAY_MS);
 		});
 		rootObserver.observe(root, { childList: true, subtree: true });
 	}
@@ -169,20 +184,34 @@
 		return null;
 	}
 
+	function setDir(value) {
+		dir = value === 'asc' ? 'asc' : 'desc';
+		chrome.storage.local.set({ [DIR_KEY]: dir });
+	}
+
 	function onClick(ev) {
 		const kind = classifySortClick(ev);
-		if (kind === 'bounty') setActive(true);
-		else if (kind === 'other') setActive(false);
+		if (kind === 'bounty') {
+			// First pick: high to low. Picking it again: flip the direction.
+			if (active) {
+				setDir(dir === 'desc' ? 'asc' : 'desc');
+				sortAll();
+			} else {
+				setDir('desc');
+				setActive(true);
+			}
+		} else if (kind === 'other') setActive(false);
 	}
 
 	window.TravianQoL.register({
 		id: 'farmlist-bounty-sort',
 		label: 'Farm list bounty sort',
-		description: 'When "By bounty" is selected, keeps targets sorted by last bounty descending with distance ascending as a tie-breaker — persistent across page re-renders until another sort is chosen.',
+		description: 'When "By bounty" is selected, keeps targets sorted by last bounty (high to low; pick it again for low to high) with distance as a tie-breaker, until another sort is chosen.',
 		init() {
 			// Page-scope guard: only run on the farm list page.
 			const url = location.pathname + location.search;
-			const onFarmListUrl = /build\.php/.test(url) && /\btt=99\b/.test(url);
+			// build.php was renamed to /building; accept both.
+			const onFarmListUrl = /^\/(build\.php|building)\b/.test(url) && /\btt=99\b/.test(url);
 			const hasFarmListDom = document.querySelector('.farmListWrapper, .raidList, [class*="raidList"], [class*="farmList"]') !== null;
 			if (!onFarmListUrl && !hasFarmListDom) return;
 
@@ -193,17 +222,19 @@
 			// Restore the persisted active state and start observing/sorting.
 			// Start the re-render observer either way so an activation later in
 			// the session is honoured even if the lists were empty at load.
-			chrome.storage.local.get([STATE_KEY], (res) => {
+			chrome.storage.local.get([STATE_KEY, DIR_KEY], (res) => {
 				active = !!res[STATE_KEY];
+				dir = res[DIR_KEY] === 'asc' ? 'asc' : 'desc';
 				if (active) sortAll();
 				else startRootObserver();
 			});
 
 			// Watch for the flag changing in another tab (or via options).
 			storageListener = (changes, area) => {
-				if (area !== 'local' || !changes[STATE_KEY]) return;
-				active = !!changes[STATE_KEY].newValue;
-				if (active) sortAll();
+				if (area !== 'local') return;
+				if (changes[DIR_KEY]) dir = changes[DIR_KEY].newValue === 'asc' ? 'asc' : 'desc';
+				if (changes[STATE_KEY]) active = !!changes[STATE_KEY].newValue;
+				if (active && (changes[STATE_KEY] || changes[DIR_KEY])) sortAll();
 			};
 			chrome.storage.onChanged.addListener(storageListener);
 		},

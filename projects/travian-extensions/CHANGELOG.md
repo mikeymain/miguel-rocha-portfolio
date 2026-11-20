@@ -1,5 +1,13 @@
 # Changelog
 
+## Travian QoL 1.4.0 — 2026-11-20
+
+- The in-game to-do list shows again. Travian renamed its village pages to `/resources` and `/village`, so the widget never started.
+- Farm-list bounty sort and multi-select work on the renamed `/building` farm-list page. Upgrade target values work on `/building` pages too.
+- Farm-list bounty sort: choose **By bounty** again to switch between high to low and low to high.
+- Farm-list bounty sort: opening a farm list no longer makes the page jump, and new rows are sorted before they show.
+- Removed the Skip Ads feature and its settings tab.
+
 ## World Watch 1.7.5 — 2026-11-19
 
 - Uses a sandstone watchtower on an emerald terrain tile as the extension icon.

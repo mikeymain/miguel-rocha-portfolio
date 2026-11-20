@@ -393,65 +393,6 @@
 		};
 	}
 
-	// ---- Skip Ads tab ----
-	const SA_DEFAULTS = {
-		'skipAds.debug': false,
-		'skipAds.videoSkipPollRate': 300,
-	};
-	const saRoot = document.getElementById('sa-settings');
-
-	function renderSkipAds(values) {
-		saRoot.innerHTML = '';
-
-		function addNumberRow(key, label, step) {
-			const row = document.createElement('div');
-			row.className = 'lc-row';
-			const inputId = `sa-${key.replace(/[^a-z0-9]+/gi, '-')}`;
-			const lbl = document.createElement('label');
-			lbl.htmlFor = inputId;
-			lbl.textContent = label;
-			const inp = document.createElement('input');
-			inp.type = 'number';
-			inp.id = inputId;
-			inp.className = 'lc-num';
-			inp.value = values[key];
-			if (step) inp.step = step;
-			inp.oninput = () => {
-				const v = parseFloat(inp.value);
-				if (Number.isFinite(v)) chrome.storage.local.set({ [key]: v }, flashSaved);
-			};
-			row.append(lbl, inp);
-			saRoot.appendChild(row);
-		}
-
-		const debugRow = document.createElement('label');
-		debugRow.className = 'lc-row lc-row--check';
-		const debugChk = document.createElement('input');
-		debugChk.type = 'checkbox';
-		debugChk.checked = !!values['skipAds.debug'];
-		debugChk.onchange = () => chrome.storage.local.set({ 'skipAds.debug': debugChk.checked }, flashSaved);
-		debugRow.append(debugChk, document.createTextNode(' Enable debug logging'));
-		saRoot.appendChild(debugRow);
-
-		addNumberRow('skipAds.videoSkipPollRate', 'Ad check interval (ms, min 100)', '50');
-
-		const reset = document.createElement('button');
-		reset.textContent = 'Reset to defaults';
-		reset.className = 'lc-reset';
-		reset.onclick = () => {
-			chrome.storage.local.set(SA_DEFAULTS, () => {
-				renderSkipAds(SA_DEFAULTS);
-				flashSaved();
-			});
-		};
-		saRoot.appendChild(reset);
-	}
-
-	chrome.storage.local.get(Object.keys(SA_DEFAULTS), (res) => {
-		const merged = { ...SA_DEFAULTS, ...res };
-		renderSkipAds(merged);
-	});
-
 	async function initLootCalcTab() {
 		const servers = await discoverServers();
 		const current = await detectCurrentServer();

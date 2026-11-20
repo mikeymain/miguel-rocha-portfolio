@@ -80,7 +80,7 @@ Open the toolbar popup or **Options** page. Features are enabled by default and 
 | --- | --- |
 | Farm-list multi-select | Click a checkbox to set an anchor. **Shift-click** changes a range to the opposite of the anchor's checked state; **Ctrl/Cmd-click** toggles a row. Checked rows are highlighted. Clicking outside lists clears selection. Check the resulting selection before sending raids. |
 | Open selected farm targets | **Right-click a checked row → Open N selected targets in tabs**. Opens unique map links from that list in background tabs. No raids are sent. Escape, scrolling, or an outside click closes the menu. |
-| Farm-list bounty sort | Choose **By bounty**. Orders by last bounty descending, then distance ascending for ties. Persists through list updates until another sort is selected. |
+| Farm-list bounty sort | Choose **By bounty**. Orders by last bounty, high to low; choose **By bounty** again for low to high. Distance breaks ties. Persists through list updates until another sort is selected. |
 | Adventure distance sort | Open the hero adventure list. Adventures appear nearest first. |
 | Village resource grand-total | Adds wood + clay + iron + crop totals beside village names on per-village resource/production statistics. |
 | Open unread reports | Click **Open Unread** beside Archive. Opens unread reports from the displayed page in background tabs. |

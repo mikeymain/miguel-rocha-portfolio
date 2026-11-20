@@ -923,8 +923,9 @@
 		description:
 			'A draggable, per-village to-do widget pinned to the page. Add, edit, reorder and check off tasks; the list is saved separately for each village.',
 		init() {
-			// Page-scope guard: the standalone version only ran on dorf pages.
-			if (!/\/dorf/.test(location.pathname)) return;
+			// Page-scope guard: village overview pages only. Travian renamed
+			// dorf1.php/dorf2.php to /resources and /village; accept both.
+			if (!/^\/(dorf[12]\.php|resources|village)\b/.test(location.pathname)) return;
 			if (document.getElementById(ROOT_ID)) return;
 			widget = new TodoWidget();
 		},
