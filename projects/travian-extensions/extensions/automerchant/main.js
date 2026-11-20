@@ -51,7 +51,7 @@
 			NPC.loadIndicatorPos(),
 		]);
 
-		if (location.pathname.includes("dorf1")) NPC.detectServerType();
+		if (/^\/(dorf1\.php|resources)$/.test(location.pathname)) NPC.detectServerType();
 		NPC.HeroPageObserver.init();
 		NPC.NPCObserver.start();
 	}

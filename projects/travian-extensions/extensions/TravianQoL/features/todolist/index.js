@@ -925,7 +925,7 @@
 		init() {
 			// Page-scope guard: village overview pages only. Travian renamed
 			// dorf1.php/dorf2.php to /resources and /village; accept both.
-			if (!/^\/(dorf[12]\.php|resources|village)\b/.test(location.pathname)) return;
+			if (!/^\/(dorf[12]\.php|resources|village)$/.test(location.pathname)) return;
 			if (document.getElementById(ROOT_ID)) return;
 			widget = new TodoWidget();
 		},

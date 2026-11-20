@@ -93,7 +93,12 @@ NPC.HeroPageObserver = {
   },
 
   _isMarketplace() {
-    return window.location.href.includes("/build.php?gid=17&t=5");
+    // build.php?gid=17&t=5 became /building?t=5&id=N: the gid left the
+    // URL, so identify the marketplace by its gid17 page class instead.
+    const params = new URLSearchParams(window.location.search);
+    if (!/^\/(build\.php|building)$/.test(window.location.pathname)) return false;
+    if (params.get("t") !== "5") return false;
+    return params.get("gid") === "17" || !!document.querySelector(".gid17");
   },
 
   _showNeededIndicator() {

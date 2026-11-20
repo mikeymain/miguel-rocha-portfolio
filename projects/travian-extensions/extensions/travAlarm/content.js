@@ -15,7 +15,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
     if (
       prefilled === CROP_OVERVIEW_LABEL ||
-      window.location.pathname.includes("dorf1.php")
+      /^\/(dorf1\.php|resources)$/.test(window.location.pathname)
     ) {
       const cropAlarms = scanResources();
 

@@ -1,7 +1,7 @@
 {
 	"manifest_version": 3,
 	"name": "TravAlarm",
-	"version": "3.59",
+	"version": "3.60",
 	"description": "Get incoming attack alerts and track Travian building, troop training and research timers, plus custom reminders.",
 	"permissions": [
 		"notifications",

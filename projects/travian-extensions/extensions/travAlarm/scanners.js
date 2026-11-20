@@ -29,6 +29,11 @@ function raidIncomePerHour() {
   return 0;
 }
 
+// Building pages: build.php was renamed to /building (resource fields: /slot).
+function isBuildingPage() {
+  return /^\/(build\.php|building|slot)$/.test(window.location.pathname);
+}
+
 function isResourcesPage() {
   const href = window.location.href;
   const search = window.location.search;
@@ -54,7 +59,7 @@ function tryScan(fn, ...args) {
 
 function scan() {
   if (typeof timerWidget !== "undefined" && timerWidget) {
-    const isMap = window.location.pathname.includes("karte.php");
+    const isMap = /^\/(karte\.php|map)$/.test(window.location.pathname);
     const isFull =
       new URLSearchParams(window.location.search).get("fullscreen") === "1";
     timerWidget.style.display = isMap && isFull ? "none" : "";
@@ -86,7 +91,7 @@ function scan() {
       "/village/statistics/troops/training",
     );
     const isTrainingBuildingPage =
-      window.location.pathname.includes("build.php") &&
+      isBuildingPage() &&
       !!document.querySelector(".trainBuilding");
     if (isTrainingStatsPage || isTrainingBuildingPage) {
       tryScan(fetchTrainingData);
@@ -94,7 +99,7 @@ function scan() {
 
     // Settler/Chieftain training on-page trigger (Residence/Palace only —
     // expansion units never appear on the troops training statistics page)
-    if (window.location.pathname.includes("build.php")) {
+    if (isBuildingPage()) {
       tryScan(scanSettlerTraining, activeVillage);
       tryScan(scanResearch, activeVillage);
     }
@@ -120,7 +125,7 @@ function scan() {
 // ==========================================
 
 function scanProduction(activeVillage) {
-  if (!window.location.pathname.includes("dorf1.php")) return;
+  if (!/^\/(dorf1\.php|resources)$/.test(window.location.pathname)) return;
   const table = document.getElementById("production");
   if (!table) return;
   const rows = table.querySelectorAll("tbody tr");
@@ -507,8 +512,8 @@ function getActiveVillageName() {
 function isVillageViewWithEmptyQueue() {
   const path = window.location.pathname;
   const isVillageView =
-    (path.includes("dorf1.php") && document.getElementById("resourceFieldContainer")) ||
-    (path.includes("dorf2.php") && document.getElementById("villageContent"));
+    (/^\/(dorf1\.php|resources)$/.test(path) && document.getElementById("resourceFieldContainer")) ||
+    (/^\/(dorf2\.php|village)$/.test(path) && document.getElementById("villageContent"));
   return !!isVillageView && !document.querySelector(".buildingList");
 }
 

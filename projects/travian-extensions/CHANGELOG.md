@@ -1,5 +1,13 @@
 # Changelog
 
+## TravAlarm 3.60, Travian NPC Calculator 3.2.21, Travian QoL 1.4.1 — 2026-11-20
+
+Travian renamed its pages: `dorf1.php` is now `/resources`, `dorf2.php` is `/village`, `karte.php` is `/map` and `build.php` is `/building`.
+
+- TravAlarm: production, crop alarms, the empty build queue check, training, settler and research scans work on the renamed pages again. The timer widget hides on the full-screen `/map` again.
+- Travian NPC Calculator: server type detection runs on `/resources`, and the needed-resources indicator shows on the renamed marketplace page.
+- Travian QoL: the to-do list no longer shows on `/village/statistics` pages.
+
 ## Travian QoL 1.4.0 — 2026-11-20
 
 - The in-game to-do list shows again. Travian renamed its village pages to `/resources` and `/village`, so the widget never started.
