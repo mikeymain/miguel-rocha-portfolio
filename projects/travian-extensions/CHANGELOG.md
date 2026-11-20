@@ -1,5 +1,9 @@
 # Changelog
 
+## Larger extension icons — 2026-11-20
+
+- Enlarges the artwork to match World Watch in NPC Calculator 3.2.23, Oasis Finder 70.10, TravAlarm 3.61, Travian QoL 1.4.2, Rank Tracker 5.1.7.
+
 ## World Watch 1.7.6 — 2026-11-20
 
 - Redraws the watchtower straight-on with flat amber shading and an emerald base.
