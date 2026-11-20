@@ -14,7 +14,7 @@ Eight standalone browser extensions for Travian: forecasting, statistics history
 | <a id="travalarm"></a>[TravAlarm](extensions/travAlarm/) | Incoming attack alerts, game timers and custom reminders | 3.61 |
 | <a id="travian-qol"></a>[Travian QoL](extensions/TravianQoL/) | Farm-list selection, reports and interface utilities | 1.4.2 |
 | <a id="rank-tracker"></a>[Rank Tracker](extensions/TravianRankTracker/) | Rankings, statistics history and comparison graphs | 5.1.7 |
-| <a id="next-settlement-calc"></a>[Next Settlement Calc](extensions/NextSettlementCalc/) | Culture-point forecasts and celebration planning | 2.6.19 |
+| <a id="next-settlement-calc"></a>[Next Settlement Calc](extensions/NextSettlementCalc/) | Culture-point forecasts and celebration planning | 2.6.20 |
 | <a id="npc-automerchant"></a>[Travian NPC Calculator](extensions/automerchant/) | Maximum troop counts and resource splits for the NPC Merchant | 3.2.23 |
 | <a id="night-mode"></a>[Night Mode](extensions/travian_night_mode/) | Persistent dark theme and button colours | 2.6.1 |
 | <a id="world-watch"></a>[World Watch](extensions/WorldWatch/) | World snapshots, spawn map, population gains, alliances and a 15c finder with oasis scoring | 1.7.6 |

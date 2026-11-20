@@ -1,5 +1,9 @@
 # Changelog
 
+## Larger Next Settlement Calc icon — 2026-11-20
+
+- Enlarges the gate artwork to match World Watch at toolbar size.
+
 ## Larger extension icons — 2026-11-20
 
 - Enlarges the artwork to match World Watch in NPC Calculator 3.2.23, Oasis Finder 70.10, TravAlarm 3.61, Travian QoL 1.4.2, Rank Tracker 5.1.7.
