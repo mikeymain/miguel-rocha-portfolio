@@ -70,6 +70,7 @@ if (chrome.idle) {
 }
 
 const DUPLICATE_THRESHOLD_MS = 5000; // two alarms with the same name within 5s = duplicate
+const isStickyPreset = (type) => type === "farmlist" || type === "daily";
 
 // ==========================================
 // CONTEXT MENU
@@ -462,6 +463,9 @@ function handleMessage(msg, sender, sendResponse) {
           return;
         }
 
+        const stickyPreset = isStickyPreset(newB.customType);
+        const matchesName = (a) => a.name === newB.name &&
+          (a.customType === newB.customType || (!stickyPreset && !isStickyPreset(a.customType)));
         // For refreshable types, update an existing alarm in-place rather than creating a duplicate.
         // resource/storage: skip update if silenced and already past due (user dismissed it).
         // culture: update time but keep silenced state (no auto-un-silence on cultural alarms).
@@ -488,14 +492,12 @@ function handleMessage(msg, sender, sendResponse) {
               (a) => a.customType === "hero" && a.name.endsWith(newServerTag),
             );
           } else {
-            existing = alarms.find((a) => a.name === newB.name);
+            existing = alarms.find(matchesName);
           }
           if (existing) {
-            if (newB.customType === "farmlist" || newB.customType === "daily") {
-              existing.scheduledTime = newScheduledTime;
-              existing.notified = false;
-              existing.silenced = false;
-              return;
+            if (stickyPreset) {
+              existing.createdAt = now;
+              existing.recurring = newB.recurring ?? existing.recurring;
             }
 
             if (newB.customType === "hero") {
@@ -512,7 +514,7 @@ function handleMessage(msg, sender, sendResponse) {
 
         const isDuplicate = alarms.some(
           (a) =>
-            a.name === newB.name &&
+            matchesName(a) &&
             Math.abs(a.scheduledTime - newScheduledTime) <
               DUPLICATE_THRESHOLD_MS,
         );
@@ -621,9 +623,16 @@ function handleMessage(msg, sender, sendResponse) {
       const alarmToEdit = alarms.find((a) => a.id === msg.id);
       if (alarmToEdit && alarmToEdit.customType !== "attack") {
         if (msg.newName) alarmToEdit.name = msg.newName;
-        if (msg.newDelay) {
-          alarmToEdit.scheduledTime = Date.now() + msg.newDelay;
-          alarmToEdit.createdAt = Date.now();
+        // A Farm List card sends a delay without a name when clicked to reset.
+        // Use the saved interval because the card may still have an older copy.
+        const delay = alarmToEdit.customType === "farmlist" && msg.newName === undefined &&
+          msg.newDelay !== undefined && alarmToEdit.recurring > 0
+          ? alarmToEdit.recurring
+          : msg.newDelay;
+        if (delay) {
+          const now = Date.now();
+          alarmToEdit.scheduledTime = now + delay;
+          alarmToEdit.createdAt = now;
           alarmToEdit.notified = false;
           alarmToEdit.silenced = false;
         }

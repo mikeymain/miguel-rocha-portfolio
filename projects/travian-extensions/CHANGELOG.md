@@ -1,5 +1,9 @@
 # Changelog
 
+## TravAlarm 3.63 — 2026-11-21
+
+- Keeps same-named Farm List and Daily reminders independent, resets Farm List reminders using the current preset interval, and shows DONE only once the countdown reaches its deadline.
+
 ## Rank Tracker 5.1.13 — 2026-11-21
 
 - Moves Choose metrics to the top of Graph and clarifies the Show last and Group points controls.

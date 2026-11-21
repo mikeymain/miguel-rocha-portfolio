@@ -1130,7 +1130,7 @@ function tick() {
       if (ref.finishNode) ref.finishNode.textContent = fTime;
     }
 
-    const s = Math.max(0, ((a.scheduledTime - now) / 1000) | 0);
+    const s = Math.max(0, Math.ceil((a.scheduledTime - now) / 1000));
     const isSilenced = silencedAlarms.has(uniqueId) || a.silenced;
     const newText = s === 0 ? "DONE" : formatHMS(s);
     if (ref.lastText !== newText) ref.timeNode.textContent = newText;
