@@ -4,7 +4,7 @@ Records player statistics and displays rankings, historical changes and comparis
 
 **Version 5.1.12 · JavaScript · Manifest V3**
 
-[Usage guide](../../docs/USAGE.md#rank-tracker) · [Installation](../../README.md#install-in-brave-chrome-or-edge) · [All extensions](../../README.md)
+[Usage guide](../../docs/USAGE.md#rank-tracker) · [Installation](../../README.md#install-in-brave-chrome-or-edge) · [All extensions](../../README.md) · [Privacy policy](../../docs/rank-tracker-privacy.md)
 
 Use **Load unpacked** in Brave, Chrome, or Edge. In Firefox, use [Load Temporary Add-on](../../README.md#install-in-firefox). No build step is required. Refresh the game page after installation or updates.
 

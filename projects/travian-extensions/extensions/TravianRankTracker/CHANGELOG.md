@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.1.12 — 2026-11-21
+
+- Makes the background script compatible with both service workers and background pages.
+
 ## Rank Tracker 5.1.11 — 2026-11-21
 
 - Aligns graph time controls on the left and puts Metrics, saved groups, and Scale on the right above the chart.
