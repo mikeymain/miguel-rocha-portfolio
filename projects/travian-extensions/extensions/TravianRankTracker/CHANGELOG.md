@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.1.10 — 2026-11-21
+
+- Gives the chart the full popup width, puts Window and Interval controls above it, and opens all metric categories from one button.
+
 ## Rank Tracker 5.1.9 — 2026-11-20
 
 - Graph metric categories expand one at a time so the picker fits without scrolling.

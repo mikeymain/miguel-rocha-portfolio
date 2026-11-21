@@ -443,8 +443,11 @@ td.delta { text-align: right; white-space: nowrap; font-family: var(--font-num);
 .state-msg[data-kind="error"] { color: var(--down); }
 
 /* ── History toolbar ────────────────────────────────────────────────── */
-.hist-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; flex: none; }
-.toolbar-spacer { flex: 1; }
+.hist-toolbar { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 4px 8px; }
+.time-label { color: var(--muted); font-size: 11px; }
+.time-controls, .hist-footer { display: flex; align-items: center; gap: 8px; }
+.time-controls { flex-wrap: wrap; gap: 4px 8px; }
+.hist-footer .group-bar { margin-left: auto; }
 
 .seg {
 	display: inline-flex;
@@ -468,8 +471,7 @@ td.delta { text-align: right; white-space: nowrap; font-family: var(--font-num);
 .seg-btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4); }
 .group-bar { display: flex; align-items: center; gap: 6px; min-width: 0; flex: 0 1 auto; }
 #seg-range .seg-btn { padding: 0 6px; }
-.hist-toolbar { min-width: 0; }
-.hist-toolbar .group-list { min-width: 0; flex: 0 1 auto; }
+.hist-footer .group-list { min-width: 0; flex: 0 1 auto; }
 
 .group-list {
 	display: flex;
@@ -506,7 +508,7 @@ td.delta { text-align: right; white-space: nowrap; font-family: var(--font-num);
 }
 
 .group-chip-x { width: 24px; padding: 0; font-size: 14px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
-.view-hist { position: relative; }
+.view-hist { position: relative; anchor-name: --graph-view; }
 
 .primary-btn {
 	height: 28px;
@@ -554,25 +556,29 @@ td.delta { text-align: right; white-space: nowrap; font-family: var(--font-num);
 .group-form input::placeholder { color: var(--faint); }
 
 /* ── Metric picker ──────────────────────────────────────────────────── */
-.hist-body {
-	flex: 1;
-	min-height: 0;
+.metric-picker {
+	position-anchor: --graph-view;
+	inset: auto;
+	top: anchor(center);
+	left: anchor(center);
+	margin: 0;
+	translate: -50% -50%;
+	width: min(744px, calc(100cqw - 24px));
+	padding: 8px;
+	border: 1px solid var(--line-strong);
+	border-radius: var(--radius-lg);
+	background: var(--surface);
+	color: var(--text);
+	box-shadow: var(--shadow-pop);
+}
+
+.metric-picker:popover-open {
 	display: grid;
-	grid-template-columns: 172px minmax(0, 1fr);
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, .85fr) minmax(0, 1.3fr) minmax(0, .85fr) minmax(0, 1fr);
 	gap: 8px;
 }
 
-.metric-picker {
-	display: flex;
-	flex-direction: column;
-	min-height: 0;
-	padding: 4px;
-	border: 1px solid var(--line);
-	border-radius: var(--radius-lg);
-	background: var(--surface);
-}
-
-.picker-title { padding: 0 8px; color: var(--accent); font: 600 9.5px/26px var(--font-num); letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; }
+.picker-title { display: block; padding: 3px 8px; color: var(--accent); font: 600 9.5px/12px var(--font-num); letter-spacing: 0.14em; text-transform: uppercase; }
 .picker-chips { display: flex; flex-direction: column; }
 
 .chip-metric {
@@ -814,21 +820,17 @@ td.delta { text-align: right; white-space: nowrap; font-family: var(--font-num);
 	}
 }
 
-/* History: the metric list runs the full height beside the toolbar and chart. */
-.view-hist:not([hidden]) { display: grid; grid-template-columns: 172px minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: 8px; }
-.view-hist .hist-toolbar { grid-column: 2; grid-row: 1; }
-.view-hist .hist-body { display: contents; }
-.view-hist .metric-picker { grid-column: 1; grid-row: 1 / span 2; }
-.view-hist .chart-wrap { grid-column: 2; grid-row: 2; }
-
-/* Popup zoom reduces the available layout size while keeping the window fixed. */
+/* Popup zoom reduces the layout size inside the fixed browser window. */
 .views { container-type: size; }
-@container (max-height: 345px) {
-	.metric-picker .picker-title { line-height: 17px; }
-	.metric-picker .chip-metric { height: 17px; }
+.view-hist:not([hidden]) { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
+@container (max-width: 760px) {
+	.metric-picker:popover-open { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @container (max-width: 560px) {
-	.view-hist:not([hidden]) { grid-template-columns: 128px minmax(0, 1fr); }
-	.hist-toolbar .seg { flex-wrap: wrap; }
-	.hist-toolbar .seg-btn { padding-inline: 4px; }
+	.metric-picker:popover-open { padding: 5px; gap: 4px; }
+	.metric-picker .picker-title { padding: 2px 4px; }
+	.metric-picker .chip-metric { height: 16px; padding-inline: 4px; gap: 4px; }
+	.time-controls .seg { flex-wrap: wrap; }
+	.time-controls .seg-btn { padding-inline: 4px; }
+	.group-list { max-width: 130px; }
 }

@@ -1,5 +1,9 @@
 # Changelog
 
+## Rank Tracker 5.1.10 — 2026-11-21
+
+- Moves the Window and Interval controls above the full-width chart and puts all metric categories in a single grid.
+
 ## Rank Tracker 5.1.9 — 2026-11-20
 
 - Makes Graph metric categories collapsible so all categories fit without scrolling.
