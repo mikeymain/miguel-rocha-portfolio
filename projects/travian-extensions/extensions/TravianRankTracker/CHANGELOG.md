@@ -1,5 +1,10 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.1.13 — 2026-11-21
+
+- Moves Choose metrics to the top of Graph and clarifies the Show last and Group points controls.
+- Starts Graph with the Ranks group, which includes general ranks plus weekly PvE and Robbers.
+
 ## Rank Tracker 5.1.12 — 2026-11-21
 
 - Makes the background script compatible with both service workers and background pages.

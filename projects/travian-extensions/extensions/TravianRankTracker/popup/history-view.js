@@ -179,7 +179,7 @@ function hvRenderPicker(chart) {
 function hvRenderGroups(chart) {
 	const list = document.getElementById("group-list");
 	if (!list) return;
-	const chips = Object.entries(hvGroups).map(([groupName, groupLabels]) => {
+	const chips = Object.entries({ Ranks: DEFAULT_GRAPH_RANKS, ...hvGroups }).map(([groupName, groupLabels]) => {
 		const chip = h("span", "group-chip");
 		const name = h("button", "group-chip-name", groupName);
 		name.type = "button";
@@ -197,17 +197,20 @@ function hvRenderGroups(chart) {
 			hvCloseCompare();
 			await hvPersistPrefs(chart);
 		});
-		const del = h("button", "group-chip-x", "×");
-		del.type = "button";
-		del.setAttribute("aria-label", `Delete group ${groupName}`);
-		del.addEventListener("click", async () => {
-			const next = { ...hvGroups };
-			delete next[groupName];
-			hvGroups = next;
-			await api.storage.local.set({ customGroups: next });
-			if (chart === window.myChart) hvRenderGroups(chart);
-		});
-		chip.append(name, del);
+		chip.append(name);
+		if (Object.hasOwn(hvGroups, groupName)) {
+			const del = h("button", "group-chip-x", "×");
+			del.type = "button";
+			del.setAttribute("aria-label", `Delete group ${groupName}`);
+			del.addEventListener("click", async () => {
+				const next = { ...hvGroups };
+				delete next[groupName];
+				hvGroups = next;
+				await api.storage.local.set({ customGroups: next });
+				if (chart === window.myChart) hvRenderGroups(chart);
+			});
+			chip.append(del);
+		}
 		return chip;
 	});
 	list.replaceChildren(...chips);
@@ -295,9 +298,11 @@ async function loadGraph(filter, storageKey) {
 	const res = await api.storage.local.get([storageKey, "graphPrefs", "graphZoom", "graphRange"]);
 	if (loadVersion !== graphLoadVersion) return;
 	const hist = res[storageKey] || [];
-	const prefs = res.graphPrefs || {};
+	const prefs = res.graphPrefs;
 	const savedZoom = { ...(res.graphZoom || {}) };
-	const isHidden = (label, defaultHidden) => (prefs[label] !== undefined ? prefs[label] : defaultHidden);
+	const isHidden = (label, defaultHidden) => prefs
+		? (prefs[label] ?? defaultHidden)
+		: !DEFAULT_GRAPH_RANKS.includes(label);
 
 	hvCloseCompare();
 	const resetZoomBtn = document.getElementById("btn-zoom-reset");

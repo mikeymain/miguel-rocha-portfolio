@@ -1,5 +1,10 @@
 # Changelog
 
+## Rank Tracker 5.1.13 — 2026-11-21
+
+- Moves Choose metrics to the top of Graph and clarifies the Show last and Group points controls.
+- Starts Graph with the Ranks group, which includes general ranks plus weekly PvE and Robbers.
+
 ## Browser compatibility — 2026-11-21
 
 - Added Firefox installation instructions and background support for Oasis Finder 70.11, TravAlarm 3.62, Travian QoL 1.4.3, Rank Tracker 5.1.12, Next Settlement Calc 2.6.22, World Watch 1.7.7.

@@ -78,9 +78,17 @@
 
 			<section class="view view-hist" id="view-hist" role="tabpanel" aria-labelledby="tab-hist" tabindex="0" hidden>
 				<div class="hist-toolbar">
-					<span class="time-label" aria-hidden="true">Window</span>
+					<div class="metric-actions">
+						<button class="primary-btn" type="button" popovertarget="metric-picker">Choose metrics</button>
+						<div class="group-bar">
+							<button class="ghost-btn" id="btn-group-none" type="button">Clear</button>
+							<div class="group-list" id="group-list"></div>
+							<button class="ghost-btn" id="btn-group-save" type="button">Save group</button>
+						</div>
+					</div>
+					<span class="time-label" id="range-label">Show last</span>
 					<div class="time-controls">
-						<div class="seg" id="seg-range" role="group" aria-label="Window">
+						<div class="seg" id="seg-range" role="group" aria-labelledby="range-label" title="Choose how far back the graph goes. Select the same option again to show all history.">
 							<button class="seg-btn" type="button" data-h="3" aria-pressed="false">3h</button>
 							<button class="seg-btn" type="button" data-h="6" aria-pressed="false">6h</button>
 							<button class="seg-btn" type="button" data-h="12" aria-pressed="false">12h</button>
@@ -89,19 +97,11 @@
 							<button class="seg-btn" type="button" data-h="72" aria-pressed="false">72h</button>
 							<button class="seg-btn" type="button" data-h="168" aria-pressed="false">1w</button>
 						</div>
-						<div class="metric-actions">
-							<button class="ghost-btn" type="button" popovertarget="metric-picker">Metrics</button>
-							<div class="group-bar">
-								<button class="ghost-btn" id="btn-group-none" type="button">Clear</button>
-								<div class="group-list" id="group-list"></div>
-								<button class="ghost-btn" id="btn-group-save" type="button">Save group</button>
-							</div>
-						</div>
 					</div>
-					<span class="time-label" aria-hidden="true">Interval</span>
+					<span class="time-label" id="filter-label">Group points</span>
 					<div class="time-controls">
-						<div class="seg" id="seg-filter" role="group" aria-label="Interval">
-							<button class="seg-btn" type="button" data-f="all" aria-pressed="true">Raw</button>
+						<div class="seg" id="seg-filter" role="group" aria-labelledby="filter-label" title="Combine readings into one point per selected time period. Choose Ungrouped to keep individual readings.">
+							<button class="seg-btn" type="button" data-f="all" aria-pressed="true">Ungrouped</button>
 							<button class="seg-btn" type="button" data-f="1h" aria-pressed="false">1h</button>
 							<button class="seg-btn" type="button" data-f="3h" aria-pressed="false">3h</button>
 							<button class="seg-btn" type="button" data-f="6h" aria-pressed="false">6h</button>

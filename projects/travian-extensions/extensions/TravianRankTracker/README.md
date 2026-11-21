@@ -2,13 +2,15 @@
 
 Records player statistics and displays rankings, historical changes and comparison graphs.
 
-**Version 5.1.12 · JavaScript · Manifest V3**
+**Version 5.1.13 · JavaScript · Manifest V3**
 
 [Usage guide](../../docs/USAGE.md#rank-tracker) · [Installation](../../README.md#install-in-brave-chrome-or-edge) · [All extensions](../../README.md) · [Privacy policy](../../docs/rank-tracker-privacy.md)
 
 Use **Load unpacked** in Brave, Chrome, or Edge. In Firefox, use [Load Temporary Add-on](../../README.md#install-in-firefox). No build step is required. Refresh the game page after installation or updates.
 
 ## Graph layout
+
+**Choose metrics** opens the metric picker. **Ranks** is the starting group and includes general ranks plus weekly PvE and Robbers. **Show last** controls how much history is visible. **Group points** combines readings into one point per selected period.
 
 Graph controls wrap within the popup so the full chart and right-hand axis stay visible, including when Reset zoom appears.
 

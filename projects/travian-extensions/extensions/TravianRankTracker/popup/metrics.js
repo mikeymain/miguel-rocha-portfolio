@@ -38,6 +38,10 @@ const DATASETS_CONFIG = [
 	{ key: "valCpSoFar", label: "Total CP", color: "#3fc46a", dash: [4, 2], axis: "y1", defHidden: true, group: "culture" },
 ];
 
+const DEFAULT_GRAPH_RANKS = DATASETS_CONFIG
+	.filter(({ axis, key }) => axis === "y" && key !== "rankPvp" && key !== "rankDefTop")
+	.map(({ label }) => label);
+
 /** Picker sections in display order; `keys` lists DATASETS_CONFIG keys. */
 const METRIC_GROUPS = [
 	{ id: "weekly", title: "Weekly", keys: ["rankPvp", "rankDefTop", "rankRob", "rankPve"] },

@@ -446,7 +446,8 @@ td.delta { text-align: right; white-space: nowrap; font-family: var(--font-num);
 .hist-toolbar { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 4px 8px; }
 .time-label { color: var(--muted); font-size: 11px; }
 .time-controls, .metric-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
-.metric-actions, #seg-mode { margin-left: auto; }
+.metric-actions { grid-column: 1 / -1; }
+#seg-mode { margin-left: auto; }
 
 .seg {
 	display: inline-flex;
@@ -831,6 +832,6 @@ td.delta { text-align: right; white-space: nowrap; font-family: var(--font-num);
 	.metric-picker .chip-metric { height: 16px; padding-inline: 4px; gap: 4px; }
 	.time-controls .seg { flex-wrap: wrap; }
 	.time-controls .seg-btn { padding-inline: 4px; }
-	.metric-actions, #seg-mode { margin-left: 0; }
+	#seg-mode { margin-left: 0; }
 	.group-list { max-width: 100px; }
 }
