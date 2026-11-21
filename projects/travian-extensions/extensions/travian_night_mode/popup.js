@@ -1,9 +1,10 @@
-// Travian Dark Mod — popup controller.
-// Dark Mod toggle + a custom dark HSV color picker (the native <input type=color>
+// Travian Dark Mode — popup controller.
+// Dark Mode and artwork toggles + a custom dark HSV color picker (the native <input type=color>
 // dialog can't be themed) with savable favorite colors. Loads state on open;
 // persists & broadcasts to open Travian tabs on change.
 
 const toggle = document.getElementById("toggleNight");
+const artworkToggle = document.getElementById("toggleNightAssets");
 const svArea = document.getElementById("svArea");
 const svThumb = document.getElementById("svThumb");
 const hueArea = document.getElementById("hueArea");
@@ -23,6 +24,7 @@ const DEFAULT_SWATCH = "#71d000";
 // purple so the strip isn't empty on first run.
 const FAV_KEY = "favoriteColors";
 const NIGHT_KEY = "nightMode";
+const NIGHT_ASSETS_KEY = "nightAssets";
 const COLOR_KEY = "purpleButtonColor";
 const MAX_FAVS = 12;
 const SEED_FAVS = ["#7e31e4"];
@@ -51,14 +53,14 @@ function broadcast(message) {
 		.then((tabs) => {
 			for (const tab of tabs) chrome.tabs.sendMessage(tab.id, message).catch(() => {});
 		})
-		.catch((error) => console.error("Travian Dark Mod: could not reach Travian tabs", error));
+		.catch((error) => console.error("Travian Dark Mode: could not reach Travian tabs", error));
 }
 
 // Persists settings; a failed write is logged instead of becoming an unhandled rejection.
 function save(items) {
 	chrome.storage.local
 		.set(items)
-		.catch((error) => console.error("Travian Dark Mod: could not save settings", error));
+		.catch((error) => console.error("Travian Dark Mode: could not save settings", error));
 }
 
 // Live preview while dragging or typing: at most one broadcast per frame.
@@ -301,8 +303,13 @@ function removeFavorite(hex) {
 
 toggle.addEventListener("change", () => {
 	const isNight = toggle.checked;
+	artworkToggle.disabled = !isNight;
 	save({ [NIGHT_KEY]: isNight });
 	broadcast({ nightMode: isNight });
+});
+
+artworkToggle.addEventListener("change", () => {
+	save({ [NIGHT_ASSETS_KEY]: artworkToggle.checked });
 });
 
 resetColor.addEventListener("click", () => {
@@ -316,9 +323,11 @@ resetColor.addEventListener("click", () => {
 // ── Initial load ──────────────────────────────────────────────────────────────
 
 chrome.storage.local
-	.get({ [NIGHT_KEY]: true, [COLOR_KEY]: DEFAULT_STATE, [FAV_KEY]: null })
+	.get({ [NIGHT_KEY]: true, [NIGHT_ASSETS_KEY]: true, [COLOR_KEY]: DEFAULT_STATE, [FAV_KEY]: null })
 	.then((res) => {
 		toggle.checked = res[NIGHT_KEY] !== false;
+		artworkToggle.checked = res[NIGHT_ASSETS_KEY] !== false;
+		artworkToggle.disabled = !toggle.checked;
 		// An unreadable stored color shows the default swatch, not black.
 		if (res[COLOR_KEY] === DEFAULT_STATE || !setFromHex(res[COLOR_KEY])) {
 			setFromHex(DEFAULT_SWATCH);
@@ -332,5 +341,5 @@ chrome.storage.local
 		if (res[FAV_KEY] === null) saveFavorites();
 		renderFavorites();
 	})
-	.catch((error) => console.error("Travian Dark Mod: could not load settings", error))
+	.catch((error) => console.error("Travian Dark Mode: could not load settings", error))
 	.finally(() => requestAnimationFrame(() => document.body.classList.remove("loading")));

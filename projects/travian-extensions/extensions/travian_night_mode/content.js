@@ -7,6 +7,7 @@
 const NIGHT_MODE_CONFIG = {
 	storageKey: "nightMode",
 	defaultEnabled: true,
+	nightAssetsKey: "nightAssets",
 	buttonColorKey: "purpleButtonColor",
 	// Sentinel = "leave the game's native buttons untouched". Any hex value
 	// instead opts the round buttons into recoloring.
@@ -2406,9 +2407,10 @@ const { themeAttribute, themeValues, defaultButtonColor } = NIGHT_MODE_CONFIG;
 
 let themeObserver = null; // watches <html> for a (new) <body>
 let bodyObserver = null; // watches <body>'s data-theme
-// The game's own data-theme before Dark Mod overrode it; restored when
-// Dark Mod is switched off, so the player's in-game choice survives.
+// The game's own data-theme before Dark Mode overrode it; restored when
+// Dark Mode is switched off, so the player's in-game choice survives.
 let originalTheme;
+let nightAssetsEnabled;
 let currentButtonColor = defaultButtonColor;
 
 // Injected <style> elements are tracked by reference, not by id, so the page
@@ -2451,7 +2453,7 @@ function runtimeVarsCss() {
 	return `:root { ${decls.join(" ")} }`;
 }
 
-// Rewrites the runtime variables while Dark Mod is on.
+// Rewrites the runtime variables while Dark Mode is on.
 function updateRuntimeVars() {
 	if (!themeStyle) return;
 	varsStyle ??= addStyle("");
@@ -2465,8 +2467,15 @@ function removeCSS() {
 	varsStyle = null;
 }
 
+function applyGameTheme(body) {
+	const theme = nightAssetsEnabled === false ? themeValues.light : themeValues.dark;
+	if (body && body.getAttribute(themeAttribute) !== theme) {
+		body.setAttribute(themeAttribute, theme);
+	}
+}
+
 /**
- * Keeps the game's own night theme switched on. <body>'s data-theme attribute
+ * Keeps the game's own artwork theme in sync. <body>'s data-theme attribute
  * is watched, and <html>'s direct children too (cheap: only they are
  * observed), so a <body> that appears after document_start, or replaces the
  * old one, is enforced as well.
@@ -2484,9 +2493,7 @@ function startThemeObserver() {
 			bodyObserver = new MutationObserver(enforce);
 			bodyObserver.observe(body, { attributeFilter: [themeAttribute] });
 		}
-		if (body.getAttribute(themeAttribute) !== themeValues.dark) {
-			body.setAttribute(themeAttribute, themeValues.dark);
-		}
+		applyGameTheme(body);
 	};
 	themeObserver = new MutationObserver(enforce);
 	themeObserver.observe(document.documentElement, { childList: true });
@@ -2504,12 +2511,13 @@ function setNightMode(isEnabled) {
 	if (isEnabled) {
 		themeStyle ??= addStyle(Object.values(THEME).join("\n\n"));
 		applyButtonColor();
-		startThemeObserver();
+		if (!themeObserver) startThemeObserver();
 	} else {
 		stopThemeObserver();
 		// Only restore a theme this script captured (and therefore overrode).
 		if (originalTheme !== undefined) {
 			document.body?.setAttribute(themeAttribute, originalTheme ?? themeValues.light);
+			originalTheme = undefined;
 		}
 		removeCSS();
 	}
@@ -2547,7 +2555,7 @@ const ROUND_BUTTON_RECOLOR_CSS = `
  * Adds or removes the round-button recolor based on the current setting:
  *   - default sentinel → remove the override → the game's native buttons
  *   - any hex color    → inject the override, tinted to that color
- * Also removes the override when Dark Mod is off. A color change only
+ * Also removes the override when Dark Mode is off. A color change only
  * updates the CSS variable; the stylesheet itself is never re-parsed.
  */
 function applyButtonColor() {
@@ -2567,18 +2575,20 @@ function applyButtonColor() {
 chrome.storage.local
 	.get({
 		[NIGHT_MODE_CONFIG.storageKey]: NIGHT_MODE_CONFIG.defaultEnabled,
+		[NIGHT_MODE_CONFIG.nightAssetsKey]: true,
 		[NIGHT_MODE_CONFIG.buttonColorKey]: defaultButtonColor,
 	})
 	.then(
 		(result) => {
 			const enabled = result[NIGHT_MODE_CONFIG.storageKey];
+			nightAssetsEnabled ??= result[NIGHT_MODE_CONFIG.nightAssetsKey] !== false;
 			currentButtonColor = validButtonColor(result[NIGHT_MODE_CONFIG.buttonColorKey]);
 			setNightMode(typeof enabled === "boolean" ? enabled : NIGHT_MODE_CONFIG.defaultEnabled);
 		},
 		// Only a failed read falls back to the default; an error thrown while
 		// applying the theme is no longer masked by a second attempt.
 		(error) => {
-			console.warn("Travian Dark Mod: could not read settings", error);
+			console.warn("Travian Dark Mode: could not read settings", error);
 			setNightMode(NIGHT_MODE_CONFIG.defaultEnabled);
 		},
 	);
@@ -2601,6 +2611,11 @@ chrome.runtime.onMessage.addListener((message) => {
 // popup's message missed (still loading, or restored from the back/forward cache).
 chrome.storage.onChanged?.addListener((changes, area) => {
 	if (area !== "local") return;
+	const assets = changes[NIGHT_MODE_CONFIG.nightAssetsKey];
+	if (assets) {
+		nightAssetsEnabled = assets.newValue !== false;
+		if (themeObserver) applyGameTheme(document.body);
+	}
 	const color = changes[NIGHT_MODE_CONFIG.buttonColorKey];
 	if (color) {
 		currentButtonColor = validButtonColor(color.newValue);

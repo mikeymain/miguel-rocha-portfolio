@@ -91,6 +91,33 @@
 				background-color: #fff;
 			}
 
+			.artwork-setting {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 12px;
+				margin-top: 14px;
+				min-height: 44px;
+				font-size: 12px;
+				line-height: 1.4;
+				text-align: left;
+				cursor: pointer;
+			}
+
+			.artwork-setting .switch {
+				flex-shrink: 0;
+			}
+
+			.artwork-setting:has(input:disabled) {
+				color: #aaa;
+				cursor: default;
+			}
+
+			input:disabled + .slider {
+				opacity: 0.55;
+				cursor: default;
+			}
+
 			/* --- Custom dark color picker --- */
 			.picker {
 				margin-top: 18px;
@@ -285,10 +312,17 @@
 		</style>
 	</head>
 	<body class="loading">
-		<h1>Dark Mod</h1>
+		<h1>Dark Mode</h1>
 		<label class="switch">
-			<input type="checkbox" id="toggleNight" aria-label="Dark Mod" />
+			<input type="checkbox" id="toggleNight" aria-label="Dark Mode" />
 			<span class="slider"></span>
+		</label>
+		<label class="artwork-setting">
+			<span>Nighttime village and field art</span>
+			<span class="switch">
+				<input type="checkbox" id="toggleNightAssets" checked disabled />
+				<span class="slider"></span>
+			</span>
 		</label>
 
 		<div class="picker">

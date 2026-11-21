@@ -152,18 +152,21 @@ Refreshes when you open the popup or click **Refresh**; there are no background 
 4. **Send to Indicator** saves the resource shortfall for the marketplace indicator, which offers **Pull ÷4** only when the total pool is short. **Pull from Hero** normally opens the game's transfer dialog with target amounts. When a target is available, each required amount appears in amber parentheses. In night mode, projected stock turns muted green when it meets or exceeds that resource's target. In the light theme, projected stock uses the dialog’s neutral text color. Check amounts and destination before confirming.
 5. If the native dialog is unavailable, **Pull from Hero** can navigate to hero inventory, fill the amounts, and submit the transfer automatically. A pull that doesn't reach the inventory within 30 seconds is dropped.
 
-## Night Mode
+<a id="night-mode"></a>
 
-<a href="images/night-mode.png"><img src="images/night-mode.png" alt="Night Mode toggle, button-color picker, and favorites" width="224" /></a>
+## Travian Dark Mode
 
-**Features:** dark theme, toolbar toggle, button-color picker/hex input, live preview, up to 12 saved favorites, and native button-color reset. Enabled by default.
+<a href="images/night-mode.png"><img src="images/night-mode.png" alt="Dark Mode and nighttime artwork toggles, button-color picker, and favorites" width="224" /></a>
+
+**Features:** dark theme, night-time village and resource field assets, button-color picker/hex input, live preview, up to 12 saved favorites, and native button-color reset. The dark theme and night-time assets are enabled by default.
 
 **Usage:**
 
 1. Refresh Travian after installing. Toggle the theme from the toolbar popup.
-2. Select a button color with the picker or hex field.
-3. Click **+** to save a favorite; click a swatch to apply it or its delete control to remove it.
-4. **Reset to default** restores native button colors.
+2. Use **Nighttime village and field art** to switch the artwork while keeping the dark theme active.
+3. Select a button color with the picker or hex field.
+4. Click **+** to save a favorite; click a swatch to apply it or its delete control to remove it.
+5. **Reset to default** restores native button colors.
 
 ## World Watch
 
