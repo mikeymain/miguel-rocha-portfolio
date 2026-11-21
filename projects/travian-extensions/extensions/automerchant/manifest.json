@@ -1,7 +1,12 @@
 {
+	"browser_specific_settings": {
+		"gecko": {
+			"id": "npc-calculator@travian-extensions.mikeymain"
+		}
+	},
 	"manifest_version": 3,
 	"name": "Travian NPC Calculator",
-	"version": "3.2.23",
+	"version": "3.2.24",
 	"description": "See how many troops you can train with the Travian NPC Merchant. Calculate resource splits and plan hero resource transfers.",
 	"author": "Miguel Rocha",
 	"icons": {

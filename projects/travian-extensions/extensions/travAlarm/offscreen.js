@@ -7,7 +7,7 @@ let current = null;
 let normalEnabled = false;
 let normalCooldownUntil = 0;
 let wakeTimer = null;
-let volume = 0.8;
+let audioVolume = 0.8;
 
 function valid(event) {
   return activeIds.has(event.id) && event.expiresAt > Date.now();
@@ -32,7 +32,7 @@ function play(type, events = []) {
   const playing = { audio, type, events };
   current = playing;
   audio.loop = false;
-  audio.volume = volume;
+  audio.volume = audioVolume;
   audio.currentTime = 0;
   audio.onended = () => {
     if (current !== playing) return;
@@ -74,11 +74,11 @@ function pump() {
 
 function setVolume(pct) {
   if (!Number.isFinite(pct)) return;
-  volume = Math.pow(Math.max(0, Math.min(1, pct / 100)), 4);
-  for (const audio of audioCache.values()) audio.volume = volume;
+  audioVolume = Math.pow(Math.max(0, Math.min(1, pct / 100)), 4);
+  for (const audio of audioCache.values()) audio.volume = audioVolume;
 }
 
-chrome.runtime.onMessage.addListener(msg => {
+function handleTravAlarmAudio(msg) {
   if (msg.type === "SYNC_SOUND") {
     setVolume(msg.volume ?? 80);
     normalEnabled = !!msg.normal;
@@ -98,4 +98,9 @@ chrome.runtime.onMessage.addListener(msg => {
   } else if (msg.type === "SET_VOLUME") {
     setVolume(msg.volume ?? 80);
   }
-});
+}
+
+// Firefox loads this script into its background page and calls the handler directly.
+if (location.pathname === "/offscreen.html") {
+  chrome.runtime.onMessage.addListener(handleTravAlarmAudio);
+}

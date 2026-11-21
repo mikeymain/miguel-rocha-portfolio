@@ -1,5 +1,5 @@
 "use strict";
-importScripts("shared.js", "data.js");
+if (typeof importScripts === "function") importScripts("shared.js", "data.js");
 const {
 	api,
 	serverOrigin,
@@ -101,21 +101,27 @@ async function hasOffscreen() {
 }
 // Idempotent: also resumes the sound after a browser or worker restart.
 async function playAlarmSound() {
-	if (!(await hasOffscreen()))
-		await api.offscreen.createDocument({
-			url: "offscreen.html",
-			reasons: ["AUDIO_PLAYBACK"],
-			justification: "Play the settlement CP target alarm",
-		});
-	const result = await api.runtime.sendMessage({
-		target: "nsc-offscreen",
-		action: "PLAY_ALARM",
-	});
+	let result;
+	if (typeof playSettlementAudio === "function") {
+		result = await playSettlementAudio();
+	} else {
+		if (!(await hasOffscreen()))
+			await api.offscreen.createDocument({
+				url: "offscreen.html",
+				reasons: ["AUDIO_PLAYBACK"],
+				justification: "Play the settlement CP target alarm",
+			});
+		result = await api.runtime.sendMessage({
+			target: "nsc-offscreen",
+			action: "PLAY_ALARM",
+			});
+	}
 	if (!result?.played)
 		console.warn("Next Settlement Calc could not play the alarm:", result?.error);
 }
 async function stopAlarmSound() {
-	if (await hasOffscreen()) await api.offscreen.closeDocument();
+	if (typeof stopSettlementAudio === "function") stopSettlementAudio();
+	else if (await hasOffscreen()) await api.offscreen.closeDocument();
 }
 const warnSound = (error) =>
 	console.warn("Next Settlement Calc alarm sound:", error.message);

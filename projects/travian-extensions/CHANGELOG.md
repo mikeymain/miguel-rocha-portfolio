@@ -1,5 +1,11 @@
 # Changelog
 
+## Browser compatibility — 2026-11-21
+
+- Added Firefox installation instructions and background support for Oasis Finder 70.11, TravAlarm 3.62, Travian QoL 1.4.3, Rank Tracker 5.1.12, Next Settlement Calc 2.6.22, World Watch 1.7.7.
+- TravAlarm plays alarms from the Firefox background page.
+- Next Settlement Calc also plays its target alarm from the Firefox background page.
+
 ## Rank Tracker 5.1.11 — 2026-11-21
 
 - Brings all graph controls above the chart, with time controls on the left and metric controls on the right.

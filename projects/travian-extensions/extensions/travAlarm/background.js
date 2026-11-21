@@ -8,7 +8,7 @@
 
 /* global chrome */
 
-importScripts("attack-state.js");
+if (typeof importScripts === "function") importScripts("attack-state.js");
 
 let alarms = [];
 let dismissedAttacks = [];
@@ -160,7 +160,16 @@ function schedulePreciseTick() {
 const generateId = () =>
   Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
+async function sendAudioMessage(message) {
+  if (typeof handleTravAlarmAudio === "function") {
+    handleTravAlarmAudio(message);
+    return;
+  }
+  await chrome.runtime.sendMessage(message);
+}
+
 async function ensureOffscreen() {
+  if (!chrome.offscreen) return;
   try {
     await chrome.offscreen.createDocument({
       url: "offscreen.html",
@@ -217,7 +226,7 @@ function syncAlarmSound(attackEvents, normal) {
       !a.noSound && a.scheduledTime <= Date.now() && isCategoryAudible(classifyAlarmCategory(a)));
     message.volume = volume;
     try {
-      await chrome.runtime.sendMessage(message);
+      await sendAudioMessage(message);
     } catch (error) {
       if (normal || attackEvents.length) throw error;
     }
@@ -226,7 +235,7 @@ function syncAlarmSound(attackEvents, normal) {
 
 function stopAlarmSound() {
   syncAlarmSound([], false);
-  soundQueue = soundQueue.then(() => chrome.runtime.sendMessage({ type: "STOP_SOUND" }))
+  soundQueue = soundQueue.then(() => sendAudioMessage({ type: "STOP_SOUND" }))
     .catch(error => console.warn("TravAlarm audio stop failed", error));
 }
 
@@ -722,9 +731,9 @@ function handleMessage(msg, sender, sendResponse) {
       if (!sender.tab) break;
       volume = msg.volume;
       saveState();
-      ensureOffscreen().then(() => {
-        chrome.runtime.sendMessage({ type: "SET_VOLUME", volume });
-      });
+      ensureOffscreen()
+        .then(() => sendAudioMessage({ type: "SET_VOLUME", volume }))
+        .catch(error => console.warn("TravAlarm audio volume update failed", error));
       break;
   }
 }

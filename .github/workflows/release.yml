@@ -50,6 +50,8 @@ jobs:
           2. Open \`chrome://extensions\` (or \`brave://\` / \`edge://\`) and turn on **Developer mode**.
           3. Click **Load unpacked** and choose the extracted \`${dir}\` folder.
 
+          For a temporary Firefox install, open \`about:debugging#/runtime/this-firefox\`, click **Load Temporary Add-on**, and select \`manifest.json\`. Repeat after restarting Firefox.
+
           To update, extract over the same folder you installed before, then click **Reload**. See the [changelog](https://github.com/${GITHUB_REPOSITORY}/blob/main/projects/travian-extensions/CHANGELOG.md) and the [README](https://github.com/${GITHUB_REPOSITORY}/tree/main/projects/travian-extensions#readme) for details."
 
             gh release create "$tag" "$zip_path" \

@@ -10,14 +10,14 @@ Eight standalone browser extensions for Travian: forecasting, statistics history
 
 | Extension | Purpose | Version |
 | --- | --- | --- |
-| <a id="oasis-finder"></a>[Oasis Finder](extensions/OasisCalc/) | Oasis scoring and farm-list sorting | 70.10 |
-| <a id="travalarm"></a>[TravAlarm](extensions/travAlarm/) | Incoming attack alerts, game timers and custom reminders | 3.61 |
-| <a id="travian-qol"></a>[Travian QoL](extensions/TravianQoL/) | Farm-list selection, reports and interface utilities | 1.4.2 |
-| <a id="rank-tracker"></a>[Rank Tracker](extensions/TravianRankTracker/) | Rankings, statistics history and comparison graphs | 5.1.11 |
-| <a id="next-settlement-calc"></a>[Next Settlement Calc](extensions/NextSettlementCalc/) | Culture-point forecasts and celebration planning | 2.6.21 |
-| <a id="npc-automerchant"></a>[Travian NPC Calculator](extensions/automerchant/) | Maximum troop counts and resource splits for the NPC Merchant | 3.2.23 |
-| <a id="night-mode"></a>[Night Mode](extensions/travian_night_mode/) | Persistent dark theme and button colours | 2.6.1 |
-| <a id="world-watch"></a>[World Watch](extensions/WorldWatch/) | World snapshots, spawn map, population gains, alliances and a 15c finder with oasis scoring | 1.7.6 |
+| <a id="oasis-finder"></a>[Oasis Finder](extensions/OasisCalc/) | Oasis scoring and farm-list sorting | 70.11 |
+| <a id="travalarm"></a>[TravAlarm](extensions/travAlarm/) | Incoming attack alerts, game timers and custom reminders | 3.62 |
+| <a id="travian-qol"></a>[Travian QoL](extensions/TravianQoL/) | Farm-list selection, reports and interface utilities | 1.4.3 |
+| <a id="rank-tracker"></a>[Rank Tracker](extensions/TravianRankTracker/) | Rankings, statistics history and comparison graphs | 5.1.12 |
+| <a id="next-settlement-calc"></a>[Next Settlement Calc](extensions/NextSettlementCalc/) | Culture-point forecasts and celebration planning | 2.6.22 |
+| <a id="npc-automerchant"></a>[Travian NPC Calculator](extensions/automerchant/) | Maximum troop counts and resource splits for the NPC Merchant | 3.2.24 |
+| <a id="night-mode"></a>[Night Mode](extensions/travian_night_mode/) | Persistent dark theme and button colours | 2.7.3 |
+| <a id="world-watch"></a>[World Watch](extensions/WorldWatch/) | World snapshots, spawn map, population gains, alliances and a 15c finder with oasis scoring | 1.7.7 |
 
 ## Install in Brave, Chrome, or Edge
 
@@ -28,13 +28,20 @@ Eight standalone browser extensions for Travian: forecasting, statistics history
 
 No build step is required. To update, replace files in the same installed directory, reload the extension and refresh game tabs. Export Rank Tracker data before changing installations.
 
+### Install in Firefox
+
+1. Download and extract the extension.
+2. Open `about:debugging#/runtime/this-firefox`.
+3. Click **Load Temporary Add-on** and choose the extension's `manifest.json`.
+4. Refresh Travian. Repeat for each extension. Firefox removes temporary add-ons when it exits, so load them again after restarting.
+
 ## Source guide
 
 Each extension declares its entry points and permissions in `manifest.json`. See the [portfolio source guide](../../docs/REVIEWER-GUIDE.md) for implementation entry points. The [usage guide](docs/USAGE.md) covers controls, screenshots, data storage and troubleshooting.
 
 ## Validation and compatibility
 
-Used in desktop Brave; Chrome and Edge compatibility requires feedback. Domain support varies by manifest. The portfolio does not run automated extension tests; live page compatibility, notifications and data accuracy require manual verification.
+Domain support varies by manifest. Verify notifications and data accuracy on the game world you use.
 
 These are unofficial tools, unaffiliated with Travian Games. Travian's game rules restrict bots and automated actions, and some features act for you: Travian NPC Calculator's hero transfer clicks the game's transfer controls, and TravAlarm requests game pages in the background to refresh timers. Using them may break those rules and can lead to account penalties. See [data and permissions](docs/USAGE.md#data-and-permissions) before use.
 

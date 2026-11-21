@@ -1,7 +1,12 @@
 {
+	"browser_specific_settings": {
+		"gecko": {
+			"id": "night-mode@travian-extensions.mikeymain"
+		}
+	},
 	"manifest_version": 3,
 	"name": "Travian Dark Mod",
-	"version": "2.7.2",
+	"version": "2.7.3",
 	"description": "Unofficial dark theme for Travian: Legends, with an on/off toggle and custom button colours.",
 	"author": "Miguel Rocha",
 	"icons": {

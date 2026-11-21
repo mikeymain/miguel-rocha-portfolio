@@ -1,7 +1,12 @@
 {
+	"browser_specific_settings": {
+		"gecko": {
+			"id": "world-watch@travian-extensions.mikeymain"
+		}
+	},
 	"manifest_version": 3,
 	"name": "Travian World Watch",
-	"version": "1.7.6",
+	"version": "1.7.7",
 	"devtools_page": "map-capture.html",
 	"description": "Tracks a world's public map.sql over time: spawn ring, population gains and alliances.",
 	"permissions": ["storage", "alarms", "unlimitedStorage"],
@@ -13,7 +18,8 @@
 		"https://*.travian.de/map.sql"
 	],
 	"background": {
-		"service_worker": "background.js"
+		"service_worker": "background.js",
+		"scripts": ["lib/mapsql.js", "lib/db.js", "lib/core.js", "lib/croppers.js", "background.js"]
 	},
 	"content_scripts": [
 		{

@@ -13,7 +13,12 @@
 
 No build step is required. Game features requiring a paid Travian option still require that option.
 
-**Browsers:** desktop Chromium. Used in Brave; Chrome and Edge compatibility needs feedback. Firefox installation is not covered.
+### Install in Firefox
+
+1. Download and extract the extension.
+2. Open `about:debugging#/runtime/this-firefox`.
+3. Click **Load Temporary Add-on** and choose the extension's `manifest.json`.
+4. Refresh Travian. Repeat for each extension. Firefox removes temporary add-ons when it exits, so load them again after restarting.
 
 **Domains:** Oasis Finder, TravAlarm, and Travian NPC Calculator target `*.travian.com`. Rank Tracker also supports `.org`, `.net`, `.us`, and `.de`. Next Settlement Calc, QoL, and Night Mode support multiple regional domains; see their manifests. World Watch reads `map.sql` from `.com`, `.org`, `.net`, `.us`, and `.de` worlds.
 

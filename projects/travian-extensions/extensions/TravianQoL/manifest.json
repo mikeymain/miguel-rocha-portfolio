@@ -1,7 +1,12 @@
 {
+	"browser_specific_settings": {
+		"gecko": {
+			"id": "travian-qol@travian-extensions.mikeymain"
+		}
+	},
 	"manifest_version": 3,
 	"name": "Travian QoL",
-	"version": "1.4.2",
+	"version": "1.4.3",
 	"description": "Collection of small quality-of-life tweaks for Travian. Each feature is independently toggleable.",
 	"permissions": ["storage", "contextMenus"],
 	"host_permissions": [
@@ -19,7 +24,8 @@
 		"*://*.travian.ae/*"
 	],
 	"background": {
-		"service_worker": "background.js"
+		"service_worker": "background.js",
+		"scripts": ["background.js"]
 	},
 	"icons": {
 		"16": "icon16.png",

@@ -1,5 +1,5 @@
 // WorldWatch service worker: polls map.sql for each watched world.
-importScripts("lib/mapsql.js", "lib/db.js", "lib/core.js", "lib/croppers.js");
+if (typeof importScripts === "function") importScripts("lib/mapsql.js", "lib/db.js", "lib/core.js", "lib/croppers.js");
 
 const ALARM = "worldwatch-poll";
 const HOST_GAP_MS = 3000;

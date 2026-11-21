@@ -1,4 +1,4 @@
-importScripts("utils.js");
+if (typeof importScripts === "function") importScripts("utils.js");
 
 // Minimal service worker — alarm-based fetching removed (v5.1).
 // Stats are now collected passively by stats-collector.js content script

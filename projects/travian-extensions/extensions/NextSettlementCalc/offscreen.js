@@ -1,25 +1,32 @@
-/**
- * Plays the target-reached alarm. Offscreen documents opened for
- * AUDIO_PLAYBACK are exempt from the autoplay policy, so the alarm sounds
- * without a click in a game tab, or with no game tab open at all. The worker
- * stops the sound by closing this document.
- */
+// Chrome loads this script in an offscreen document. Firefox loads it in its
+// background page, where it can play audio without opening a game tab.
 "use strict";
-let audio = null;
-chrome.runtime.onMessage.addListener((message, _sender, respond) => {
-	if (message?.target !== "nsc-offscreen" || message.action !== "PLAY_ALARM")
-		return;
-	if (!audio) {
-		audio = new Audio("alarm.mp3");
-		audio.loop = true;
+let settlementAudio;
+
+async function playSettlementAudio() {
+	if (!settlementAudio) {
+		settlementAudio = new Audio("alarm.mp3");
+		settlementAudio.loop = true;
 	}
-	if (!audio.paused) {
-		respond({ played: true });
-		return;
+	try {
+		if (settlementAudio.paused) await settlementAudio.play();
+		return { played: true };
+	} catch (error) {
+		return { played: false, error: error.message };
 	}
-	audio.play().then(
-		() => respond({ played: true }),
-		(error) => respond({ played: false, error: error.message }),
-	);
-	return true;
-});
+}
+
+function stopSettlementAudio() {
+	if (!settlementAudio) return;
+	settlementAudio.pause();
+	settlementAudio.currentTime = 0;
+}
+
+if (location.pathname === "/offscreen.html") {
+	chrome.runtime.onMessage.addListener((message, _sender, respond) => {
+		if (message?.target !== "nsc-offscreen" || message.action !== "PLAY_ALARM")
+			return false;
+		playSettlementAudio().then(respond);
+		return true;
+	});
+}
