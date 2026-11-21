@@ -445,9 +445,8 @@ td.delta { text-align: right; white-space: nowrap; font-family: var(--font-num);
 /* ── History toolbar ────────────────────────────────────────────────── */
 .hist-toolbar { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 4px 8px; }
 .time-label { color: var(--muted); font-size: 11px; }
-.time-controls, .hist-footer { display: flex; align-items: center; gap: 8px; }
-.time-controls { flex-wrap: wrap; gap: 4px 8px; }
-.hist-footer .group-bar { margin-left: auto; }
+.time-controls, .metric-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.metric-actions, #seg-mode { margin-left: auto; }
 
 .seg {
 	display: inline-flex;
@@ -471,7 +470,7 @@ td.delta { text-align: right; white-space: nowrap; font-family: var(--font-num);
 .seg-btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4); }
 .group-bar { display: flex; align-items: center; gap: 6px; min-width: 0; flex: 0 1 auto; }
 #seg-range .seg-btn { padding: 0 6px; }
-.hist-footer .group-list { min-width: 0; flex: 0 1 auto; }
+.metric-actions .group-list { min-width: 0; flex: 0 1 auto; }
 
 .group-list {
 	display: flex;
@@ -822,7 +821,7 @@ td.delta { text-align: right; white-space: nowrap; font-family: var(--font-num);
 
 /* Popup zoom reduces the layout size inside the fixed browser window. */
 .views { container-type: size; }
-.view-hist:not([hidden]) { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
+.view-hist:not([hidden]) { display: grid; grid-template-rows: auto minmax(0, 1fr); }
 @container (max-width: 760px) {
 	.metric-picker:popover-open { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
@@ -832,5 +831,6 @@ td.delta { text-align: right; white-space: nowrap; font-family: var(--font-num);
 	.metric-picker .chip-metric { height: 16px; padding-inline: 4px; gap: 4px; }
 	.time-controls .seg { flex-wrap: wrap; }
 	.time-controls .seg-btn { padding-inline: 4px; }
-	.group-list { max-width: 130px; }
+	.metric-actions, #seg-mode { margin-left: 0; }
+	.group-list { max-width: 100px; }
 }

@@ -1,5 +1,9 @@
 # Changelog
 
+## Rank Tracker 5.1.11 — 2026-11-21
+
+- Brings all graph controls above the chart, with time controls on the left and metric controls on the right.
+
 ## Rank Tracker 5.1.10 — 2026-11-21
 
 - Moves the Window and Interval controls above the full-width chart and puts all metric categories in a single grid.

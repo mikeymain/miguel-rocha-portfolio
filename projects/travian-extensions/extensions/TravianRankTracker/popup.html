@@ -89,6 +89,14 @@
 							<button class="seg-btn" type="button" data-h="72" aria-pressed="false">72h</button>
 							<button class="seg-btn" type="button" data-h="168" aria-pressed="false">1w</button>
 						</div>
+						<div class="metric-actions">
+							<button class="ghost-btn" type="button" popovertarget="metric-picker">Metrics</button>
+							<div class="group-bar">
+								<button class="ghost-btn" id="btn-group-none" type="button">Clear</button>
+								<div class="group-list" id="group-list"></div>
+								<button class="ghost-btn" id="btn-group-save" type="button">Save group</button>
+							</div>
+						</div>
 					</div>
 					<span class="time-label" aria-hidden="true">Interval</span>
 					<div class="time-controls">
@@ -119,14 +127,6 @@
 					<button class="ghost-btn zoom-reset" id="btn-zoom-reset" type="button" hidden>Reset zoom</button>
 					<div class="compare-box" id="compare-box" data-open="false"></div>
 					<p class="chart-empty" id="chart-empty" hidden>No history yet. Open the popup on a Travian tab to record a point.</p>
-				</div>
-				<div class="hist-footer">
-					<button class="ghost-btn" type="button" popovertarget="metric-picker">Metrics</button>
-					<div class="group-bar">
-						<button class="ghost-btn" id="btn-group-none" type="button">Clear</button>
-						<div class="group-list" id="group-list"></div>
-						<button class="ghost-btn" id="btn-group-save" type="button">Save group</button>
-					</div>
 				</div>
 				<div class="metric-picker" id="metric-picker" popover aria-label="Graph metrics"></div>
 			</section>

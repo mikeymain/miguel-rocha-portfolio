@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.1.11 — 2026-11-21
+
+- Aligns graph time controls on the left and puts Metrics, saved groups, and Scale on the right above the chart.
+
 ## Rank Tracker 5.1.10 — 2026-11-21
 
 - Gives the chart the full popup width, puts Window and Interval controls above it, and opens all metric categories from one button.
