@@ -53,7 +53,7 @@ async function hvPersistPrefs(chart) {
 	const r = await api.storage.local.get(["graphPrefs"]);
 	const newPrefs = { ...(r.graphPrefs || {}) };
 	chart.data.datasets.forEach((d, i) => {
-		newPrefs[d.label] = !chart.isDatasetVisible(i);
+		newPrefs[d.storageLabel] = !chart.isDatasetVisible(i);
 	});
 	await api.storage.local.set({ graphPrefs: newPrefs });
 }
@@ -187,10 +187,10 @@ function hvRenderGroups(chart) {
 			if (chart !== window.myChart) return;
 			// If ANY in group are hidden → show all; else → hide all
 			const anyHidden = chart.data.datasets.some(
-				(ds, i) => groupLabels.includes(ds.label) && !chart.isDatasetVisible(i),
+				(ds, i) => groupLabels.includes(ds.storageLabel) && !chart.isDatasetVisible(i),
 			);
 			chart.data.datasets.forEach((ds, i) => {
-				if (groupLabels.includes(ds.label)) chart.setDatasetVisibility(i, anyHidden);
+				if (groupLabels.includes(ds.storageLabel)) chart.setDatasetVisibility(i, anyHidden);
 			});
 			chart.update("none");
 			hvSyncPicker(chart);
@@ -300,9 +300,9 @@ async function loadGraph(filter, storageKey) {
 	const hist = res[storageKey] || [];
 	const prefs = res.graphPrefs;
 	const savedZoom = { ...(res.graphZoom || {}) };
-	const isHidden = (label, defaultHidden) => prefs
-		? (prefs[label] ?? defaultHidden)
-		: !DEFAULT_GRAPH_RANKS.includes(label);
+	const isHidden = (cfg) => prefs
+		? (prefs[cfg.storageLabel ?? cfg.label] ?? cfg.defHidden)
+		: !DEFAULT_GRAPH_RANKS.includes(cfg.label);
 
 	hvCloseCompare();
 	const resetZoomBtn = document.getElementById("btn-zoom-reset");
@@ -335,7 +335,7 @@ async function loadGraph(filter, storageKey) {
 	const rangeHours = Number(res.graphRange) || 0;
 	hvSetPressed("seg-range", (b) => Number(b.dataset.h) === rangeHours);
 	// 1w on a raiding-only graph spans the game week: Monday 00:00 to now.
-	const raidingOnly = hvRaidingOnly(DATASETS_CONFIG.map((cfg) => !isHidden(cfg.label, cfg.defHidden)));
+	const raidingOnly = hvRaidingOnly(DATASETS_CONFIG.map((cfg) => !isHidden(cfg)));
 	const win = rangeHours ? rangeWindow(data.map((x) => x.timestamp), rangeHours, rangeHours === 168 && raidingOnly) : null;
 	if (win) {
 		savedZoom.min = win.min;
@@ -365,6 +365,7 @@ async function loadGraph(filter, storageKey) {
 		const raidRate = popupState.isVelocityMode && RESET_VALUE_KEYS.includes(cfg.key);
 		return {
 		label: cfg.label,
+		storageLabel: cfg.storageLabel ?? cfg.label,
 		perHour: !!cfg.perHour || raidRate,
 		hourlyResources: !!cfg.perHour || (!popupState.isVelocityMode && cfg.key === "valProd"),
 		...(raidRate ? { cubicInterpolationMode: "monotone" } : {}),
@@ -377,7 +378,7 @@ async function loadGraph(filter, storageKey) {
 		pointBorderColor: tokens.tooltipBg,
 		borderDash: cfg.dash || [],
 		yAxisID: cfg.axis,
-		hidden: isHidden(cfg.label, cfg.defHidden),
+		hidden: isHidden(cfg),
 		spanGaps: true,
 		};
 	});
@@ -487,7 +488,7 @@ function initHistoryControls() {
 		const newPrefs = {};
 		chart.data.datasets.forEach((ds, i) => {
 			chart.setDatasetVisibility(i, false);
-			newPrefs[ds.label] = true;
+			newPrefs[ds.storageLabel] = true;
 		});
 		chart.update("none");
 		hvSyncPicker(chart);
@@ -515,7 +516,7 @@ function initHistoryControls() {
 		const chart = window.myChart;
 		const name = nameInput?.value.trim();
 		if (!chart || !name) return;
-		const visible = chart.data.datasets.filter((_, i) => chart.isDatasetVisible(i)).map((ds) => ds.label);
+		const visible = chart.data.datasets.filter((_, i) => chart.isDatasetVisible(i)).map((ds) => ds.storageLabel);
 		if (visible.length === 0) return;
 		if (name in hvGroups && !confirm(`Replace group "${name}"?`)) return;
 		const next = { ...hvGroups, [name]: visible };

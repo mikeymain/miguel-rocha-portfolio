@@ -1,5 +1,10 @@
 # Changelog
 
+## Rank Tracker 5.1.14 — 2026-11-22
+
+- Adds Average rank under Graph → Filters → Overview, using the same calculation as Now.
+- Renames the graph controls to Filters, Time Interval, and Average Over, and clarifies the Fields and Raiding labels. Saved metric selections and groups retain their existing references.
+
 ## TravAlarm 3.63 — 2026-11-21
 
 - Keeps same-named Farm List and Daily reminders independent, resets Farm List reminders using the current preset interval, and shows DONE only once the countdown reaches its deadline.

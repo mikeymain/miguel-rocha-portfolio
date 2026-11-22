@@ -1,5 +1,10 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.1.14 — 2026-11-22
+
+- Adds Average rank under Graph → Filters → Overview, using the same calculation as Now.
+- Renames the graph controls to Filters, Time Interval, and Average Over, and clarifies the Fields and Raiding labels. Saved metric selections and groups retain their existing references.
+
 ## Rank Tracker 5.1.13 — 2026-11-21
 
 - Moves Choose metrics to the top of Graph and clarifies the Show last and Group points controls.

@@ -1,8 +1,8 @@
 /**
  * Rank Tracker 5.0 — chart metric definitions and history transforms.
  *
- * Dataset labels are storage keys for `graphPrefs` and `customGroups`; they
- * must stay byte-identical across versions. Colours are free to change.
+ * Datasets use their label as a storage key unless storageLabel provides
+ * the original name. Keep storage keys byte-identical across versions.
  */
 
 /**
@@ -10,6 +10,7 @@
  * (dashed line). `group` maps the metric into the picker.
  */
 const DATASETS_CONFIG = [
+	{ key: "rankAvg", label: "Average rank", color: "#f8f0da", dash: [6, 3], axis: "y", defHidden: true, group: "overview" },
 	{ key: "pointsOff", label: "Offensive Strength", color: "#ff9a9a", dash: [2, 2], axis: "y1", defHidden: true, ceil: true, group: "military" },
 	{ key: "pointsDef", label: "Defensive Strength", color: "#9de8a0", dash: [2, 2], axis: "y1", defHidden: true, ceil: true, group: "military" },
 	{ key: "rankOff", label: "Offensive Strength Rank", color: "#e06666", dash: null, axis: "y", defHidden: true, group: "military" },
@@ -27,8 +28,8 @@ const DATASETS_CONFIG = [
 	{ key: "rankProd", label: "Prod/Day Rank", color: "#e7c24a", dash: null, axis: "y", defHidden: true, group: "production" },
 	{ key: "valProd", label: "Production per Hour", color: "#4fe0d2", dash: [2, 2], axis: "y1", defHidden: false, group: "production" },
 	{ key: "fieldsAndRaids", label: "Fields + raiding", color: "#a8df73", dash: [4, 2], axis: "y1", defHidden: true, perHour: true, group: "production" },
-	{ key: "raidIncome", label: "Raids", color: "#ff9d60", dash: [4, 2], axis: "y1", defHidden: true, perHour: true, group: "production" },
-	{ key: "raidIncomeNoAnimals", label: "Raids (no animals)", color: "#e3b45f", dash: [4, 2], axis: "y1", defHidden: true, perHour: true, group: "production" },
+	{ key: "raidIncome", label: "Raiding", storageLabel: "Raids", color: "#ff9d60", dash: [4, 2], axis: "y1", defHidden: true, perHour: true, group: "production" },
+	{ key: "raidIncomeNoAnimals", label: "Raiding (no animals)", storageLabel: "Raids (no animals)", color: "#e3b45f", dash: [4, 2], axis: "y1", defHidden: true, perHour: true, group: "production" },
 	{ key: "rankProdSoFar", label: "Prod So Far Rank", color: "#b8952c", dash: null, axis: "y", defHidden: true, group: "production" },
 	{ key: "valProdSoFar", label: "Total Production", color: "#2fb5a8", dash: [4, 2], axis: "y1", defHidden: false, group: "production" },
 	{ key: "valBounty", label: "Bounty (Raid Gained)", color: "#ff8f4d", dash: [4, 2], axis: "y1", defHidden: false, group: "raids" },
@@ -39,11 +40,12 @@ const DATASETS_CONFIG = [
 ];
 
 const DEFAULT_GRAPH_RANKS = DATASETS_CONFIG
-	.filter(({ axis, key }) => axis === "y" && key !== "rankPvp" && key !== "rankDefTop")
+	.filter(({ axis, key }) => axis === "y" && !["rankAvg", "rankPvp", "rankDefTop"].includes(key))
 	.map(({ label }) => label);
 
 /** Picker sections in display order; `keys` lists DATASETS_CONFIG keys. */
 const METRIC_GROUPS = [
+	{ id: "overview", title: "Overview", keys: ["rankAvg"] },
 	{ id: "weekly", title: "Weekly", keys: ["rankPvp", "rankDefTop", "rankRob", "rankPve"] },
 	{ id: "raids", title: "Raiding", keys: ["valRob", "valRobExcludingPve", "valPve", "valPveResources", "valBounty"] },
 	{ id: "population", title: "Population", keys: ["rankPop", "valPop"] },
@@ -52,12 +54,12 @@ const METRIC_GROUPS = [
 	{ id: "military", title: "Military", keys: ["rankOff", "pointsOff", "rankDef", "pointsDef"] },
 ];
 
-/** Picker labels inside a section; the full dataset label stays the storage key and tooltip. */
+/** Picker labels inside a section; the full dataset label stays the tooltip. */
 const METRIC_SHORT_LABELS = {
 	rankPvp: "Attack rank", rankDefTop: "Defense rank", rankRob: "Robbers rank", rankPve: "PvE rank",
 	valRob: "Raided", valRobExcludingPve: "Raided excl. PvE", valPve: "Animals killed", valPveResources: "Animal resources", valBounty: "Bounty",
 	rankPop: "Rank", valPop: "Population",
-	rankProd: "Rank", valProd: "Per hour", rankProdSoFar: "Total rank", valProdSoFar: "Total",
+	rankProd: "Rank", valProd: "Fields", rankProdSoFar: "Total rank", valProdSoFar: "Total",
 	rankCp: "Rank", cpProd: "Per day", rankCpSoFar: "Total rank", valCpSoFar: "Total",
 	rankOff: "Offense rank", pointsOff: "Offense", rankDef: "Defense rank", pointsDef: "Defense",
 };
@@ -105,7 +107,7 @@ const RANK_KEYS = [
  */
 function prepareHistory(hist) {
 	const points = (hist || []).map((item) => {
-		const point = { ...item };
+		const point = { ...item, rankAvg: calcAvgRank(item) };
 		if (point.valProd != null || point.pointsProd != null) point.valProd = grossProdOf(point);
 		if (point.valRob > 100_000_000_000) point.valRob = null;
 		if (point.valRob == null && point.valRes != null) point.valRob = point.valRes;
