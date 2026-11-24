@@ -757,3 +757,34 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }).catch(error => sendResponse({ ok: false, error: String(error) }));
   return true;
 });
+
+// Raid income per hour pushed by Travian Rank Tracker's background for the
+// FNPC time. Only extensions can send these messages; values are validated
+// and stored per game origin under _w4raid.
+const RAID_INCOME_KEY = "_w4raid";
+const RAID_ORIGIN_RE = /^https:\/\/[a-z0-9-]+(\.[a-z0-9-]+)*\.travian\.(com|org|net|us|de)$/;
+const RAID_PER_HOUR_MAX = 1e6;
+
+function validRaidIncome(msg) {
+  return (
+    msg?.type === "RAID_INCOME" &&
+    typeof msg.origin === "string" &&
+    RAID_ORIGIN_RE.test(msg.origin) &&
+    Number.isFinite(msg.perHour) &&
+    msg.perHour >= 0 &&
+    msg.perHour <= RAID_PER_HOUR_MAX &&
+    Number.isFinite(msg.updatedAt) &&
+    msg.updatedAt <= Date.now() + 60000
+  );
+}
+
+chrome.runtime.onMessageExternal.addListener((msg) => {
+  if (!validRaidIncome(msg)) return;
+  chrome.storage.local.get(RAID_INCOME_KEY).then((r) => {
+    const all = r[RAID_INCOME_KEY] || {};
+    const prev = all[msg.origin];
+    if (prev && prev.perHour === msg.perHour && prev.updatedAt === msg.updatedAt) return;
+    const next = { ...all, [msg.origin]: { perHour: msg.perHour, updatedAt: msg.updatedAt } };
+    return chrome.storage.local.set({ [RAID_INCOME_KEY]: next });
+  }).catch(() => {});
+});

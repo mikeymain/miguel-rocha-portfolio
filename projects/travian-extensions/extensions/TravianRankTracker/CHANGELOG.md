@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.1.16 — 2026-11-24
+
+- Sends the raid income per hour to TravAlarm for its FNPC time, through extension messaging only. Nothing is written to the game page.
+
 ## Rank Tracker 5.1.15 — 2026-11-24
 
 - Graph tooltips show at most one decimal, so an average rank of 605.7 no longer reads as 605,727.

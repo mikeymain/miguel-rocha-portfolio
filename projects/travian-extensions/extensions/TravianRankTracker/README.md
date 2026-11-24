@@ -2,7 +2,7 @@
 
 Records player statistics and displays rankings, historical changes and comparison graphs.
 
-**Version 5.1.14 · JavaScript · Manifest V3**
+**Version 5.1.16 · JavaScript · Manifest V3**
 
 [Usage guide](../../docs/USAGE.md#rank-tracker) · [Installation](../../README.md#install-in-brave-chrome-or-edge) · [All extensions](../../README.md) · [Privacy policy](../../docs/rank-tracker-privacy.md)
 

@@ -71,4 +71,11 @@ try { localStorage.removeItem("_rt_ri"); } catch {}
 		await chrome.storage.local.set({ [summaryKey]: summary });
 	}
 	if (!Number.isFinite(summary.perHour) || summary.perHour < 0) return;
+	// Background forwards this to TravAlarm (extension messaging, not the page).
+	chrome.runtime.sendMessage({
+		type: "RT_RAID_INCOME",
+		origin: location.origin,
+		perHour: summary.perHour,
+		updatedAt: summary.updatedAt,
+	}).catch(() => {});
 })();

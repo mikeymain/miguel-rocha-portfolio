@@ -1,5 +1,10 @@
 # Changelog
 
+## TravAlarm 3.66, Rank Tracker 5.1.16 — 2026-11-24
+
+- FNPC time includes raid income per hour from Rank Tracker again. Rank Tracker sends it to TravAlarm through extension messaging, so nothing is written to the game page. Raid income older than 24 hours is ignored.
+- TravAlarm now has a fixed extension ID. In Chromium browsers it installs as a new extension: settings and reminders from the previous install are not carried over.
+
 ## Travian QoL 1.4.5 — 2026-11-24
 
 - Counter-attack calculator: hero boots now speed up only the fields beyond the first 20 and add to the Tournament Square bonus, as in the game. Before, boots sped up the whole trip, so launch times with boots were off.

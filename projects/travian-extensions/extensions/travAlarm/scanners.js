@@ -21,12 +21,31 @@ const NPC_MSG_STYLE =
 /** Ignore Rank Tracker's raid income when its last sample is older than this. */
 const RAID_INCOME_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
+// Raid income for this server, stored by background.js from Rank Tracker's
+// extension messages (never through the page).
+let _raidIncome = null;
+try {
+  api.storage.local.get("_w4raid").then((r) => {
+    _raidIncome = r?._w4raid?.[location.origin] ?? null;
+  });
+  api.storage.onChanged.addListener((changes, area) => {
+    if (area === "local" && changes._w4raid) {
+      _raidIncome = changes._w4raid.newValue?.[location.origin] ?? null;
+    }
+  });
+} catch {
+  /* storage unavailable: no raid income */
+}
+
 /**
- * Average farming income per hour published by Rank Tracker
- * (raid-income-bridge.js), or 0 when missing or stale.
+ * Farming income per hour from Rank Tracker (trailing 1h), or 0 when
+ * missing or older than RAID_INCOME_MAX_AGE_MS.
  */
 function raidIncomePerHour() {
-  return 0;
+  const data = _raidIncome;
+  if (!data || !Number.isFinite(data.perHour) || data.perHour < 0) return 0;
+  if (!(Date.now() - data.updatedAt < RAID_INCOME_MAX_AGE_MS)) return 0;
+  return data.perHour;
 }
 
 // Building pages: build.php was renamed to /building (resource fields: /slot).
