@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>TravAlarm Settings</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <h1>TravAlarm</h1>
+
+    <section class="group" aria-labelledby="grp-panel">
+      <h2 id="grp-panel">Panel</h2>
+      <label class="row" for="set-width">
+        <span>Width</span>
+        <output id="out-width" for="set-width">225px</output>
+      </label>
+      <input type="range" id="set-width" min="200" max="360" step="5" />
+
+      <label class="row" for="set-opacity">
+        <span>Opacity</span>
+        <output id="out-opacity" for="set-opacity">100%</output>
+      </label>
+      <input type="range" id="set-opacity" min="50" max="100" step="5" />
+
+      <div class="row">
+        <span id="lbl-accent">Accent</span>
+        <div class="swatches" role="radiogroup" aria-labelledby="lbl-accent" id="set-accent"></div>
+      </div>
+
+      <label class="row check" for="set-min">
+        <span>Start minimized</span>
+        <input type="checkbox" id="set-min" />
+      </label>
+    </section>
+
+    <section class="group" aria-labelledby="grp-colors">
+      <h2 id="grp-colors">Colors</h2>
+      <div id="colors-sections"></div>
+      <details>
+        <summary>Training buildings</summary>
+        <div id="colors-training"></div>
+      </details>
+      <button type="button" class="link" id="reset-colors">Reset colors</button>
+    </section>
+
+    <div class="actions">
+      <button type="button" id="reset-pos">Reset position</button>
+      <button type="button" id="reset-all">Reset all</button>
+    </div>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

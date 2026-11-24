@@ -1,0 +1,153 @@
+:root {
+  color-scheme: dark;
+  --bg: rgb(29, 29, 32);
+  --surface: #18181b;
+  --border: rgba(255, 255, 255, 0.1);
+  --text: #f0f0f2;
+  --text-dim: #a1a1aa;
+  --accent: #f5a623;
+}
+
+body {
+  width: 240px;
+  margin: 0;
+  padding: 14px;
+  font-family: Verdana, sans-serif;
+  font-size: 12px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+h1 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  letter-spacing: 1px;
+  color: var(--accent);
+}
+
+h2 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-dim);
+}
+
+.group {
+  padding: 10px;
+  margin-bottom: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 24px;
+}
+
+.check {
+  margin-top: 6px;
+  cursor: pointer;
+}
+
+output {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+}
+
+input[type="range"] {
+  width: 100%;
+  margin: 2px 0 8px;
+  accent-color: var(--accent);
+}
+
+input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+
+input[type="color"] {
+  width: 32px;
+  height: 22px;
+  padding: 0 2px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+details {
+  margin-top: 6px;
+}
+
+summary {
+  padding: 4px 0;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.link {
+  margin-top: 8px;
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.swatches {
+  display: flex;
+  gap: 5px;
+}
+
+.swatch {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.swatch[aria-checked="true"] {
+  border-color: var(--text);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.actions button {
+  flex: 1;
+  min-height: 30px;
+  padding: 0 6px;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.actions button:hover {
+  border-color: var(--accent);
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.status {
+  min-height: 14px;
+  margin: 8px 0 0;
+  color: var(--text-dim);
+}

@@ -138,6 +138,19 @@ const TRAINING_BUILDING_COLORS = [
   ["Hospital", "tw-type-red"],
 ];
 
+/**
+ * Key for a user-chosen colour (see layout.js): the category, or
+ * "t:<Building>" for training rows that have their own building colour.
+ */
+function getColorKey(a) {
+  const type = classifyAlarm(a);
+  if (type === "training") {
+    const hit = TRAINING_BUILDING_COLORS.find(([b]) => a.name.includes(`🎓 ${b}`));
+    if (hit) return `t:${hit[0]}`;
+  }
+  return SECTION_META[type] ? type : "building";
+}
+
 function getTypeColorClass(a) {
   const type = classifyAlarm(a);
   if (type === "training") {
@@ -148,31 +161,18 @@ function getTypeColorClass(a) {
 }
 
 /**
- * Sorts section type keys by display order, swapping custom/auto
- * so the one with the soonest alarm renders first.
+ * Sorts section types so the section with the soonest timer is on top
+ * (finished timers count as soonest). Ties keep the category order.
  * @param {string[]} types - Array of section type keys
  * @param {Object} groups - Map of type → alarm[]
  * @returns {string[]}
  */
 function sortSectionTypes(types, groups) {
-  // "custom" (user-created ⭐) and "auto" (preset ⭐) share the same order slot.
-  // Whichever has the soonest alarm wins and renders first so the urgent one is visible.
-  const customSoonest = groups.custom
-    ? Math.min(...groups.custom.map((a) => a.scheduledTime))
-    : Infinity;
-  const autoSoonest = groups.auto
-    ? Math.min(...groups.auto.map((a) => a.scheduledTime))
-    : Infinity;
-  const customFirst = customSoonest <= autoSoonest;
-
-  return [...types].sort((a, b) => {
-    const orderOf = (t) => {
-      if (t === "custom") return customFirst ? 7 : 8;
-      if (t === "auto") return customFirst ? 8 : 7;
-      return SECTION_META[t]?.order ?? 99;
-    };
-    return orderOf(a) - orderOf(b);
-  });
+  const soonest = (t) => Math.min(...groups[t].map((a) => a.scheduledTime));
+  const orderOf = (t) => SECTION_META[t]?.order ?? 99;
+  return [...types].sort(
+    (a, b) => soonest(a) - soonest(b) || orderOf(a) - orderOf(b),
+  );
 }
 
 function markLastExpandedSection(container) {
@@ -691,7 +691,7 @@ function createSectionNode(type, meta) {
   section.innerHTML = `
         <div class="tw-section-header">
             ${iconHtml}
-            <span class="tw-section-label" style="color: ${meta.color}">${meta.label}</span>
+            <span class="tw-section-label" style="color: var(--tw-sec-${type}, ${meta.color})">${meta.label}</span>
             <span class="tw-section-next-village"></span>
             <span class="tw-section-count">0</span>
             <button type="button" class="tw-section-clear" title="Clear all ${meta.label} timers" aria-label="Clear all ${meta.label} timers">${makeUiIcon("trash")}</button>
@@ -815,6 +815,7 @@ function createAlarmNode(a, uniqueId) {
   const div = document.createElement("div");
   div.className = `tw-alarm ${typeClass} ${pinnedClass}`;
   div.dataset.uid = uniqueId;
+  div.dataset.cat = getColorKey(a);
 
   const editBtnHtml = isCustom
     ? `<button type="button" class="tw-act-edit" title="Edit" aria-label="Edit">${makeUiIcon("pencil")}</button>`
@@ -1536,6 +1537,11 @@ function createWidget() {
       syncState();
     }
   };
+
+  // Drag by the titlebar and apply the toolbar-popup display settings.
+  initWidgetLayout(div, () => {
+    if (!div.classList.contains("is-minimized")) minBtn.onclick();
+  }).catch((error) => console.warn("TravAlarm layout settings failed", error));
 
   return { timerWidget: div, listContainer, toggleBtn, audioBtn };
 }

@@ -103,7 +103,7 @@
   position: fixed;
   right: 5px;
   top: 110px;
-  width: 225px;
+  width: var(--tw-width, 225px);
   height: fit-content;
   max-height: min(950px, calc(100vh - 160px));
   z-index: 9999;
@@ -131,6 +131,17 @@
   background: linear-gradient(180deg, #1e1e22 0%, var(--tw-bg) 100%);
   border-bottom: 1px solid var(--tw-border);
   user-select: none;
+  cursor: grab;
+  touch-action: none;
+}
+#_tw-w.is-dragging {
+  transition: none;
+}
+#_tw-w.is-dragging .tw-titlebar {
+  cursor: grabbing;
+}
+.tw-titlebar button {
+  cursor: pointer;
 }
 
 .tw-title {

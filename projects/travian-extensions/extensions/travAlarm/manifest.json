@@ -6,7 +6,7 @@
 	},
 	"manifest_version": 3,
 	"name": "TravAlarm",
-	"version": "3.65",
+	"version": "3.66",
 	"description": "Get incoming attack alerts and track Travian building, troop training and research timers, plus custom reminders.",
 	"permissions": [
 		"notifications",
@@ -20,6 +20,10 @@
 	"background": {
 		"service_worker": "background.js",
 		"scripts": ["attack-state.js", "offscreen.js", "background.js"]
+	},
+	"action": {
+		"default_title": "TravAlarm",
+		"default_popup": "popup.html"
 	},
 	"icons": {
 		"16": "icon16.png",
@@ -42,6 +46,7 @@
 				"fetchers.js",
 				"scanners.js",
 				"world-timers.js",
+				"layout.js",
 				"ui.js",
 				"server-ignore.js",
 				"content.js"

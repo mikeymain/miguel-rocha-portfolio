@@ -1,5 +1,11 @@
 # Changelog
 
+## TravAlarm 3.66 — 2026-11-24
+
+- Drag the widget by its title bar to move it. The position is saved and kept on screen.
+- The toolbar icon opens a settings popup: panel width, opacity, accent color, start minimized, a custom color for each category and training building, and reset buttons. Changes apply to open Travian tabs immediately.
+- Categories are ordered by their soonest timer, so the timer that finishes next is always at the top.
+
 ## TravAlarm 3.65 — 2026-11-24
 
 - FNPC shows the time left in hours and minutes next to the clock time, for example "FNPC: 18:40 · 2h 15m". The countdown updates every minute.
