@@ -353,6 +353,17 @@ function npcEtaHours(stock, prod, caps, costTotal) {
   return Infinity;
 }
 
+/**
+ * Time left as "2h 15m" or "45m", rounded up to the minute so it never
+ * shows less time than remains.
+ * @param {number} ms milliseconds left
+ */
+function formatNpcCountdown(ms) {
+  const mins = Math.max(0, Math.ceil(ms / 60000));
+  const h = Math.floor(mins / 60);
+  return h > 0 ? `${h}h ${mins % 60}m` : `${mins}m`;
+}
+
 function getResourceValue(wrapper, typePrefix) {
   const icon = wrapper.querySelector(`.${typePrefix}, .${typePrefix}Big`);
   if (!icon) return 0;

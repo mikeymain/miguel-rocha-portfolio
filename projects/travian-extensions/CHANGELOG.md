@@ -1,5 +1,10 @@
 # Changelog
 
+## TravAlarm 3.65 — 2026-11-24
+
+- FNPC shows the time left in hours and minutes next to the clock time, for example "FNPC: 18:40 · 2h 15m". The countdown updates every minute.
+- FNPC is recalculated whenever the page changes instead of once per page load, so it follows stock changes from returning raids, merchants or spending, and disappears once the cost is affordable.
+
 ## Rank Tracker 5.1.14 — 2026-11-22
 
 - Adds Average rank under Graph → Filters → Overview, using the same calculation as Now.

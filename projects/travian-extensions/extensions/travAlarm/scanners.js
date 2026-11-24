@@ -193,8 +193,6 @@ function scanNPCBuild(activeVillage) {
   }
 
   costWrappers.forEach((wrapper) => {
-    if (wrapper.dataset._wnpc === "true") return;
-
     const c1 = getResourceValue(wrapper, "r1");
     const c2 = getResourceValue(wrapper, "r2");
     const c3 = getResourceValue(wrapper, "r3");
@@ -203,52 +201,14 @@ function scanNPCBuild(activeVillage) {
 
     if (costTotal === 0) return;
     if (currentTotal >= costTotal) {
-      wrapper.dataset._wnpc = "true";
+      removeNpcLabel(wrapper);
       return;
     }
 
-    let sibling = wrapper.nextElementSibling;
-    while (
-      sibling &&
-      (sibling.tagName === "INPUT" || sibling.classList.contains("clear"))
-    ) {
-      sibling = sibling.nextElementSibling;
-    }
-
-    let durationNode = null;
-    let infoNode = null;
-    if (
-      sibling &&
-      (sibling.classList.contains("duration") ||
-        sibling.querySelector(".clock") ||
-        sibling.querySelector('img[class*="clock"]'))
-    ) {
-      durationNode = sibling;
-      sibling = sibling.nextElementSibling;
-      while (
-        sibling &&
-        (sibling.tagName === "INPUT" || sibling.classList.contains("clear"))
-      ) {
-        sibling = sibling.nextElementSibling;
-      }
-    }
-    if (sibling) {
-      if (
-        sibling.classList.contains("errorMessage") ||
-        sibling.classList.contains("infoMessage")
-      ) {
-        infoNode = sibling;
-      } else if (sibling.querySelector) {
-        infoNode = sibling.querySelector(".errorMessage, .infoMessage");
-      }
-    }
-
     let msg = "";
-    let isFetching = false;
-
+    let doneAt = 0;
     if (prodTotalRaw === null) {
       msg = "NPC: Fetching Prod...";
-      isFetching = true;
     } else if (!page && prodTotal === 0) {
       msg = "NPC: Visit 'Resources' tab";
     } else if ([c1, c2, c3, c4].some((c, i) => c > caps[i])) {
@@ -267,77 +227,148 @@ function scanNPCBuild(activeVillage) {
       if (!isFinite(hours)) {
         msg = "NPC: Negative Prod";
       } else {
-        const now = new Date();
         // Round up to the minute: HH:MM must not show a time before it's affordable.
-        const doneTime = new Date(Math.ceil((now.getTime() + hours * 3600000) / 60000) * 60000);
-        const timeStr = doneTime.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        });
-        const days = Math.round(
-          (new Date(doneTime).setHours(0, 0, 0, 0) - new Date(now).setHours(0, 0, 0, 0)) / 86400000,
-        );
-        msg = `FNPC: ${timeStr}${days > 0 ? ` (+${days}d)` : ""}`;
+        doneAt = Math.ceil((Date.now() + hours * 3600000) / 60000) * 60000;
+        msg = `FNPC: ${npcClockText(doneAt)}`;
       }
     }
-    if (!msg) return;
-
-    // Clean up previously injected messages to avoid duplicates
-    if (infoNode) {
-      infoNode.querySelectorAll("._w-nm").forEach((el) => el.remove());
-    } else {
-      const target = durationNode || wrapper;
-      if (target && target.parentNode) {
-        target.parentNode
-          .querySelectorAll("._w-nm")
-          .forEach((el) => el.remove());
-      }
-    }
-
-    if (infoNode) {
-      const span = document.createElement("span");
-      span.className = "_w-nm";
-      span.style.cssText = NPC_MSG_STYLE;
-      span.innerText = `${msg}`;
-      let inserted = false;
-      for (const node of infoNode.childNodes) {
-        if (
-          node.nodeType === 3 &&
-          node.textContent.includes("Enough resources")
-        ) {
-          infoNode.insertBefore(span, node.nextSibling);
-          inserted = true;
-          break;
-        }
-      }
-      if (!inserted) {
-        const br = infoNode.querySelector("br");
-        if (br) infoNode.insertBefore(span, br);
-        else infoNode.appendChild(span);
-      }
-    } else {
-      const target = durationNode || wrapper;
-      const errorMsg = target?.parentNode?.querySelector(".errorMessage, .infoMessage");
-      if (errorMsg) {
-        const span = document.createElement("span");
-        span.className = "_w-nm";
-        span.style.cssText =
-          "display: inline-block; font-family: Arial, Helvetica, Verdana, sans-serif; font-size: 12px; color: #777777; font-weight: bold; margin-left: 10px; white-space: nowrap;";
-        span.innerText = msg;
-        errorMsg.appendChild(span);
-      } else if (target && target.parentNode) {
-        const div = document.createElement("div");
-        div.className = "_w-nm";
-        div.innerText = msg;
-        target.parentNode.insertBefore(div, target.nextSibling);
-      }
-    }
-
-    if (!isFetching) {
-      wrapper.dataset._wnpc = "true";
-    }
+    setNpcLabel(wrapper, msg, doneAt);
   });
+}
+
+// Each cost box keeps one label. Text changes go through the label's text
+// node (characterData), which the page MutationObserver does not watch, so
+// updating a label never re-triggers scan().
+const npcLabels = new WeakMap();
+const liveNpcLabels = new Set();
+
+/** "14:32" or "14:32 (+1d)" in local time. */
+function npcClockText(doneAt) {
+  const done = new Date(doneAt);
+  const timeStr = done.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  const days = Math.round(
+    (new Date(doneAt).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 86400000,
+  );
+  return `${timeStr}${days > 0 ? ` (+${days}d)` : ""}`;
+}
+
+function npcLabelText(label) {
+  return label.doneAt
+    ? `${label.base} · ${formatNpcCountdown(label.doneAt - Date.now())}`
+    : label.base;
+}
+
+function removeNpcLabel(wrapper) {
+  const label = npcLabels.get(wrapper);
+  if (!label) return;
+  label.el.remove();
+  liveNpcLabels.delete(label);
+  npcLabels.delete(wrapper);
+}
+
+function setNpcLabel(wrapper, base, doneAt) {
+  let label = npcLabels.get(wrapper);
+  if (label && !label.el.isConnected) {
+    removeNpcLabel(wrapper);
+    label = null;
+  }
+  if (!label) {
+    const el = insertNpcLabel(wrapper);
+    if (!el) return;
+    label = { el, text: el.appendChild(document.createTextNode("")), base, doneAt };
+    npcLabels.set(wrapper, label);
+    liveNpcLabels.add(label);
+  }
+  label.base = base;
+  label.doneAt = doneAt;
+  const text = npcLabelText(label);
+  if (label.text.data !== text) label.text.data = text;
+}
+
+/** Updates the countdowns from their stored done-at times; reads no page data. */
+function refreshNpcCountdowns() {
+  for (const label of liveNpcLabels) {
+    if (!label.el.isConnected) {
+      liveNpcLabels.delete(label);
+      continue;
+    }
+    if (!label.doneAt) continue;
+    const text = npcLabelText(label);
+    if (label.text.data !== text) label.text.data = text;
+  }
+}
+
+function nextSkippingFillers(node) {
+  while (node && (node.tagName === "INPUT" || node.classList.contains("clear"))) {
+    node = node.nextElementSibling;
+  }
+  return node;
+}
+
+/** Creates an empty label element next to a cost box; returns it or null. */
+function insertNpcLabel(wrapper) {
+  let sibling = nextSkippingFillers(wrapper.nextElementSibling);
+  let durationNode = null;
+  let infoNode = null;
+  if (
+    sibling &&
+    (sibling.classList.contains("duration") ||
+      sibling.querySelector(".clock") ||
+      sibling.querySelector('img[class*="clock"]'))
+  ) {
+    durationNode = sibling;
+    sibling = nextSkippingFillers(sibling.nextElementSibling);
+  }
+  if (sibling) {
+    if (
+      sibling.classList.contains("errorMessage") ||
+      sibling.classList.contains("infoMessage")
+    ) {
+      infoNode = sibling;
+    } else if (sibling.querySelector) {
+      infoNode = sibling.querySelector(".errorMessage, .infoMessage");
+    }
+  }
+
+  // Drop orphaned labels here; labels owned by other cost boxes stay.
+  const target = durationNode || wrapper;
+  const owned = new Set([...liveNpcLabels].map((label) => label.el));
+  (infoNode || target?.parentNode)
+    ?.querySelectorAll("._w-nm")
+    .forEach((el) => owned.has(el) || el.remove());
+
+  if (infoNode) {
+    const span = document.createElement("span");
+    span.className = "_w-nm";
+    span.style.cssText = NPC_MSG_STYLE;
+    const enough = [...infoNode.childNodes].find(
+      (node) => node.nodeType === 3 && node.textContent.includes("Enough resources"),
+    );
+    if (enough) infoNode.insertBefore(span, enough.nextSibling);
+    else {
+      const br = infoNode.querySelector("br");
+      if (br) infoNode.insertBefore(span, br);
+      else infoNode.appendChild(span);
+    }
+    return span;
+  }
+  if (!target?.parentNode) return null;
+  const errorMsg = target.parentNode.querySelector(".errorMessage, .infoMessage");
+  if (errorMsg) {
+    const span = document.createElement("span");
+    span.className = "_w-nm";
+    span.style.cssText = NPC_MSG_STYLE;
+    errorMsg.appendChild(span);
+    return span;
+  }
+  const div = document.createElement("div");
+  div.className = "_w-nm";
+  target.parentNode.insertBefore(div, target.nextSibling);
+  return div;
 }
 
 function scanResources() {

@@ -153,7 +153,10 @@ function startLoops(firstAlarms) {
   // Countdowns show whole seconds: tick just after each second boundary, skip
   // while the tab is hidden and catch up as soon as it is shown again.
   const loop = () => {
-    if (!document.hidden) tick();
+    if (!document.hidden) {
+      tick();
+      refreshNpcCountdowns();
+    }
     setTimeout(loop, 1005 - (Date.now() % 1000));
   };
   document.addEventListener("visibilitychange", () => {
