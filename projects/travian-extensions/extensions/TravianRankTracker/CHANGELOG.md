@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.1.17 — 2026-11-24
+
+- Adds raid income to the game's production figures: the Production per hour table on the resources page, and the Production and Full in / Empty in lines in the stock bar tooltips. Raid income per hour is split evenly over the four resources and is ignored when the latest statistics sample is over 24 hours old.
+
 ## Rank Tracker 5.1.16 — 2026-11-24
 
 - Sends the raid income per hour to TravAlarm for its FNPC time, through extension messaging only. Nothing is written to the game page.
