@@ -1,5 +1,10 @@
 # Changelog
 
+## Travian QoL 1.4.5 — 2026-11-24
+
+- Counter-attack calculator: hero boots now speed up only the fields beyond the first 20 and add to the Tournament Square bonus, as in the game. Before, boots sped up the whole trip, so launch times with boots were off.
+- Counter-attack calculator: **Arrives in** takes the countdown of an incoming attack (h:mm:ss) and fills in the arrival time.
+
 ## Travian QoL 1.4.4 — 2026-11-24
 
 - Loot Calculator: the combat simulator's statistics table shows **Total resources gained** and **Net resources**, like oasis reports. Both update after each simulation.

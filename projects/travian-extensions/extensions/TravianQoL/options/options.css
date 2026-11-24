@@ -670,6 +670,8 @@ body:has(#tab-counter.is-active) .app {
 	padding-bottom: 8px;
 	border-bottom: 1px solid var(--border-subtle);
 }
+/* The countdown alternative sits on its own row, directly under Arrival. */
+.ca__row--shared .ca__field--arrives-in { grid-column: 2; grid-row: 2; }
 .ca__armies {
 	display: grid;
 	grid-template-columns: 1fr 1fr;

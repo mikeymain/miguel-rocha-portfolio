@@ -545,11 +545,29 @@
 		// Pre-fill arrival time with "now + 30 min" so the user has a
 		// concrete starting point.
 		const arrivalEl = document.getElementById('ca-arrival');
-		(function () {
-			const t = new Date(Date.now() + 30 * 60 * 1000);
+		function setArrival(t) {
 			const pad = (n) => String(n).padStart(2, '0');
 			arrivalEl.value = `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}T${pad(t.getHours())}:${pad(t.getMinutes())}:${pad(t.getSeconds())}`;
-		})();
+		}
+		setArrival(new Date(Date.now() + 30 * 60 * 1000));
+
+		// "Arrives in" takes the countdown shown on the incoming attack
+		// (h:mm:ss or mm:ss) and turns it into the arrival time. Its own
+		// listener runs before the panel's bubbling one, so recompute()
+		// already sees the new arrival.
+		const arrivesInEl = document.getElementById('ca-arrives-in');
+		function parseCountdown(str) {
+			const parts = String(str).trim().split(':');
+			if (parts.length < 2 || parts.length > 3 || parts.some((p) => !/^\d+$/.test(p))) return null;
+			const [h, m, s] = parts.length === 3 ? parts.map(Number) : [0, ...parts.map(Number)];
+			if (m > 59 || s > 59) return null;
+			return (h * 3600 + m * 60 + s) * 1000;
+		}
+		arrivesInEl.addEventListener('input', () => {
+			const ms = parseCountdown(arrivesInEl.value);
+			if (ms != null) setArrival(new Date(Date.now() + ms));
+		});
+		arrivalEl.addEventListener('input', () => { arrivesInEl.value = ''; });
 
 		// Persist inputs across sessions. Arrival time is intentionally
 		// excluded — it auto-prefills to now+30m, which beats restoring a
@@ -618,15 +636,19 @@
 			const dy = Math.min(Math.abs(a.y - b.y), mapSize - Math.abs(a.y - b.y));
 			return Math.sqrt(dx * dx + dy * dy);
 		}
+		// Travian help, "Troops Speed Increase & Tournament Square": artefacts
+		// multiply the whole trip; boots and the Tournament Square only count
+		// after the first 20 fields, and their bonuses ADD (+25% boots and
+		// TS 10 = x(1 + 0.25 + 2), not x1.25 x3).
+		const TS_FREE_FIELDS = 20;
+		const TS_BONUS_PER_LEVEL = 0.2;
 		function travelSeconds(dist, baseSpeed, serverSpeed, artefact, bootsMult, tsLevel) {
-			// fields/hour after all multipliers
-			const speed = baseSpeed * serverSpeed * artefact * bootsMult;
+			const speed = baseSpeed * serverSpeed * artefact; // fields/hour
 			if (!Number.isFinite(speed) || speed <= 0) return Infinity;
-			if (dist <= 20) return (dist / speed) * 3600;
-			// TS only boosts the portion beyond 20 fields; +20% per level.
-			const tsBonus = 1 + 0.2 * tsLevel;
-			const beyond = dist - 20;
-			return (20 / speed + beyond / (speed * tsBonus)) * 3600;
+			if (dist <= TS_FREE_FIELDS) return (dist / speed) * 3600;
+			const beyondBonus = 1 + (bootsMult - 1) + TS_BONUS_PER_LEVEL * tsLevel;
+			const beyond = dist - TS_FREE_FIELDS;
+			return (TS_FREE_FIELDS / speed + beyond / (speed * beyondBonus)) * 3600;
 		}
 		function fmtDuration(sec) {
 			if (!Number.isFinite(sec) || sec < 0) return '—';
