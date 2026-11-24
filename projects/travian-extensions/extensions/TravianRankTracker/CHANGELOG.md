@@ -1,5 +1,10 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.1.15 — 2026-11-24
+
+- Graph tooltips show at most one decimal, so an average rank of 605.7 no longer reads as 605,727.
+- Moves Absolute / Per hour next to Time Interval, removing the empty gap in the Graph toolbar.
+
 ## Rank Tracker 5.1.14 — 2026-11-22
 
 - Adds Average rank under Graph → Filters → Overview, using the same calculation as Now.

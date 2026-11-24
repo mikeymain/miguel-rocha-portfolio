@@ -582,10 +582,15 @@ function hvValueAxisPlugin() {
 	};
 }
 
+/** Tooltip number: grouped, at most one decimal, so 605.7 never reads as 605,727. */
+function hvTooltipNum(n) {
+	return n.toLocaleString(undefined, { maximumFractionDigits: 1 });
+}
+
 /** Tooltip label: value plus change from the previous non-null point. */
 function hvTooltipLabel(context) {
 	let lbl = context.dataset.label ? `${context.dataset.label}: ` : "";
-	if (context.parsed.y !== null) lbl += context.parsed.y.toLocaleString();
+	if (context.parsed.y !== null) lbl += hvTooltipNum(context.parsed.y);
 	if (context.dataset.perHour) lbl += " / h";
 	if (!popupState.isVelocityMode && context.dataIndex > 0) {
 		const values = context.dataset.comparisonData || context.dataset.data;
@@ -599,7 +604,7 @@ function hvTooltipLabel(context) {
 		}
 		if (prev != null && curr != null) {
 			const d = curr - prev;
-			if (d !== 0) lbl += ` (${d > 0 ? "+" : ""}${d.toLocaleString()})`;
+			if (Math.abs(d) >= 0.05) lbl += ` (${d > 0 ? "+" : ""}${hvTooltipNum(d)})`;
 		}
 	}
 	return lbl;
