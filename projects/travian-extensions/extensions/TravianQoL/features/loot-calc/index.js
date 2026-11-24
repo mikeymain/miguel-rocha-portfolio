@@ -277,7 +277,10 @@
 	}
 	function extractLostResources(statsTable) {
 		const rows = [...statsTable.querySelectorAll('tr')].filter(
-			(row) => row.querySelector('th') && !row.classList.contains('tlw-net-row'),
+			(row) =>
+				row.querySelector('th') &&
+				!row.classList.contains('tlw-net-row') &&
+				!row.classList.contains('tlw-sim-total-row'),
 		);
 		// The label is translated, so outside English fall back to the only row
 		// whose cells show resource amounts.
@@ -399,6 +402,37 @@
 		log('Oasis total:', grandTotal);
 	}
 
+	// ===== COMBAT SIMULATOR =====
+	// The simulator's statistics table has the same "Resources lost" row as a
+	// report. Add the total resources gained (bounty plus the animal rewards
+	// shown under the table) and the net row, like on oasis reports.
+	function createSimTotalRow(total) {
+		const row = document.createElement('tr');
+		row.className = 'tlw-sim-total-row';
+		row.innerHTML = `
+			<th>Total resources gained</th>
+			<td><div class="inlineIcon " title=""><i class="resources_medium"></i><span class="value ">${total.toLocaleString()}</span></div></td>
+			<td></td>`;
+		return row;
+	}
+	function scanSimulator() {
+		if (!active) return;
+		const results = document.querySelector('#combatSimulator .results');
+		const statsTable = results?.querySelector('.combatStatistics table tbody');
+		if (!statsTable) return;
+		let gained = 0;
+		results.querySelectorAll('.resourceWrapper').forEach((w) => (gained += sumResourceWrapper(w)));
+		const { attackerLost, defenderLost } = extractLostResources(statsTable);
+		// Each simulation re-renders the numbers, possibly into the same table:
+		// rebuild the rows whenever the inputs change.
+		const signature = `${gained}|${attackerLost}|${defenderLost}`;
+		if (statsTable.dataset.tlwSimSig === signature) return;
+		statsTable.querySelectorAll('.tlw-sim-total-row, .tlw-net-row').forEach((r) => r.remove());
+		statsTable.dataset.tlwSimSig = signature;
+		if (gained <= 0) return;
+		statsTable.append(createSimTotalRow(gained), createNetResourcesRow(gained - attackerLost, defenderLost));
+	}
+
 	// ===== REPORT BADGE INJECTION =====
 	function extractResourceValue(icon) {
 		const sibling = icon.nextElementSibling;
@@ -445,8 +479,9 @@
 	}
 	function refreshAllBadges() {
 		document
-			.querySelectorAll('.tlw-auto-badge, .tlw-oasis-sum, .tlw-net-row, .tlw-xp-row, .tlw-tip-line')
+			.querySelectorAll('.tlw-auto-badge, .tlw-oasis-sum, .tlw-net-row, .tlw-sim-total-row, .tlw-xp-row, .tlw-tip-line')
 			.forEach((el) => el.remove());
+		document.querySelectorAll('[data-tlw-sim-sig]').forEach((el) => delete el.dataset.tlwSimSig);
 		document.querySelectorAll('.carry[data-tlw-processed]').forEach((el) => delete el.dataset.tlwProcessed);
 		document.querySelectorAll('[data-tlw-oasis-summed]').forEach((el) => delete el.dataset.tlwOasisSummed);
 		if (active && isAutoEnabled && autoUnitCap > 0) scanForReports();
@@ -855,7 +890,9 @@
 		init() {
 			active = true;
 			const onReport = () => window.location.href.includes('/report');
+			const onSimulator = () => document.getElementById('combatSimulator') !== null;
 			if (onReport()) ensureSettings().then(scanReportPage);
+			scanSimulator();
 
 			// One body observer: loot tooltips (any page) and report re-renders
 			// (list filters etc., report pages only).
@@ -869,10 +906,13 @@
 						}
 					}
 				}
-				if (scanTimeout || !onReport()) return;
+				if (scanTimeout) return;
+				const report = onReport();
+				if (!report && !onSimulator()) return;
 				scanTimeout = setTimeout(() => {
 					scanTimeout = null;
-					ensureSettings().then(scanReportPage);
+					if (report) ensureSettings().then(scanReportPage);
+					else scanSimulator();
 				}, DEBOUNCE_DELAY_MS);
 			});
 			observer.observe(document.body, { childList: true, subtree: true });

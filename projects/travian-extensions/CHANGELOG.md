@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.4.4 — 2026-11-24
+
+- Loot Calculator: the combat simulator's statistics table shows **Total resources gained** and **Net resources**, like oasis reports. Both update after each simulation.
+
 ## TravAlarm 3.66 — 2026-11-24
 
 - Drag the widget by its title bar to move it. The position is saved and kept on screen.
