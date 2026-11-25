@@ -17,3 +17,5 @@
 ._vpfl-bonus i { flex: none; }
 ._vpfl-bonus span + i { margin-left: 3px; }
 ._vpfl-unknown { opacity: 0.6; cursor: help; }
+
+._vpfl-animals { display: block; font-size: 0.9em; font-weight: normal; }

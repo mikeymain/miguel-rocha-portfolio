@@ -1,5 +1,9 @@
 # Changelog
 
+## Oasis Finder 70.13 — 2026-11-25
+
+- Show saved animal counts by species beneath each oasis on the native farm list.
+
 ## Travian QoL 1.6.13 — 2026-11-25
 
 - Open selected farm targets in background tabs 180 ms apart.

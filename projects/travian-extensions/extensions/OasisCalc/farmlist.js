@@ -1,5 +1,5 @@
 /**
- * farmlist.js — Shows each oasis's resource bonus on the rally point farm list.
+ * farmlist.js — Shows each oasis's observed animals and resource bonus on the rally point farm list.
  *
  * Reads the bonuses analyzeTiles() records while the map is browsed with the
  * finder loaded (ob_<host>); makes no requests of its own. An oasis the
@@ -16,6 +16,7 @@
 
   let bonuses = null; // { "x|y": "4:50" }
   let knownOases = new Set();
+  let scans = new Map();
   let timer = 0;
 
   function parseNum(text) {
@@ -64,6 +65,25 @@
     return badge;
   }
 
+  function showAnimals(cell, scan, isOasis) {
+    let label = cell.querySelector("._vpfl-animals");
+    if (!isOasis) { label?.remove(); return; }
+    const animals = scan?.animals;
+    const valid = Array.isArray(animals) && animals.length && animals.every(a =>
+      a && Number.isInteger(a.id) && ANIMAL_STATS[a.id] && Number.isSafeInteger(a.count) && a.count > 0);
+    const counts = valid ? animals.map(a => `${ANIMAL_STATS[a.id].name} ×${a.count}`).join(" · ") : "No animal data";
+    const text = scan?.observationIncomplete && valid ? counts + " (last known)" : counts;
+    const title = valid && Number.isFinite(scan.scannedAt)
+      ? "Observed " + new Date(scan.scannedAt).toLocaleString() : "Animal counts from saved Oasis Finder scans";
+    if (!label) {
+      label = document.createElement("small");
+      label.className = "_vpfl-animals";
+      cell.appendChild(label);
+    }
+    if (label.textContent !== text) label.textContent = text;
+    if (label.title !== title) label.title = title;
+  }
+
   // Idempotent: a row whose badge already matches is left untouched, so the
   // mutations this causes settle instead of re-triggering the observer.
   function decorate() {
@@ -74,23 +94,24 @@
       if (!key) continue;
       const bonus = bonuses[key] || "";
       // Population 0 marks an oasis in any game language; villages never have 0.
-      const isOasis = !!bonus || knownOases.has(key) ||
+      const isOasis = !!bonus || scans.has(key) || knownOases.has(key) ||
         parseNum(row.querySelector("td.population")?.textContent) === 0;
       const state = isOasis ? `${key}=${bonus}` : "";
       const existing = cell.querySelector("._vpfl-bonus");
+      showAnimals(cell, scans.get(key), isOasis);
       if ((existing?.dataset.state || "") === state) continue;
       existing?.remove();
       if (!isOasis) continue;
       const badge = renderBadge(bonus);
       badge.dataset.state = state;
-      cell.appendChild(badge);
+      cell.insertBefore(badge, cell.querySelector("._vpfl-animals"));
     }
     groupOases();
   }
 
   function targetName(cell) {
     const copy = cell.cloneNode(true);
-    copy.querySelectorAll(".coordinates, ._vpfl-bonus").forEach((el) => el.remove());
+    copy.querySelectorAll(".coordinates, ._vpfl-bonus, ._vpfl-animals").forEach((el) => el.remove());
     return copy.textContent.replace(BIDI, "").trim();
   }
 
@@ -147,7 +168,9 @@
   }
 
   function load() {
-    browser.storage.local.get([BONUS_KEY, DB_KEY]).then((data) => {
+    browser.storage.local.get([BONUS_KEY, DB_KEY, SCAN_DATA_KEY]).then((data) => {
+      const entries = data?.[SCAN_DATA_KEY];
+      scans = new Map(Array.isArray(entries) ? entries.filter(e => Array.isArray(e) && e[0] === `${e[1]?.x}|${e[1]?.y}`) : []);
       bonuses = data?.[BONUS_KEY] || {};
       knownOases = new Set(Array.isArray(data?.[DB_KEY]) ? data[DB_KEY] : []);
       decorate();
@@ -157,7 +180,7 @@
   load();
   // Pick up bonuses recorded in a map tab while this farm list is open.
   browser.storage.onChanged.addListener((changes, area) => {
-    if (area === "local" && (changes[BONUS_KEY] || changes[DB_KEY])) load();
+    if (area === "local" && (changes[BONUS_KEY] || changes[DB_KEY] || changes[SCAN_DATA_KEY])) load();
   });
   // React re-renders rows on list refresh, expand and village switch.
   const root = document.querySelector(".buildRallyPointFarmList") || document.getElementById("content") || document.body;

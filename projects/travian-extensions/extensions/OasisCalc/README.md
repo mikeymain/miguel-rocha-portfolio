@@ -2,7 +2,9 @@
 
 Scores nearby oases using observed game data, troop costs and travel estimates.
 
-**Version 70.11 · JavaScript · Manifest V3**
+The rally point farm list shows saved animal counts by species beneath each oasis.
+
+**Version 70.13 · JavaScript · Manifest V3**
 
 [Usage guide](../../docs/USAGE.md#oasis-finder) · [Installation](../../README.md#install-in-brave-chrome-or-edge) · [All extensions](../../README.md)
 
