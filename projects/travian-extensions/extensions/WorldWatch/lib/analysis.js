@@ -196,9 +196,10 @@
 
 	// Villages within `radius` of `point`, nearest first. Accounts whose total
 	// pop did not grow between `prev` and `cur` are "inactive"; accounts absent
-	// from `prev` are "new". `excludeUid` (your account) is left out.
+	// from `prev` are "new". Villages of `pinUid` (your account) are always
+	// included, marked own, and listed first.
 	// prev may be null: status is then unknown ("").
-	function nearby(prev, cur, { point, radius, excludeUid = null } = {}) {
+	function nearby(prev, cur, { point, radius, pinUid = null } = {}) {
 		const before = prev ? accounts(prev) : null;
 		const after = accounts(cur);
 		const oldPop = new Map();
@@ -206,9 +207,9 @@
 		const rows = [];
 		for (let i = 0; i < cur.uid.length; i++) {
 			const uid = cur.uid[i];
-			if (uid === excludeUid) continue;
+			const own = uid === pinUid;
 			const dist = distance(cur.x[i], cur.y[i], point.x, point.y);
-			if (dist > radius) continue;
+			if (!own && dist > radius) continue;
 			const acc = after.get(uid);
 			const old = before && before.get(uid);
 			const accountGain = old ? acc.pop - old.pop : null;
@@ -229,9 +230,10 @@
 				villages: acc.villages,
 				distance: round1(dist),
 				status,
+				own,
 			});
 		}
-		rows.sort((a, b) => a.distance - b.distance || a.vid - b.vid);
+		rows.sort((a, b) => Number(b.own) - Number(a.own) || a.distance - b.distance || a.vid - b.vid);
 		return rows;
 	}
 

@@ -228,20 +228,21 @@
 		const prev = metaById($("prev").value);
 		const older = prev && prev.t < cur.t ? prev : null;
 		const prevSnap = older ? await loadSnap(older.id) : null;
-		const excludeUid = state.own?.villages?.length ? A.ownerUid(snap, state.own.villages) : null;
+		const pinUid = state.own?.villages?.length ? A.ownerUid(snap, state.own.villages) : null;
 		const host = $("host").value;
-		let rows = A.nearby(prevSnap, snap, { point, radius, excludeUid }).map((r) => ({
+		let rows = A.nearby(prevSnap, snap, { point, radius, pinUid }).map((r) => ({
 			...r,
 			point: `${r.x}|${r.y}`,
 			tribeName: TRIBES[r.tribe] || "",
 			href: `https://${host}/position_details.php?x=${r.x}&y=${r.y}`,
 		}));
-		const inactive = rows.filter((r) => r.status === "inactive").length;
-		if ($("near-inactive").checked) rows = rows.filter((r) => r.status === "inactive");
+		const inactive = rows.filter((r) => !r.own && r.status === "inactive").length;
+		const others = rows.filter((r) => !r.own).length;
+		if ($("near-inactive").checked) rows = rows.filter((r) => r.own || r.status === "inactive");
 		const hours = older ? Math.round((cur.t - older.t) / 3_600_000) : 0;
 		const windowText = !older ? "Pick an older Compare with snapshot for inactives" :
 			hours < 24 ? `${hours} h window: pick a snapshot ≥ 24 h older` : `${hours} h window`;
-		return { rows, summary: `${rows.length} villages · ${inactive} inactive · ${windowText}` };
+		return { rows, summary: `${others} villages · ${inactive} inactive · ${windowText}` };
 	}
 
 	// For Nearby: default Compare with to the newest snapshot at least 24 h older.
@@ -267,9 +268,10 @@
 	}
 
 	async function openAll() {
-		const urls = state.rows.map((r) => r.href).filter(Boolean).slice(0, OPEN_MAX);
+		const targets = state.rows.filter((r) => !r.own && r.href);
+		const urls = targets.map((r) => r.href).slice(0, OPEN_MAX);
 		if (!urls.length) return;
-		const extra = state.rows.length > OPEN_MAX ? ` (first ${OPEN_MAX} of ${state.rows.length})` : "";
+		const extra = targets.length > OPEN_MAX ? ` (first ${OPEN_MAX} of ${targets.length})` : "";
 		if (urls.length > OPEN_CONFIRM && !confirm(`Open ${urls.length} tabs${extra}?`)) return;
 		const run = ++openRun;
 		$("near-open").hidden = true;
