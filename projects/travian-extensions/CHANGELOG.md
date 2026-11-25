@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.6.5 — 2026-11-25
+
+- Build order tab: the production bonus is now set by picking up to three oases (25% of a resource, 50% crop, or a resource 25% + crop 25%) plus an editable building bonus % per resource. The totals per resource are shown under the pickers. A bonus entered before this version becomes the building bonus.
+
 ## Travian QoL 1.6.4 — 2026-11-25
 
 - Build order moves out of the game page into a **Build order** tab in QoL settings: pick a village, set its production bonus per resource, and see the next 10 field upgrades with cost and payback. The resources page keeps the glow and numbered badges, and they update when a bonus changes. A village appears in the tab after its resources page has been opened once.

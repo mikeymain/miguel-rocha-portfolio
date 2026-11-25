@@ -6,9 +6,25 @@
 	const FIELDS_PREFIX = 'travianQoL.buildFields.';
 	const BONUS_PREFIX = 'travianQoL.buildOrder.';
 	const PICK_KEY = 'travianQoL.buildOrder.pick';
+	// Per-host { villageId: { oases: [type x3], extra: [4] } }. The summed
+	// bonus is also written to BONUS_PREFIX, which the in-game highlight reads.
+	const SETUP_PREFIX = 'travianQoL.buildOasis.';
 	const STEPS = 10;
 	const RES_NAMES = ['Lumber', 'Clay', 'Iron', 'Crop'];
 	const MAX_BONUS = 500;
+	const OASIS_SLOTS = 3;
+	// Travian oasis types: bonus % per [lumber, clay, iron, crop].
+	const OASES = {
+		'': { label: 'None', bonus: [0, 0, 0, 0] },
+		l25: { label: 'Lumber 25%', bonus: [25, 0, 0, 0] },
+		c25: { label: 'Clay 25%', bonus: [0, 25, 0, 0] },
+		i25: { label: 'Iron 25%', bonus: [0, 0, 25, 0] },
+		f25: { label: 'Crop 25%', bonus: [0, 0, 0, 25] },
+		f50: { label: 'Crop 50%', bonus: [0, 0, 0, 50] },
+		lf: { label: 'Lumber 25% + Crop 25%', bonus: [25, 0, 0, 25] },
+		cf: { label: 'Clay 25% + Crop 25%', bonus: [0, 25, 0, 25] },
+		if: { label: 'Iron 25% + Crop 25%', bonus: [0, 0, 25, 25] },
+	};
 
 	const root = document.getElementById('bo-root');
 	const select = document.getElementById('bo-village');
@@ -17,6 +33,7 @@
 
 	let villages = []; // { value, host, id, name, fields, updatedAt }
 	let bonusStore = {}; // host -> { villageId: [4] }
+	let setupStore = {}; // host -> { villageId: { oases, extra } }
 
 	function el(tag, className, text) {
 		const node = document.createElement(tag);
@@ -42,8 +59,11 @@
 		const all = await chrome.storage.local.get(null);
 		villages = [];
 		bonusStore = {};
+		setupStore = {};
 		for (const [key, value] of Object.entries(all)) {
-			if (key.startsWith(FIELDS_PREFIX)) {
+			if (key.startsWith(SETUP_PREFIX)) {
+				setupStore[key.slice(SETUP_PREFIX.length)] = value || {};
+			} else if (key.startsWith(FIELDS_PREFIX)) {
 				const host = key.slice(FIELDS_PREFIX.length);
 				for (const [id, v] of Object.entries(value || {})) {
 					if (Array.isArray(v?.fields) && v.fields.length) {
@@ -73,15 +93,34 @@
 
 	const current = () => villages.find((v) => v.value === select.value);
 
-	function bonusesFor(v) {
-		const saved = bonusStore[v.host]?.[v.id];
-		return Array.isArray(saved) && saved.length === 4 ? saved.map((n) => Number(n) || 0) : [0, 0, 0, 0];
+	const clampPct = (n) => Math.min(MAX_BONUS, Math.max(0, Math.round(Number(n) || 0)));
+
+	// Oases + building bonus for a village. A bonus saved before oasis pickers
+	// existed becomes the building part, so nothing entered is lost.
+	function setupFor(v) {
+		const s = setupStore[v.host]?.[v.id];
+		if (s && Array.isArray(s.oases) && Array.isArray(s.extra)) {
+			return {
+				oases: Array.from({ length: OASIS_SLOTS }, (_, i) => (s.oases[i] in OASES ? s.oases[i] : '')),
+				extra: [0, 1, 2, 3].map((i) => clampPct(s.extra[i])),
+			};
+		}
+		const old = bonusStore[v.host]?.[v.id];
+		const extra = Array.isArray(old) && old.length === 4 ? old.map(clampPct) : [0, 0, 0, 0];
+		return { oases: Array(OASIS_SLOTS).fill(''), extra };
 	}
 
-	function saveBonuses(v, bonuses) {
-		const key = BONUS_PREFIX + v.host;
-		bonusStore[v.host] = { ...(bonusStore[v.host] || {}), [v.id]: bonuses };
-		chrome.storage.local.set({ [key]: bonusStore[v.host] }, flash);
+	function totalBonus(setup) {
+		return [0, 1, 2, 3].map((r) => setup.extra[r] + setup.oases.reduce((sum, t) => sum + OASES[t].bonus[r], 0));
+	}
+
+	function saveSetup(v, setup) {
+		setupStore[v.host] = { ...(setupStore[v.host] || {}), [v.id]: setup };
+		bonusStore[v.host] = { ...(bonusStore[v.host] || {}), [v.id]: totalBonus(setup) };
+		chrome.storage.local.set({
+			[SETUP_PREFIX + v.host]: setupStore[v.host],
+			[BONUS_PREFIX + v.host]: bonusStore[v.host],
+		}, flash);
 	}
 
 	// options.js owns the header save indicator; pulse it here too.
@@ -91,35 +130,81 @@
 		setTimeout(() => status?.classList.remove('is-saving'), 600);
 	}
 
-	function buildBonusCard(v, bonuses, onChange) {
+	function oasisSelect(value, index, onPick) {
+		const sel = el('select', 'select');
+		sel.setAttribute('aria-label', `Oasis ${index + 1}`);
+		for (const [key, o] of Object.entries(OASES)) {
+			const opt = el('option', null, o.label);
+			opt.value = key;
+			sel.appendChild(opt);
+		}
+		sel.value = value;
+		sel.addEventListener('change', () => onPick(sel.value));
+		return sel;
+	}
+
+	function pctInput(value, label, onSet) {
+		const input = document.createElement('input');
+		input.type = 'number';
+		input.min = '0';
+		input.max = String(MAX_BONUS);
+		input.step = '5';
+		input.className = 'lc-num';
+		input.value = String(value);
+		input.setAttribute('aria-label', label);
+		input.addEventListener('change', () => {
+			input.value = String(clampPct(input.value));
+			onSet(Number(input.value));
+		});
+		return input;
+	}
+
+	// Friso-style: three oasis pickers, plus editable building bonus %.
+	function buildBonusCard(v, onChange) {
 		const card = el('section', 'card lc-card bo__bonus');
 		const head = el('div', 'lc-card__head');
 		head.appendChild(el('span', 'lc-card__title', 'Production bonus'));
 		card.appendChild(head);
-		let current = bonuses;
-		RES_NAMES.forEach((name, i) => {
-			const row = el('label', 'lc-line');
-			row.appendChild(el('span', 'lc-line__label', name));
-			const wrap = el('span', 'bo__pct');
-			const input = document.createElement('input');
-			input.type = 'number';
-			input.min = '0';
-			input.max = String(MAX_BONUS);
-			input.step = '5';
-			input.className = 'lc-num';
-			input.value = String(bonuses[i]);
-			input.setAttribute('aria-label', `${name} bonus %`);
-			input.addEventListener('change', () => {
-				const value = Math.min(MAX_BONUS, Math.max(0, Math.round(Number(input.value) || 0)));
-				input.value = String(value);
-				current = current.map((b, j) => (j === i ? value : b));
-				saveBonuses(v, current);
-				onChange(current);
+		let setup = setupFor(v);
+		const totals = el('div', 'bo__totals');
+
+		function update(next) {
+			setup = next;
+			saveSetup(v, setup);
+			paintTotals();
+			onChange(totalBonus(setup));
+		}
+		function paintTotals() {
+			totals.innerHTML = '';
+			totalBonus(setup).forEach((pct, r) => {
+				const cell = el('span', pct > 0 ? 'is-set' : null);
+				cell.append(el('b', null, `${pct}%`), RES_NAMES[r]);
+				totals.appendChild(cell);
 			});
-			wrap.append(input, el('span', null, '%'));
-			row.appendChild(wrap);
-			card.appendChild(row);
+		}
+
+		const oasisBox = el('div', 'bo__block');
+		oasisBox.appendChild(el('span', 'bo__block-title', 'Oases'));
+		for (let i = 0; i < OASIS_SLOTS; i++) {
+			oasisBox.appendChild(oasisSelect(setup.oases[i], i, (type) => {
+				update({ ...setup, oases: setup.oases.map((t, j) => (j === i ? type : t)) });
+			}));
+		}
+
+		const extraBox = el('div', 'bo__block');
+		extraBox.appendChild(el('span', 'bo__block-title', 'Buildings %'));
+		const grid = el('div', 'bo__extra');
+		RES_NAMES.forEach((name, r) => {
+			const cell = el('label', 'bo__extra-cell');
+			cell.append(el('span', null, name), pctInput(setup.extra[r], `${name} building bonus %`, (value) => {
+				update({ ...setup, extra: setup.extra.map((x, j) => (j === r ? value : x)) });
+			}));
+			grid.appendChild(cell);
 		});
+		extraBox.appendChild(grid);
+
+		paintTotals();
+		card.append(oasisBox, extraBox, totals);
 		return card;
 	}
 
@@ -163,8 +248,8 @@
 			root.appendChild(el('div', 'bo__empty card', 'Open a village\'s resources view in Travian to load its fields.'));
 			return;
 		}
-		let steps = buildStepsCard(v, bonusesFor(v));
-		const bonus = buildBonusCard(v, bonusesFor(v), (next) => {
+		let steps = buildStepsCard(v, totalBonus(setupFor(v)));
+		const bonus = buildBonusCard(v, (next) => {
 			const fresh = buildStepsCard(v, next);
 			steps.replaceWith(fresh);
 			steps = fresh;
