@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.6.16 — 2026-11-25
+
+- Production overview: add a **Time to fill** row showing how long an empty storage takes to fill at the village's production plus its recorded trade-route balance.
+
 ## Travian QoL 1.6.15 — 2026-11-25
 
 - Build order: the gold +25% toggle now applies to the whole account, the Hero's Mansion level selector is removed (game level is used), and the popup opens on the village of the active tab.

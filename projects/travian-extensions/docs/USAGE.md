@@ -88,6 +88,8 @@ TravAlarm refreshes game data only while its Travian tab is visible (a second mo
 
 ## Travian QoL
 
+The popup opens on **Build order** the first time. Reopening it restores the last tab you selected by mouse or keyboard.
+
 <a href="images/qol-settings.png"><img src="images/qol-settings.png" alt="Travian QoL feature controls" width="520" /></a>
 
 Open the toolbar popup or **Options** page. Features are enabled by default and grouped by area; each feature has its own switch, each group has a switch for all its features, and **All on** / **All off** switch everything. Features tagged **Refresh** take effect after reloading the page; the rest apply immediately.
@@ -108,7 +110,7 @@ Open the toolbar popup or **Options** page. Features are enabled by default and 
 | Build order | On the resources page, the resource field with the shortest payback (cost ÷ hourly gain after crop upkeep) glows; only that one field is marked. The **Build order** tab in QoL settings lists the next 12 upgrades with cost and payback for any village whose resources page has been opened; pick that village's up to three oases (owned or planned) and set Gold +25% there. Boost buildings (Sawmill to Bakery) and the Hero's Mansion are read when the village centre is opened and can be changed; the plan includes their upgrades and the Mansion levels needed for planned oases. Queued upgrades are counted. |
 | Smithy efficiency | On the smithy page each upgrade shows "Level N is efficient from X units (you have Y)": the number of that unit needed for the upgrade to be worth its cost, compared with training more units. The cost includes an even share of that smithy level, split over the units listed. Green once you have enough. Not available for Spartans yet. |
 | Resource full-at time | Resource bar tooltips show the clock time next to **Full in** / **Empty in**, e.g. **Full in: 3:54:46 (at 18:42)**. |
-| Trade routes in production table | Open **Marketplace → Trade routes** in each village and expand each route group once; collapsed groups keep their last recorded totals. The resources page **Production per hour** values then show net production after routes (incoming minus outgoing); hover a value to see the game's production and the trade-route change. Revisit the tab after changing routes. |
+| Trade routes in production table | Open **Marketplace → Trade routes** in each village and expand each route group once; collapsed groups keep their last recorded totals. The resources page **Production per hour** values then show net production after routes (incoming minus outgoing); hover a value to see the game's production and the trade-route change. Revisit the tab after changing routes. On the **Production overview** (`/production`) a **Time to fill** row under the total shows how long an empty warehouse or granary takes to fill at that production plus the trade-route balance, or **Never** when it is not growing. |
 | Counter-attack calculator | In **Counter-attack**, enter coordinates, troop/server speeds, bonuses, and the arrival time (or the countdown in **Arrives in**) to calculate return/interception times. **Land after (s)** lands the counter that many seconds after the attacking army is home. With your villages captured from the game sidebar, a table lists the launch time from each village; select a row to use it as the interceptor. |
 
 <a href="images/qol-build-order.png"><img src="images/qol-build-order.png" alt="Build order tab in Travian QoL settings" width="520" /></a>

@@ -111,6 +111,48 @@
 		});
 	}
 
+	const FILL_ROW_CLASS = 'tqol-fill-time';
+	// Production overview tab (?t=) -> resource index.
+	const TAB_INDEX = { lumber: 0, wood: 0, clay: 1, iron: 2, crop: 3 };
+	let fillObserver = null;
+
+	/** Adds "Time to fill" (from empty, net of trade routes) under the total production table. */
+	function renderFillTime(all) {
+		const table = document.querySelector('.productionPerHourTotal table');
+		const idx = TAB_INDEX[new URLSearchParams(location.search).get('t')];
+		if (!table || idx === undefined) return;
+		const total = parseNum(table.querySelector('tr.total td.numberCell')?.textContent);
+		const store = document.querySelector(`#stockBar .${idx === 3 ? 'granary' : 'warehouse'} .capacity .value`);
+		const did = activeVillageId();
+		if (total === null || !store || !did) return;
+		const text = core.formatFillTime(parseNum(store.textContent), total + core.balancePerHour(all, did)[idx]);
+		if (!text) return;
+		let row = table.querySelector(`.${FILL_ROW_CLASS}`);
+		if (!row) {
+			row = document.createElement('tr');
+			row.className = FILL_ROW_CLASS;
+			row.innerHTML = '<td class="bold">Time to fill</td><td class="numberCell bold"></td>';
+			table.tBodies[0].appendChild(row);
+		}
+		const cell = row.lastElementChild;
+		if (cell.textContent !== text) cell.textContent = text;
+	}
+
+	function initFillTime() {
+		const key = storageKey();
+		chrome.storage.local.get(key, (res) => {
+			if (chrome.runtime?.lastError) return;
+			const all = res?.[key] || {};
+			renderFillTime(all);
+			// The overview can re-render when the tab changes.
+			fillObserver = new MutationObserver(() => {
+				clearTimeout(debounceTimer);
+				debounceTimer = setTimeout(() => renderFillTime(all), DEBOUNCE_MS);
+			});
+			fillObserver.observe(document.body, { childList: true, subtree: true });
+		});
+	}
+
 	window.TravianQoL.register({
 		id: 'trade-route-production',
 		label: 'Trade routes in production table',
@@ -129,11 +171,16 @@
 				observer.observe(routes, { childList: true, subtree: true });
 			} else if (core.isResourcesPage()) {
 				renderProduction();
+			} else if (core.isProductionPage()) {
+				initFillTime();
 			}
 		},
 		destroy() {
 			observer?.disconnect();
 			observer = null;
+			fillObserver?.disconnect();
+			fillObserver = null;
+			document.querySelectorAll(`.${FILL_ROW_CLASS}`).forEach((el) => el.remove());
 			clearTimeout(debounceTimer);
 			debounceTimer = null;
 			core.removeCells();

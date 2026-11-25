@@ -104,8 +104,23 @@ window.TravianQoLTradeRoutes = window.TravianQoLTradeRoutes || (function () {
 		return true;
 	}
 
+	const isProductionPage = () => location.pathname === '/production';
+
+	/** Duration to fill `capacity` from 0 at `perHour`, e.g. "2d 3h 10m"; "Never" when not growing. */
+	function formatFillTime(capacity, perHour) {
+		if (!(capacity > 0)) return null;
+		if (!(perHour > 0)) return 'Never';
+		const minutes = Math.ceil((capacity / perHour) * 60);
+		const days = Math.floor(minutes / 1440);
+		const hours = Math.floor((minutes % 1440) / 60);
+		const mins = minutes % 60;
+		return [days && `${days}d`, (days || hours) && `${hours}h`, `${mins}m`].filter(Boolean).join(' ');
+	}
+
 	return {
 		HIDE_STYLE_ID,
+		isProductionPage,
+		formatFillTime,
 		storageKey,
 		isResourcesPage,
 		activeVillageId,
