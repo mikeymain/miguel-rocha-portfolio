@@ -18,9 +18,7 @@ NPC.CONFIG = {
 };
 
 NPC.STORAGE_KEYS = {
-	NEEDED_AMOUNTS: "_t4na",
 	PENDING_TROOP: "_t4pt",
-	INDICATOR_POS: "_t4ip",
 };
 
 NPC.RESOURCE_NAMES = ["Lumber", "Clay", "Iron", "Crop"];

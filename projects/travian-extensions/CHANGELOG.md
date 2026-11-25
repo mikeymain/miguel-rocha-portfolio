@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian NPC Calculator 3.2.25 — 2026-11-25
+
+- Removed the green "Resources Needed" panel on the marketplace and the calculator's "Send to Indicator" button that filled it. **Pull from Hero** is unchanged. Data the panel saved is cleared on the next page load.
+
 ## TravAlarm 3.67 — 2026-11-25
 
 - Categories are back in their fixed order. Timers within each category still run from soonest to latest.

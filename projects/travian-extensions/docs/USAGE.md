@@ -153,7 +153,7 @@ Refreshes when you open the popup or click **Refresh**; there are no background 
 1. In a training building, click the troop's **NPC exchange** control to open the calculator with that troop selected. A generic NPC dialog may lack the required troop context.
 2. Check the tribe and ruleset: **3 Tribes Classic**, **5 Tribe**, or **6 Tribe Rebalanced**.
 3. Enter **Build amount** or click **Max**. Max assumes an optimal NPC split of the total resource pool; actual recruitment also depends on stock distribution and queue conditions.
-4. **Send to Indicator** saves the resource shortfall for the marketplace indicator, which offers **Pull ÷4** only when the total pool is short. **Pull from Hero** normally opens the game's transfer dialog with target amounts. When a target is available, each required amount appears in amber parentheses. In night mode, projected stock turns muted green when it meets or exceeds that resource's target. In the light theme, projected stock uses the dialog’s neutral text color. Check amounts and destination before confirming.
+4. **Pull from Hero** normally opens the game's transfer dialog with target amounts. When a target is available, each required amount appears in amber parentheses. In night mode, projected stock turns muted green when it meets or exceeds that resource's target. In the light theme, projected stock uses the dialog’s neutral text color. Check amounts and destination before confirming.
 5. If the native dialog is unavailable, **Pull from Hero** can navigate to hero inventory, fill the amounts, and submit the transfer automatically. A pull that doesn't reach the inventory within 30 seconds is dropped.
 
 <a id="night-mode"></a>

@@ -20,39 +20,21 @@
 		} catch {}
 	};
 
-	/** Load needed amounts from chrome.storage.local into memory. */
-	NPC.loadNeededData = async function () {
-		try {
-			const key = NPC.STORAGE_KEYS.NEEDED_AMOUNTS;
-			const res = await chrome.storage.local.get({ [key]: null });
-			if (res[key]) NPC._neededData = res[key];
-		} catch {}
-	};
-
-	/** Load indicator position from chrome.storage.local into memory. */
-	NPC.loadIndicatorPos = async function () {
-		try {
-			const key = NPC.STORAGE_KEYS.INDICATOR_POS;
-			const res = await chrome.storage.local.get({ [key]: null });
-			if (res[key]) NPC._indicatorPos = res[key];
-		} catch {}
-	};
-
 	async function init() {
 		// Remove stale localStorage keys from previous versions
 		for (const key of STALE_LS_KEYS) {
 			try { localStorage.removeItem(key); } catch {}
 		}
 
-		// Load all caches before starting observers
-		await Promise.all([
-			NPC.loadTribeCache(),
-			NPC.loadNeededData(),
-			NPC.loadIndicatorPos(),
-		]);
+		// The marketplace "Resources Needed" panel was removed (3.2.25): drop its data.
+		try {
+			chrome.storage.local.remove(["_t4na", "_t4ip"]).catch(() => {});
+		} catch {}
+
+		// Load the tribe cache before starting observers
+		await NPC.loadTribeCache();
 
 		if (/^\/(dorf1\.php|resources)$/.test(location.pathname)) NPC.detectServerType();
-		NPC.HeroPageObserver.init();
 		NPC.NPCObserver.start();
 	}
 

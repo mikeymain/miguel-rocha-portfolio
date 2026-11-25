@@ -359,12 +359,9 @@ NPC.UIManager = {
             `;
     }
     html += `</div>`;
-    // Two equal-width actions: Send to Indicator (persist the deficit for
-    // the floating pull indicator) and Pull (open Travian's native in-place
-    // hero transfer dialog with the same deficit pre-filled). flex:1 1 0 on
-    // both buttons keeps them exactly half-width regardless of label length.
+    // Pull opens Travian's native in-place hero transfer dialog with the
+    // deficit pre-filled.
     html += `<div class="_r-action-row" style="display:flex;gap:6px;margin-top:8px;">`;
-    html += `<button type="button" id="_r-send-indicator" class="_r-btn _r-btn-primary" style="flex:1 1 0;min-width:0;">&#x2192; Send to Indicator</button>`;
     html += `<button type="button" id="_r-pull-hero" class="_r-btn _r-btn-primary" style="flex:1 1 0;min-width:0;">&#x2913; Pull from Hero</button>`;
     html += `</div>`;
 
@@ -407,25 +404,6 @@ NPC.UIManager = {
       };
     };
     const computeDeficitAmounts = () => computeTroopNeed()?.deficit ?? null;
-
-    const sendBtn = previewEl.querySelector("#_r-send-indicator");
-    if (sendBtn) {
-      sendBtn.addEventListener("click", () => {
-        const need = computeTroopNeed();
-        if (!need) return;
-        const village = NPC.PullDialogObserver._getCurrentVillageInfo();
-        NPC.PullDialogObserver.saveNeededAmounts(need.deficit, village, need.remain, "troop");
-        const origHTML = sendBtn.innerHTML;
-        sendBtn.textContent = "\u2713 Saved";
-        sendBtn.classList.add("_r-send-ok");
-        sendBtn.disabled = true;
-        setTimeout(() => {
-          sendBtn.innerHTML = origHTML;
-          sendBtn.classList.remove("_r-send-ok");
-          sendBtn.disabled = false;
-        }, 1500);
-      });
-    }
 
     // Pull button: opens Travian's native in-place hero transfer dialog
     // pre-filled to bring village stock up to the full cost. The native API's

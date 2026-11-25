@@ -430,11 +430,6 @@ input[name^="desired"][readonly] {
   border-color: #5a9e2f;
   color: #1a6e1a;
 }
-._r-btn._r-send-ok {
-  background: linear-gradient(to bottom, #357a35, #2a5f2a);
-  border-color: #245524;
-  cursor: default;
-}
 
 /* ---- Unit list (troop selector) ---- */
 ._r-unit-section-header {
