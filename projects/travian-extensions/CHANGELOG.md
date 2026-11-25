@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.6.17 — 2026-11-25
+
+- Build order: fields with an upgrade already queued in game are listed above Next upgrades in green, marked Upgrading.
+
 ## Travian QoL 1.6.16 — 2026-11-25
 
 - Build order: a Boost buildings list under Next upgrades shows the plan step at which each Sawmill, Brickyard, Iron Foundry, Grain Mill and Bakery level becomes worth building, or the missing prerequisite (field level 10 / Main Building 5).

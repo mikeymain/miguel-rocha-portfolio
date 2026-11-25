@@ -392,6 +392,20 @@
 		['#', 'Upgrade', 'Level', 'Cost', 'Payback (x1)'].forEach((h) => hr.appendChild(el('th', null, h)));
 		thead.appendChild(hr);
 		const tbody = el('tbody');
+		// Fields with an upgrade already queued in game, above the plan.
+		for (const f of v.fields.filter((x) => x.building && planner.FIELDS[x.gid])) {
+			const tr = el('tr', 'is-queued');
+			const name = el('td', 'bo__field');
+			name.append(resIcon(planner.FIELDS[f.gid].res), el('span', null, planner.FIELDS[f.gid].name));
+			tr.append(
+				el('td', 'bo__n', '▸'),
+				name,
+				el('td', 'bo__lvl', `${f.level - 1} → ${f.level}`),
+				el('td', 'bo__num', 'Upgrading'),
+				el('td', 'bo__num', ''),
+			);
+			tbody.appendChild(tr);
+		}
 		steps.forEach((s, i) => {
 			const tr = el('tr', [i === 0 ? 'is-next' : '', s.kind !== 'field' ? `is-${s.kind}` : ''].join(' ').trim() || null);
 			tr.append(

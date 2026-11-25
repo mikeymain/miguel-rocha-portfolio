@@ -139,7 +139,8 @@
 		if (!isResourcesPage()) return;
 		const fields = readFields();
 		if (!fields.length) return;
-		saveSnapshot({ fields: fields.map(({ slot, gid, level }) => ({ slot, gid, level })) });
+		// `building`: an upgrade to `level` is in the queue (shown in the settings tab).
+		saveSnapshot({ fields: fields.map(({ el, slot, gid, level }) => ({ slot, gid, level, ...(el.classList.contains('underConstruction') ? { building: true } : {}) })) });
 		const queued = queuedCount();
 		learnCapacity(queued);
 		const hasFreeSlot = queued < queueCapacity;
