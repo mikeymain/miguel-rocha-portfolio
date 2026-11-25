@@ -22,7 +22,6 @@ Graph controls wrap within the popup so the full chart and right-hand axis stay 
 - Drag across the graph to compare two points and see the time-weighted average plotted value over that range. Averages keep the plotted units, including /h for raid and PvE counters in Per hour mode.
 - History → Production now plots **Fields**, **Fields + raiding**, **Raiding**, and **Raiding (no animals)** in resources per hour. **Fields** shows field production alone. The raid figures use the same trailing hour as **Now**.
 - Now → Prod / Hour includes **Fields + raiding**, combining field production and trailing 1-hour raid income per hour. Expand it for **Raids** and **Raids (no animals)**; the latter subtracts animal rewards (160 resources per kill) from weekly raided resources before calculating the trailing 1-hour hourly rate.
-- In the game, the resources page's Production per hour table and the stock bar tooltips (Production, Full in / Empty in) include raid income per hour, split evenly over the four resources. Raid income older than 24 hours is ignored.
 - In Per hour mode, raid and PvE counters show the total gained in the trailing 3 hours.
 - Cached weekly readings are omitted from new history. Activity during missing observations or unobserved resets cannot be reconstructed.
 - Backup imports are validated before writing. Failed writes preserve existing data. Restore is available without a registered server.

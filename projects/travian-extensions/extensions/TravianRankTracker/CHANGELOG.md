@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.1.18 — 2026-11-25
+
+- Removed raid income from the game's Production per hour table and stock bar tooltips (added in 5.1.17). Raid income still reaches TravAlarm for FNPC.
+
 ## Rank Tracker 5.1.17 — 2026-11-24
 
 - Adds raid income to the game's production figures: the Production per hour table on the resources page, and the Production and Full in / Empty in lines in the stock bar tooltips. Raid income per hour is split evenly over the four resources and is ignored when the latest statistics sample is over 24 hours old.

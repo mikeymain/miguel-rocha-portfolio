@@ -1,5 +1,9 @@
 # Changelog
 
+## Rank Tracker 5.1.18 — 2026-11-25
+
+- Removed raid income from the game's Production per hour table and stock bar tooltips (added in 5.1.17). Raid income still reaches TravAlarm for FNPC.
+
 ## Travian NPC Calculator 3.2.25 — 2026-11-25
 
 - Removed the green "Resources Needed" panel on the marketplace and the calculator's "Send to Indicator" button that filled it. **Pull from Hero** is unchanged. Data the panel saved is cleared on the next page load.
