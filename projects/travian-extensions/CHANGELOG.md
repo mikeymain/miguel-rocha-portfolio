@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.6.4 — 2026-11-25
+
+- Build order moves out of the game page into a **Build order** tab in QoL settings: pick a village, set its production bonus per resource, and see the next 10 field upgrades with cost and payback. The resources page keeps the glow and numbered badges, and they update when a bonus changes. A village appears in the tab after its resources page has been opened once.
+
 ## Travian QoL 1.6.3 — 2026-11-25
 
 - Reverted 1.6.2: the combat simulator shows Net resources only when the simulation gains resources again.

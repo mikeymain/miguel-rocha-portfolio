@@ -1,8 +1,9 @@
 // Build order.
 // On the resources view (dorf1), marks the resource field with the best
 // payback as the next upgrade: it glows, and the next steps get numbered
-// badges. A panel under the production table lists the steps and takes this
-// village's production bonus per resource (oases + mill/sawmill etc.).
+// badges. The step list and the per-village production bonus live in the
+// QoL settings "Build order" tab; this script saves each village's field
+// levels there and re-ranks when the bonus changes.
 // Ranking: features/build-order/core.js.
 //
 // Compliance note: read-only DOM change plus extension storage. No clicks,
@@ -10,12 +11,12 @@
 (function () {
 	const STEPS = 5;
 	const DEBOUNCE_MS = 150;
-	const STORAGE_PREFIX = 'travianQoL.buildOrder.';
+	// Per-host { villageId: [wood, clay, iron, crop] bonus % }.
+	const BONUS_PREFIX = 'travianQoL.buildOrder.';
+	// Per-host { villageId: { name, fields: [{slot, gid, level}], updatedAt } }.
+	const FIELDS_PREFIX = 'travianQoL.buildFields.';
 	const STYLE_ID = 'tqol-bo-style';
-	const PANEL_ID = 'tqol-bo-panel';
 	const ORDER_ATTR = 'tqolBo';
-	const RES_ICONS = ['r1', 'r2', 'r3', 'r4'];
-	const RES_NAMES = ['Lumber', 'Clay', 'Iron', 'Crop'];
 	const CSS = `
 #resourceFieldContainer a.resourceField[data-tqol-bo]::after {
 	content: attr(data-tqol-bo);
@@ -36,26 +37,28 @@
 @media (prefers-reduced-motion: reduce) {
 	#resourceFieldContainer a.resourceField[data-tqol-bo="1"] .labelLayer { animation: none; }
 }
-#${PANEL_ID} { margin-top: 10px; font-size: 12px; text-align: left; color: inherit; }
-#${PANEL_ID} h4 { margin: 0 0 4px; font-size: 13px; font-weight: bold; color: inherit; }
-#${PANEL_ID} .tqol-bo-bonus { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 4px; }
-#${PANEL_ID} .tqol-bo-bonus label { display: flex; align-items: center; gap: 1px; }
-#${PANEL_ID} .tqol-bo-bonus input { width: 100%; min-width: 0; padding: 1px 2px; font-size: 11px; }
-#${PANEL_ID} ol { margin: 0; padding-left: 16px; }
-#${PANEL_ID} li { line-height: 18px; white-space: nowrap; text-align: left; }
-#${PANEL_ID} li span { opacity: .7; }
 `;
 
 	let observer = null;
+	let storageListener = null;
 	let debounceTimer = null;
 	let bonuses = [0, 0, 0, 0];
+	let lastSnapshot = '';
 
 	const isResourcesPage = () => /^\/(dorf1\.php|resources)$/.test(location.pathname);
-	const storageKey = () => STORAGE_PREFIX + location.host;
+	const bonusKey = () => BONUS_PREFIX + location.host;
+	const fieldsKey = () => FIELDS_PREFIX + location.host;
 
+	function activeVillage() {
+		return document.querySelector('.villageList .listEntry.active, #sidebarBoxVillageList .listEntry.active');
+	}
 	function villageId() {
-		const entry = document.querySelector('.villageList .listEntry.active, #sidebarBoxVillageList .listEntry.active');
-		return entry?.dataset?.did || 'default';
+		return activeVillage()?.dataset?.did || 'default';
+	}
+	function villageName() {
+		const el = activeVillage();
+		const name = el?.querySelector('.name')?.textContent || el?.textContent || '';
+		return name.replace(/[‪-‮‎‏⁦-⁩]/g, '').replace(/\s+/g, ' ').trim() || 'Village';
 	}
 
 	/** Resource fields with their effective level (queued upgrades counted). */
@@ -80,69 +83,25 @@
 		document.head.appendChild(style);
 	}
 
-	function formatHours(h) {
-		if (h < 48) return `${Math.round(h)}h`;
-		return `${Math.round(h / 24)}d`;
-	}
-
-	function saveBonuses() {
-		const key = storageKey();
+	// Field levels for the settings tab; written only when they change.
+	function saveSnapshot(fields) {
+		const id = villageId();
+		const entry = { name: villageName(), fields: fields.map(({ slot, gid, level }) => ({ slot, gid, level })) };
+		const sig = id + JSON.stringify(entry);
+		if (sig === lastSnapshot) return;
+		lastSnapshot = sig;
+		const key = fieldsKey();
 		chrome.storage.local.get(key, (res) => {
-			const all = { ...(res[key] || {}), [villageId()]: bonuses };
+			const all = { ...(res[key] || {}), [id]: { ...entry, updatedAt: Date.now() } };
 			chrome.storage.local.set({ [key]: all });
 		});
-	}
-
-	function buildPanel() {
-		const panel = document.createElement('div');
-		panel.id = PANEL_ID;
-		const title = document.createElement('h4');
-		title.textContent = 'Build order · bonus %';
-		const row = document.createElement('div');
-		row.className = 'tqol-bo-bonus';
-		RES_ICONS.forEach((icon, i) => {
-			const label = document.createElement('label');
-			label.title = `${RES_NAMES[i]} bonus %`;
-			const ico = document.createElement('i');
-			ico.className = icon;
-			const input = document.createElement('input');
-			input.type = 'number';
-			input.min = '0';
-			input.max = '500';
-			input.step = '5';
-			input.dataset.res = String(i);
-			input.setAttribute('aria-label', `${RES_NAMES[i]} bonus %`);
-			label.append(ico, input);
-			row.append(label);
-		});
-		row.addEventListener('change', (e) => {
-			const input = e.target.closest('input[data-res]');
-			if (!input) return;
-			const value = Math.min(500, Math.max(0, Number(input.value) || 0));
-			input.value = String(value);
-			bonuses = bonuses.map((b, i) => (i === Number(input.dataset.res) ? value : b));
-			saveBonuses();
-			render();
-		});
-		const list = document.createElement('ol');
-		panel.append(title, row, list);
-		return panel;
-	}
-
-	function ensurePanel() {
-		let panel = document.getElementById(PANEL_ID);
-		if (panel) return panel;
-		const anchor = document.getElementById('production');
-		if (!anchor) return null;
-		panel = buildPanel();
-		anchor.after(panel);
-		return panel;
 	}
 
 	function render() {
 		if (!isResourcesPage()) return;
 		const fields = readFields();
 		if (!fields.length) return;
+		saveSnapshot(fields);
 		const steps = window.TravianQoLBuildOrder.plan(fields, bonuses, STEPS);
 		injectStyle();
 		const firstStep = new Map();
@@ -152,25 +111,6 @@
 			if (n && f.el.dataset[ORDER_ATTR] !== String(n)) f.el.dataset[ORDER_ATTR] = String(n);
 			else if (!n && f.el.dataset[ORDER_ATTR]) delete f.el.dataset[ORDER_ATTR];
 		}
-
-		const panel = ensurePanel();
-		if (!panel) return;
-		panel.querySelectorAll('input[data-res]').forEach((input) => {
-			const v = String(bonuses[Number(input.dataset.res)]);
-			if (document.activeElement !== input && input.value !== v) input.value = v;
-		});
-		const list = panel.querySelector('ol');
-		const key = JSON.stringify(steps);
-		if (list.dataset.key === key) return;
-		list.dataset.key = key;
-		list.replaceChildren(...steps.map((s) => {
-			const li = document.createElement('li');
-			const info = document.createElement('span');
-			info.textContent = ` ${formatHours(s.payback)}`;
-			li.title = `Cost ${s.cost.toLocaleString()} · payback ${formatHours(s.payback)} at speed 1`;
-			li.append(`${s.name} ${s.from} → ${s.to}`, info);
-			return li;
-		}));
 	}
 
 	function schedule() {
@@ -178,22 +118,33 @@
 		debounceTimer = setTimeout(render, DEBOUNCE_MS);
 	}
 
+	function applyBonuses(all) {
+		const saved = all?.[villageId()];
+		bonuses = Array.isArray(saved) && saved.length === 4 ? saved.map((v) => Number(v) || 0) : [0, 0, 0, 0];
+	}
+
 	function start() {
-		const key = storageKey();
+		const key = bonusKey();
 		chrome.storage.local.get(key, (res) => {
-			const saved = res[key]?.[villageId()];
-			if (Array.isArray(saved) && saved.length === 4) bonuses = saved.map((v) => Number(v) || 0);
+			applyBonuses(res[key]);
 			render();
 			const container = document.getElementById('resourceFieldContainer') || document.body;
 			observer = new MutationObserver(schedule);
 			observer.observe(container, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
 		});
+		// Bonus edited in the settings tab: re-rank the highlighted fields.
+		storageListener = (changes, area) => {
+			if (area !== 'local' || !changes[key]) return;
+			applyBonuses(changes[key].newValue);
+			render();
+		};
+		chrome.storage.onChanged?.addListener(storageListener);
 	}
 
 	window.TravianQoL.register({
 		id: 'build-order',
 		label: 'Build order',
-		description: 'Highlights the resource field with the best payback and numbers the next upgrades.',
+		description: 'Highlights the resource field with the best payback and numbers the next upgrades. Steps and production bonuses are in the Build order tab.',
 		init() {
 			if (!isResourcesPage()) return;
 			if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
@@ -202,9 +153,11 @@
 		destroy() {
 			observer?.disconnect();
 			observer = null;
+			if (storageListener) chrome.storage.onChanged?.removeListener(storageListener);
+			storageListener = null;
 			clearTimeout(debounceTimer);
 			debounceTimer = null;
-			document.getElementById(PANEL_ID)?.remove();
+			lastSnapshot = '';
 			document.getElementById(STYLE_ID)?.remove();
 			document.querySelectorAll('[data-tqol-bo]').forEach((el) => delete el.dataset[ORDER_ATTR]);
 		},
