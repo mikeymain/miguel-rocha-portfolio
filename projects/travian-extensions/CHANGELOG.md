@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.6.3 — 2026-11-25
+
+- Reverted 1.6.2: the combat simulator shows Net resources only when the simulation gains resources again.
+
 ## Travian QoL 1.6.2 — 2026-11-25
 
 - Combat simulator: the Net resources row now also shows when the simulation gains nothing (for example a village attack). It is then the attacker's resources lost, shown as a negative number.
