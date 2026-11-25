@@ -1010,6 +1010,34 @@ body:has(#tab-counter.is-active) .app {
 	.ca__raw > span + span { border-left: none; border-top: 1px solid var(--border-subtle); }
 }
 
+/* Launch time from each of the player's villages. */
+.ca__vt {
+	width: 100%;
+	border-collapse: collapse;
+	border-top: 1px solid var(--border-subtle);
+	font-family: var(--font-mono);
+	font-size: 11px;
+	color: var(--text-secondary);
+}
+.ca__vt th {
+	padding: 6px 12px;
+	text-align: left;
+	font-weight: 500;
+	font-size: 9.5px;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--text-tertiary);
+}
+.ca__vt td { padding: 5px 12px; border-top: 1px solid var(--border-subtle); }
+.ca__vt th:first-child, .ca__vt td:first-child { padding-left: 25px; }
+.ca__vt tbody tr { cursor: pointer; }
+.ca__vt tbody tr:hover, .ca__vt tbody tr:focus-visible { background: var(--amber-dim); outline: none; }
+.ca__vt-xy { color: var(--text-tertiary); }
+.ca__vt-sel td { color: var(--amber-hi); }
+.ca__vt-sel td:first-child { box-shadow: inset 2px 0 0 var(--amber); }
+.ca__vt-missed td { color: var(--text-tertiary); }
+.ca__vt-missed td:last-child { color: var(--rose); }
+
 .lc-reset {
 	all: unset;
 	align-self: flex-start;

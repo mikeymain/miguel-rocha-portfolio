@@ -98,7 +98,7 @@ Open the toolbar popup or **Options** page. Features are enabled by default and 
 | Skip builder-bonus ads | Mutes video-feature ads you start and moves them to a corner so the page stays usable; links you open meanwhile load in an overlay so the ad keeps playing. Announces when the ad finishes. The ad always plays at normal speed, and the extension never starts an ad on its own. |
 | Upgrade target values | On resource fields, **Production change** shows the difference between the two hourly rates in the game's table. On building pages, the feature compares culture points, population and construction time, e.g. **9 → 10 (+1)** for a level 8 Residence, even when more levels are queued. |
 | Resource full-at time | Resource bar tooltips show the clock time next to **Full in** / **Empty in**, e.g. **Full in: 3:54:46 (at 18:42)**. |
-| Counter-attack calculator | In **Counter-attack**, enter coordinates, troop/server speeds, bonuses, and the arrival time (or the countdown in **Arrives in**) to calculate return/interception times. |
+| Counter-attack calculator | In **Counter-attack**, enter coordinates, troop/server speeds, bonuses, and the arrival time (or the countdown in **Arrives in**) to calculate return/interception times. **Land after (s)** lands the counter that many seconds after the attacking army is home. With your villages captured from the game sidebar, a table lists the launch time from each village; select a row to use it as the interceptor. |
 
 <a href="images/farm-selection.png"><img src="images/farm-selection.png" alt="Right-click menu for selected farm-list targets" width="420" /></a>
 

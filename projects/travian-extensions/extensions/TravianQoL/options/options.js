@@ -509,8 +509,12 @@
 		// field (the wrapping <label>) when there's no snapshot, not just
 		// the <select>, so the column gap collapses cleanly.
 		const villageField = villagePicker.closest('.ca__field');
+		let villages = [];
 		function loadVillages(snapshot) {
 			const list = snapshot?.list || [];
+			villages = list.filter((v) => Number.isFinite(v.x) && Number.isFinite(v.y));
+			// Storage callbacks are async, so the rest of the tab is ready.
+			recompute();
 			if (!list.length) { villageField.hidden = true; return; }
 			villagePicker.innerHTML = '';
 			const placeholder = document.createElement('option');
@@ -576,7 +580,7 @@
 		const PERSIST_IDS = ['ca-target', 'ca-server-speed', 'ca-map'];
 		const PERSIST_DATA = [
 			['att', 'coords'], ['att', 'speed'], ['att', 'ts'], ['att', 'boots'], ['att', 'art'],
-			['int', 'coords'], ['int', 'speed'], ['int', 'ts'], ['int', 'boots'], ['int', 'art'],
+			['int', 'coords'], ['int', 'speed'], ['int', 'ts'], ['int', 'boots'], ['int', 'art'], ['int', 'delay'],
 		];
 		function snapshotInputs() {
 			const data = {};
@@ -640,6 +644,12 @@
 		// multiply the whole trip; boots and the Tournament Square only count
 		// after the first 20 fields, and their bonuses ADD (+25% boots and
 		// TS 10 = x(1 + 0.25 + 2), not x1.25 x3).
+		// Travian help, "Game Versions and Speed": troops move x2 on x2, x3
+		// and x5 servers and x4 on x10, not at the server's game speed.
+		const TROOP_SPEED = { 1: 1, 2: 2, 3: 2, 5: 2, 10: 4 };
+		function troopSpeedFor(gameSpeed) {
+			return TROOP_SPEED[parseInt(gameSpeed, 10)] || 1;
+		}
 		const TS_FREE_FIELDS = 20;
 		const TS_BONUS_PER_LEVEL = 0.2;
 		function travelSeconds(dist, baseSpeed, serverSpeed, artefact, bootsMult, tsLevel) {
@@ -718,6 +728,36 @@
 				</div>`;
 		}
 
+		// Launch time from every village in the sidebar snapshot, soonest
+		// launch first. Rows already past their launch time sort last.
+		// `rows` carry {name, x, y, dist, t, depart}.
+		function buildVillageTable(rows, selected) {
+			if (rows.length < 2) return '';
+			const now = Date.now();
+			const sorted = [...rows].sort((a, b) => {
+				const late = (r) => r.depart.getTime() < now - 1000;
+				if (late(a) !== late(b)) return late(a) ? 1 : -1;
+				return late(a) ? b.depart - a.depart : a.depart - b.depart;
+			});
+			const body = sorted.map((r) => {
+				const coords = `(${r.x}|${r.y})`;
+				const isSel = selected && selected.x === r.x && selected.y === r.y;
+				const missed = r.depart.getTime() < now - 1000;
+				return `
+					<tr class="${missed ? 'ca__vt-missed' : ''}${isSel ? ' ca__vt-sel' : ''}" data-coords="${escapeHtml(coords)}" tabindex="0">
+						<td>${escapeHtml(r.name)} <span class="ca__vt-xy">${escapeHtml(coords)}</span></td>
+						<td>${r.dist.toFixed(1)}</td>
+						<td>${escapeHtml(fmtDuration(r.t))}</td>
+						<td>${missed ? 'Missed' : escapeHtml(fmtTime(r.depart))}</td>
+					</tr>`;
+			}).join('');
+			return `
+				<table class="ca__vt">
+					<thead><tr><th>Village</th><th>Fields</th><th>Travel</th><th>Launch</th></tr></thead>
+					<tbody>${body}</tbody>
+				</table>`;
+		}
+
 		function statusFor(launchAt) {
 			// No counter target → neutral banner.
 			if (!launchAt) {
@@ -752,7 +792,8 @@
 			const att = parseCoords(read('att', 'coords'));
 			const inter = parseCoords(read('int', 'coords'));
 			const arrival = arrivalEl.value ? new Date(arrivalEl.value) : null;
-			const serverSpeed = parseFloat(document.getElementById('ca-server-speed').value) || 1;
+			const serverSpeed = troopSpeedFor(document.getElementById('ca-server-speed').value);
+			const delaySec = Math.max(0, parseFloat(read('int', 'delay')) || 0);
 			const mapSize = parseInt(document.getElementById('ca-map').value, 10) || 400;
 
 			const aSpeed = parseFloat(read('att', 'speed')) || 0;
@@ -784,11 +825,16 @@
 
 			// 2) Counter — must land on the attacker's village the moment
 			//    their army gets back home.
+			//    `delaySec` lands it that many seconds after they are home.
+			const landAt = new Date(returns.getTime() + delaySec * 1000);
+			const counterFrom = (from) => {
+				const dist = torusDistance(att, from, mapSize);
+				const t = travelSeconds(dist, iSpeed, serverSpeed, iArt, iBoots, iTs);
+				return { dist, t, depart: new Date(landAt.getTime() - t * 1000) };
+			};
 			let distInt = 0, tInt = 0, counterDepart = null;
 			if (inter && iSpeed > 0) {
-				distInt = torusDistance(att, inter, mapSize);
-				tInt = travelSeconds(distInt, iSpeed, serverSpeed, iArt, iBoots, iTs);
-				counterDepart = new Date(returns.getTime() - tInt * 1000);
+				({ dist: distInt, t: tInt, depart: counterDepart } = counterFrom(inter));
 			}
 
 			plan = { counterDepart };
@@ -799,7 +845,12 @@
 			const events = [];
 			events.push({ t: arrival, kind: 'hit-us', label: 'Attack hits us', desc: 'their army turns for home' });
 			if (counterDepart) events.push({ t: counterDepart, kind: 'counter', label: 'Launch your counter \u2192', desc: `travel ${fmtDuration(tInt)} \u00b7 ${distInt.toFixed(1)} f` });
-			events.push({ t: returns, kind: 'return', label: 'Army home \u00b7 counter lands', desc: counterDepart ? 'snipe connects' : 'attacker army back home' });
+			if (counterDepart && delaySec > 0) {
+				events.push({ t: returns, kind: 'return', label: 'Army home', desc: 'attacker army back home' });
+				events.push({ t: landAt, kind: 'return', label: 'Counter lands', desc: `${fmtDuration(delaySec)} after return` });
+			} else {
+				events.push({ t: returns, kind: 'return', label: 'Army home \u00b7 counter lands', desc: counterDepart ? 'snipe connects' : 'attacker army back home' });
+			}
 			events.sort((a, b) => a.t - b.t);
 
 			// Bottom raw strip — distances + counter travel only. Each side
@@ -822,10 +873,24 @@
 				<div class="ca__raw">
 					<span><b>Att</b> ${distAtt.toFixed(1)} f</span>
 					${rawCounter}
-				</div>`;
+				</div>
+				${iSpeed > 0 ? buildVillageTable(villages.map((v) => ({ ...v, ...counterFrom(v) })), inter) : ''}`;
 
 			renderStatus(counterDepart);
 		}
+
+		// Picking a row in the village table makes it the interceptor.
+		function useVillageRow(row) {
+			if (!row) return;
+			intCoordsEl.value = row.dataset.coords;
+			intCoordsEl.dispatchEvent(new Event('input', { bubbles: true }));
+		}
+		outEl.addEventListener('click', (e) => useVillageRow(e.target.closest('tr[data-coords]')));
+		outEl.addEventListener('keydown', (e) => {
+			if (e.key !== 'Enter' && e.key !== ' ') return;
+			const row = e.target.closest('tr[data-coords]');
+			if (row) { e.preventDefault(); useVillageRow(row); }
+		});
 
 		// Wire up live recompute on any change/input within the panel.
 		root.addEventListener('input', () => { recompute(); scheduleSave(); });

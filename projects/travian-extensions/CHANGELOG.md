@@ -1,5 +1,11 @@
 # Changelog
 
+## Travian QoL 1.4.6 — 2026-11-25
+
+- Counter-attack calculator: troop speed now follows Travian's server rules (x2 on 2x, 3x and 5x servers, x4 on 10x). Before, a 3x server moved troops at x3, so launch times were off.
+- Counter-attack calculator: **Land after (s)** lands the counter that many seconds after the attacking army is home.
+- Counter-attack calculator: a table lists the launch time from each of your villages, soonest first, with missed launches last. Select a row to use that village as the interceptor.
+
 ## Rank Tracker 5.1.18 — 2026-11-25
 
 - Removed raid income from the game's Production per hour table and stock bar tooltips (added in 5.1.17). Raid income still reaches TravAlarm for FNPC.
