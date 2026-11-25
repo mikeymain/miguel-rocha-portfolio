@@ -1,5 +1,9 @@
 # Changelog
 
+## Rank Tracker 5.1.19 — 2026-11-25
+
+- Stops sending raid income to TravAlarm, which no longer uses it for FNPC. The cached raid income summaries are deleted on update.
+
 ## Travian QoL 1.4.9 — 2026-11-25
 
 - Trade routes: the **Production per hour** values no longer flicker from the game's numbers to the net numbers on page load.

@@ -6,7 +6,7 @@
 	},
 	"manifest_version": 3,
 	"name": "Travian Rank Tracker",
-	"version": "5.1.18",
+	"version": "5.1.19",
 	"description": "Tracks weekly Top 10, general rankings and history graphs.",
 	"permissions": [
 		"storage",
@@ -43,11 +43,6 @@
 		"128": "icon128.png"
 	},
 	"content_scripts": [
-		{
-			"matches": ["*://*.travian.com/*", "*://*.travian.org/*", "*://*.travian.net/*", "*://*.travian.us/*", "*://*.travian.de/*"],
-			"js": ["raid-income-bridge.js"],
-			"run_at": "document_end"
-		},
 		{
 			"matches": [
 				"*://*.travian.com/statistics/*",

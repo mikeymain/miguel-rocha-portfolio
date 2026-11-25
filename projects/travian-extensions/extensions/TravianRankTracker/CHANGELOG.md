@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.1.19 — 2026-11-25
+
+- Rank Tracker no longer sends raid income to TravAlarm. TravAlarm 3.68 and later work out FNPC from returning raids and incoming merchants instead. The cached raid income summaries are deleted on update.
+
 ## Rank Tracker 5.1.18 — 2026-11-25
 
 - Removed raid income from the game's Production per hour table and stock bar tooltips (added in 5.1.17). Raid income still reaches TravAlarm for FNPC.

@@ -555,13 +555,9 @@ const DEDUP_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
 /** Hard cap on the number of data-points stored per server. */
 const MAX_HISTORY_LEN = 2000;
 
-/**
- * Persist a server's history and drop its cached raid-income summary, which
- * raid-income-bridge.js rebuilds on the next Travian page load.
- */
+/** Persist a server's history. */
 async function storeHistory(api, storageKey, hist) {
 	await api.storage.local.set({ [storageKey]: hist });
-	await api.storage.local.remove(storageKey.replace(/^history_/, "raidIncome_"));
 }
 
 /**
@@ -650,7 +646,6 @@ async function saveSnapshot(current, api, storageKey) {
 	}
 
 	await api.storage.local.set({ [storageKey]: hist, [latestKey]: latest });
-	await api.storage.local.remove(storageKey.replace(/^history_/, "raidIncome_"));
 	return hist;
 }
 
