@@ -80,7 +80,10 @@
       label.className = "_vpfl-animals";
       cell.appendChild(label);
     }
-    const state = JSON.stringify([animals, !!scan?.observationIncomplete, defenceMode]);
+    const minutes = valid && Number.isFinite(scan.scannedAt) ? Math.max(0, Math.floor((Date.now() - scan.scannedAt) / 60000)) : null;
+    const age = minutes === null || minutes < 1 ? "" : minutes < 60 ? ` · ${minutes}m old` :
+      minutes < 1440 ? ` · ${Math.floor(minutes / 60)}h old` : ` · ${Math.floor(minutes / 1440)}d old`;
+    const state = JSON.stringify([animals, !!scan?.observationIncomplete, defenceMode, age]);
     if (label.dataset.state !== state) {
       label.dataset.state = state;
       label.replaceChildren();
@@ -100,6 +103,7 @@
         label.dataset.infantry = oasisDefense(animals, 0);
         label.dataset.cavalry = oasisDefense(animals, 1);
         if (defenceMode) label.append("Def " + label.dataset[defenceMode]);
+        if (age) label.append(age);
         if (scan.observationIncomplete) label.append(" (last known)");
       } else {
         label.dataset.noData = "1";
@@ -218,14 +222,12 @@
     const rows = [...tbody.querySelectorAll(":scope > tr.slot")];
     const strength = row => Number(row.querySelector("._vpfl-animals")?.dataset[defenceMode]);
     const enabledFirst = table.querySelector("th.state .sortingArrow:not(.inactive)");
-    // Oases with no animal data (base defence only) stay on top in either direction.
-    const empty = row => Number(!!row.querySelector("._vpfl-animals")?.dataset.noData);
     const sorted = rows.map(row => ({row, value: strength(row)})).sort((a, b) => {
       if (enabledFirst) {
         const disabled = Number(a.row.classList.contains("disabled")) - Number(b.row.classList.contains("disabled"));
         if (disabled) return disabled;
       }
-      return empty(b.row) - empty(a.row) || Number.isNaN(a.value) - Number.isNaN(b.value) ||
+      return Number.isNaN(a.value) - Number.isNaN(b.value) ||
         direction * (a.value - b.value) || 0;
     });
     if (sorted.every((item, i) => item.row === rows[i])) return;

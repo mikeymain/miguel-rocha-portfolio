@@ -36,7 +36,7 @@ Click an unoccupied oasis on the map to see the **Clear** table under its animal
 
 The farm list shows the last saved count beside each animal’s unit icon beneath the oasis name. Hover over the counts for the scan time when available. **No animal data** means Oasis Finder has no saved garrison for those coordinates. Run **Update** on the map to refresh known oases.
 
-Select **Inf def** or **Cav def** in the Target header to see the defence score and sort weakest first. Select it again for strongest first. Targets without a score follow scored targets within each enabled-first group. Select a native sort header to return to the game’s ordering.
+Select **Inf def** or **Cav def** in the Target header to see the defence score and sort weakest first. Select it again for strongest first. Oases with no saved animal data use the base score of 10 in either direction. Targets without a score follow scored targets within each enabled-first group. Select a native sort header to return to the game’s ordering.
 
 ![Infantry and cavalry defence sort buttons on the farm list](images/oasis-farm-animals.png)
 

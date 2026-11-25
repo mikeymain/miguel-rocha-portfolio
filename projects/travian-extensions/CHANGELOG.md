@@ -1,5 +1,9 @@
 # Changelog
 
+## Oasis Finder 70.22 — 2026-11-25
+
+- Strongest-first farm-list sorting now places observed defences above the base score of 10. Saved animal counts also show their scan age.
+
 ## Travian QoL 1.6.23 — 2026-11-25
 
 - Show the default Loot Calculator badge position as X 0, Y 0 in both settings views while preserving existing placements.
