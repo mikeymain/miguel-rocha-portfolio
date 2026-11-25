@@ -161,18 +161,31 @@ function getTypeColorClass(a) {
 }
 
 /**
- * Sorts section types so the section with the soonest timer is on top
- * (finished timers count as soonest). Ties keep the category order.
+ * Sorts section type keys by display order, swapping custom/auto
+ * so the one with the soonest alarm renders first.
  * @param {string[]} types - Array of section type keys
  * @param {Object} groups - Map of type → alarm[]
  * @returns {string[]}
  */
 function sortSectionTypes(types, groups) {
-  const soonest = (t) => Math.min(...groups[t].map((a) => a.scheduledTime));
-  const orderOf = (t) => SECTION_META[t]?.order ?? 99;
-  return [...types].sort(
-    (a, b) => soonest(a) - soonest(b) || orderOf(a) - orderOf(b),
-  );
+  // "custom" (user-created ⭐) and "auto" (preset ⭐) share the same order slot.
+  // Whichever has the soonest alarm wins and renders first so the urgent one is visible.
+  const customSoonest = groups.custom
+    ? Math.min(...groups.custom.map((a) => a.scheduledTime))
+    : Infinity;
+  const autoSoonest = groups.auto
+    ? Math.min(...groups.auto.map((a) => a.scheduledTime))
+    : Infinity;
+  const customFirst = customSoonest <= autoSoonest;
+
+  return [...types].sort((a, b) => {
+    const orderOf = (t) => {
+      if (t === "custom") return customFirst ? 7 : 8;
+      if (t === "auto") return customFirst ? 8 : 7;
+      return SECTION_META[t]?.order ?? 99;
+    };
+    return orderOf(a) - orderOf(b);
+  });
 }
 
 function markLastExpandedSection(container) {

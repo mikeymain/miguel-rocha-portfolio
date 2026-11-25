@@ -69,7 +69,7 @@ Unknown-age or incomplete readings are excluded. **Errors** shows scan problems,
 6. Click the TravAlarm icon in the browser toolbar for display settings: panel width, opacity, accent color, start minimized, a color for each category and training building, and reset buttons. Changes apply to open Travian tabs immediately.
 7. To pause TravAlarm on one server (for example a test world), click the power button in the widget title bar. The server then shows only **TravAlarm · Ignored**; click **Resume** to turn it back on.
 
-Categories are ordered by their soonest timer, so the timer that finishes next is at the top. Within a category, pinned timers come first, then finished ones, then the rest from soonest to latest.
+Categories keep their fixed order. Within a category, pinned timers come first, then finished ones, then the rest from soonest to latest.
 
 All active alarm countdowns use the same green timer text, including settlers and research. Category colors remain on names and accents.
 
