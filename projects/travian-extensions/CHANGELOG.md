@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.6.10 — 2026-11-25
+
+- Build order: a resource field that already has an upgrade in the queue no longer glows; the glow moves to the next best field.
+
 ## Travian QoL 1.6.9 — 2026-11-25
 
 - Build order: on the resources page only the next field glows; the numbered badges on the following fields are gone.

@@ -9,7 +9,7 @@
 // Compliance note: read-only DOM change plus extension storage. No clicks,
 // no network calls.
 (function () {
-	const STEPS = 1;
+	const PLAN_DEPTH = 20; // steps planned so queued fields can be skipped
 	const DEBOUNCE_MS = 150;
 	// Per-host { villageId: [wood, clay, iron, crop] bonus % }.
 	const BONUS_PREFIX = 'travianQoL.buildOrder.';
@@ -118,14 +118,16 @@
 		const fields = readFields();
 		if (!fields.length) return;
 		saveSnapshot({ fields: fields.map(({ slot, gid, level }) => ({ slot, gid, level })) });
-		const steps = window.TravianQoLBuildOrder.plan(fields, bonuses, STEPS);
+		// Plan deep enough to skip fields that already have an upgrade queued:
+		// the glow goes to the first step on a field that is not being built.
+		const building = new Set(fields.filter((f) => f.el.classList.contains('underConstruction')).map((f) => f.slot));
+		const steps = window.TravianQoLBuildOrder.plan(fields, bonuses, PLAN_DEPTH);
+		const next = steps.find((s) => s.kind === 'field' && !building.has(s.slot));
 		injectStyle();
-		const firstStep = new Map();
-		steps.forEach((s, i) => { if (!firstStep.has(s.slot)) firstStep.set(s.slot, i + 1); });
 		for (const f of fields) {
-			const n = firstStep.get(f.slot);
-			if (n && f.el.dataset[ORDER_ATTR] !== String(n)) f.el.dataset[ORDER_ATTR] = String(n);
-			else if (!n && f.el.dataset[ORDER_ATTR]) delete f.el.dataset[ORDER_ATTR];
+			const mark = next && f.slot === next.slot;
+			if (mark && f.el.dataset[ORDER_ATTR] !== '1') f.el.dataset[ORDER_ATTR] = '1';
+			else if (!mark && f.el.dataset[ORDER_ATTR]) delete f.el.dataset[ORDER_ATTR];
 		}
 	}
 
