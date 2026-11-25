@@ -1,5 +1,9 @@
 # Changelog
 
+## TravAlarm 3.69 — 2026-11-25
+
+- Completing construction or research immediately with gold now removes those alarms from the list when you confirm, instead of leaving them until the queue is scanned again.
+
 ## TravAlarm 3.68 — 2026-11-25
 
 - FNPC adds returning raid bounties and incoming merchant deliveries at their arrival times, each capped by storage, instead of an hourly raid income average. TravAlarm reads them from the rally point overview and the marketplace when you open those pages; it sends no extra requests.
