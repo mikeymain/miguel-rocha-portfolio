@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.6.13 — 2026-11-25
+
+- Open selected farm targets in background tabs 180 ms apart.
+
 ## Travian QoL 1.6.12 and TravAlarm 3.71 — 2026-11-25
 
 - Removed the Net resources row from combat simulations and excluded simulator rewards from FNPC timers.

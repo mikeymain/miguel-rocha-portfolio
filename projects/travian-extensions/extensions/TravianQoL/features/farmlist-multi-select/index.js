@@ -124,7 +124,7 @@
 				const currentList = menuEl._list;
 				const currentUrls = currentList && selectedTargetLinks(currentList);
 				hideMenu();
-				if (currentUrls?.length) chrome.runtime.sendMessage({ action: 'qol_open_tabs', urls: currentUrls });
+				if (currentUrls?.length) chrome.runtime.sendMessage({ action: 'qol_open_tabs', farmTargets: true, urls: currentUrls });
 			});
 			menuEl.appendChild(action);
 			document.body.appendChild(menuEl);

@@ -38,8 +38,10 @@ const isTravianUrl = (url) => {
 chrome.runtime.onMessage.addListener((request, sender) => {
 	if (!request || sender.id !== chrome.runtime.id) return;
 	if (request.action === 'qol_open_tabs' && Array.isArray(request.urls)) {
-		request.urls.filter(isTravianUrl).forEach((url) => {
-			chrome.tabs.create({ url, active: false });
+		request.urls.filter(isTravianUrl).forEach((url, index) => {
+			const open = () => chrome.tabs.create({ url, active: false });
+			if (request.farmTargets && index > 0) setTimeout(open, index * 180);
+			else open();
 		});
 	}
 });
