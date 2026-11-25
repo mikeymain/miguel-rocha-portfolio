@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.6.7 — 2026-11-25
+
+- Smithy efficiency now includes the smithy building: each unit's break-even adds an even share of the smithy level's cost, split over the units listed on the page (as Friso's "Include Smithy cost").
+
 ## Travian QoL 1.6.6 — 2026-11-25
 
 - Smithy efficiency: on the smithy page, each unit upgrade shows how many of that unit the next level needs to be worth its cost (break-even, as in Friso's Travian Tools), next to how many you have; green once you have enough. Spartan units are not covered yet.

@@ -1,7 +1,8 @@
 // Smithy efficiency.
 // On the smithy page, each unit upgrade gets one line: how many of that unit
 // the next level needs to be worth its cost, next to how many you have.
-// Uses the cost shown on the page; math in features/smithy-efficiency/core.js.
+// Uses the cost shown on the page plus an even share of the smithy building
+// level, split over the upgradeable units listed; math in core.js.
 //
 // Compliance note: read-only DOM addition. No clicks, no network calls, no
 // storage. Added lines carry no extension class, id or attribute; they are
@@ -31,12 +32,14 @@
 		};
 	}
 
-	function lineFor(data) {
+	// `units`: upgradeable units on the page; they share the smithy level cost.
+	function lineFor(data, units) {
 		const S = window.TravianQoLSmithy;
 		const unit = S.unitById(data.id);
 		if (!unit) return null;
 		const target = data.level + 1;
-		const need = S.breakEven(unit, target, data.cost || undefined);
+		const own = data.cost || S.upgradeCost(unit, target).reduce((a, b) => a + b, 0);
+		const need = S.breakEven(unit, target, own + S.smithyShare(target, units));
 		if (!Number.isFinite(need)) return null;
 		const line = document.createElement('div');
 		line.style.cssText = 'margin-top:4px;font-size:12px;';
@@ -49,10 +52,12 @@
 
 	function render() {
 		for (const [row, line] of added) if (!row.isConnected || !line.isConnected) added.delete(row);
-		for (const row of document.querySelectorAll('#build.gid13 .research')) {
+		const rows = [...document.querySelectorAll('#build.gid13 .research')]
+			.map((row) => ({ row, data: readRow(row) }))
+			.filter((r) => r.data && window.TravianQoLSmithy.unitById(r.data.id));
+		for (const { row, data } of rows) {
 			if (added.has(row)) continue;
-			const data = readRow(row);
-			const line = data && lineFor(data);
+			const line = lineFor(data, rows.length);
 			if (!line) continue;
 			row.querySelector('.resourceWrapper').after(line);
 			added.set(row, line);

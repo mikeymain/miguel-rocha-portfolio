@@ -7,6 +7,8 @@
 //   main stat = attack for offensive units (and catapults), else inf + cav def
 //   cost(L)   = round5((unitCost * 7 + k) / upkeep * L^0.8), k = 100/100/200/160
 //   breakEven = cost(L) / (stat(L) - stat(L-1)) / (unitTotalCost / stat(L-1))
+//   cost(L) includes an even share of smithy building level L across the
+//   units being upgraded ("Include Smithy cost" in Friso).
 //
 // Unit data: T4 (attack, def inf, def cav, upkeep, wood, clay, iron, crop).
 (function (root) {
@@ -67,6 +69,9 @@
 	};
 	// Game unit ids u1..u80: first id of each tribe's block.
 	const TRIBE_BASE = { 1: 'romans', 11: 'teutons', 21: 'gauls', 51: 'egyptians', 61: 'huns' };
+	// Smithy building, total resources for levels 1-20 (T4).
+	const SMITHY_COST = [1090, 1395, 1785, 2285, 2925, 3750, 4795, 6135, 7855, 10050,
+		12870, 16475, 21080, 26985, 34545, 44210, 56595, 72445, 92730, 118690];
 	const GROWTH = 1.007;
 	const COST_K = [100, 100, 200, 160];
 	const LAST_OFFENSIVE_INDEX = 6; // index > 6 (catapults) always uses attack
@@ -114,5 +119,11 @@
 		return Math.round(total / gain / (unitTotal / prevStat));
 	}
 
-	root.TravianQoLSmithy = { unitById, mainStat, upgradeCost, breakEven, TRIBES };
+	/** One unit's share of smithy building level `level`, split over `units` (Friso). */
+	function smithyShare(level, units) {
+		const cost = SMITHY_COST[level - 1];
+		return cost && units > 0 ? cost / units : 0;
+	}
+
+	root.TravianQoLSmithy = { unitById, mainStat, upgradeCost, breakEven, smithyShare, TRIBES };
 })(typeof window !== 'undefined' ? window : globalThis);
