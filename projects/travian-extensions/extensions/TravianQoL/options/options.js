@@ -224,14 +224,29 @@
 
 	// Unit caps mirror features/loot-calc/index.js. Shown next to each name so
 	// the dropdown reads the same as the in-page calculator.
+	// Third value: the unit's slot (1-10) in the tribe's game sprite strip.
 	const BASE_TRIBES = {
-		Romans: [['Legionnaire', 50], ['Praetorian', 20], ['Imperian', 50], ['Equites Imperatoris', 100], ['Equites Caesaris', 70]],
-		Teutons: [['Clubswinger', 60], ['Axeman', 50], ['Paladin', 110], ['Teutonic Knight', 80]],
-		Gauls: [['Phalanx', 35], ['Swordsman', 45], ['Theutates Thunder', 75], ['Druidrider', 35], ['Haeduan', 65]],
-		Egyptians: [['Slave Militia', 15], ['Ash Warden', 50], ['Khopesh Warrior', 45], ['Anhur Guard', 50], ['Resheph Chariot', 70]],
-		Huns: [['Mercenary', 50], ['Bowman', 30], ['Steppe Rider', 75], ['Marksman', 105], ['Marauder', 80]],
-		Spartans: [['Hoplite', 60], ['Shieldsman', 40], ['Twinsteel Therion', 50], ['Elpida Rider', 110], ['Corinthian Crusher', 80]],
+		Romans: [['Legionnaire', 50, 1], ['Praetorian', 20, 2], ['Imperian', 50, 3], ['Equites Imperatoris', 100, 5], ['Equites Caesaris', 70, 6]],
+		Teutons: [['Clubswinger', 60, 1], ['Axeman', 50, 3], ['Paladin', 110, 5], ['Teutonic Knight', 80, 6]],
+		Gauls: [['Phalanx', 35, 1], ['Swordsman', 45, 2], ['Theutates Thunder', 75, 4], ['Druidrider', 35, 5], ['Haeduan', 65, 6]],
+		Egyptians: [['Slave Militia', 15, 1], ['Ash Warden', 50, 2], ['Khopesh Warrior', 45, 3], ['Anhur Guard', 50, 5], ['Resheph Chariot', 70, 6]],
+		Huns: [['Mercenary', 50, 1], ['Bowman', 30, 2], ['Steppe Rider', 75, 4], ['Marksman', 105, 5], ['Marauder', 80, 6]],
+		Spartans: [['Hoplite', 60, 1], ['Shieldsman', 40, 3], ['Twinsteel Therion', 50, 4], ['Elpida Rider', 110, 5], ['Corinthian Crusher', 80, 6]],
 	};
+	// Game sprite strip per tribe: 16x16 icons stacked vertically (options/units/).
+	const UNIT_SHEET = {
+		Romans: 'roman', Teutons: 'teuton', Gauls: 'gaul',
+		Egyptians: 'egyptian', Huns: 'hun', Spartans: 'spartan',
+	};
+	const UNIT_ICON_PX = 16;
+	function unitIcon(tribe, slot) {
+		const i = document.createElement('span');
+		i.className = 'unit-ico';
+		i.setAttribute('aria-hidden', 'true');
+		i.style.backgroundImage = `url(units/${UNIT_SHEET[tribe]}_small.png)`;
+		i.style.backgroundPosition = `0 -${(slot - 1) * UNIT_ICON_PX}px`;
+		return i;
+	}
 
 	// Mirrors BUILTIN_DEFAULT_UNIT in features/loot-calc/index.js.
 	const BUILTIN_DEFAULT_UNIT = {
@@ -322,173 +337,172 @@
 		}
 	}
 
+	function el(tag, className, text) {
+		const node = document.createElement(tag);
+		if (className) node.className = className;
+		if (text != null) node.textContent = text;
+		return node;
+	}
+
+	// A selectable row/chip backed by a real radio input (keyboard + SR friendly).
+	function radioOption(name, value, checked, className) {
+		const label = el('label', className);
+		const input = document.createElement('input');
+		input.type = 'radio';
+		input.name = name;
+		input.value = value;
+		input.checked = checked;
+		input.className = 'sr-radio';
+		label.appendChild(input);
+		return { label, input };
+	}
+
+	function buildOffsetRow(server, offX, offY) {
+		const row = el('div', 'lc-line');
+		row.appendChild(el('span', 'lc-line__label', 'Badge offset'));
+		const inputs = el('div', 'lc-offset');
+		const make = (axis, value, setting) => {
+			const wrap = el('label', 'lc-offset__field');
+			wrap.appendChild(el('span', 'lc-offset__axis', axis));
+			const input = document.createElement('input');
+			input.type = 'number';
+			input.className = 'lc-num';
+			input.value = value;
+			input.setAttribute('aria-label', `Badge ${axis} offset`);
+			input.oninput = () => {
+				const v = parseInt(input.value, 10);
+				if (Number.isFinite(v)) chrome.storage.local.set({ [lcKey(setting, server)]: v }, flashSaved);
+			};
+			wrap.appendChild(input);
+			return wrap;
+		};
+		inputs.append(make('X', offX, 'offset_x'), make('Y', offY, 'offset_y'));
+		row.appendChild(inputs);
+		return row;
+	}
+
+	function buildOverrideNotice() {
+		const box = el('div', 'lc-override');
+		const render = async () => {
+			const overrides = await findUnitOverrides();
+			box.innerHTML = '';
+			box.hidden = overrides.length === 0;
+			if (overrides.length === 0) return;
+			box.appendChild(el('span', null,
+				`${overrides.length} server${overrides.length === 1 ? '' : 's'} use their own unit: ` +
+				overrides.map((o) => `${o.host} (${o.unit})`).join(', ')));
+			const btn = el('button', 'btn', 'Clear server overrides');
+			btn.type = 'button';
+			btn.onclick = async () => {
+				await chrome.storage.local.remove(overrides.map((o) => `tlw_auto_unit_${o.host}`));
+				flashSaved();
+				render();
+			};
+			box.appendChild(btn);
+		};
+		render();
+		return box;
+	}
+
 	async function renderServerSettings(server) {
 		const isGlobal = server === LC_GLOBAL;
 		const tribeKeys = Object.keys(BASE_TRIBES);
-		const keys = ['auto_enabled', 'tribe', 'debug', 'offset_x', 'offset_y'].map((s) => lcKey(s, server));
+		const keys = ['auto_enabled', 'tribe', 'offset_x', 'offset_y'].map((s) => lcKey(s, server));
 		// Global units are read in both modes: in per-server mode they name the
-		// value the "(none)" option actually falls back to.
+		// value the "default" option falls back to.
 		keys.push(...tribeKeys.map((t) => lcKey('auto_unit', LC_GLOBAL, t)));
 		if (!isGlobal) keys.push(lcKey('auto_unit', server));
 		const res = await chrome.storage.local.get(keys);
 
 		const autoEnabled = res[lcKey('auto_enabled', server)] ?? true;
-		const debug = res[lcKey('debug', server)] ?? false;
 		const offX = res[lcKey('offset_x', server)] ?? DEFAULT_OFFSET_X;
 		const offY = res[lcKey('offset_y', server)] ?? DEFAULT_OFFSET_Y;
-		// In global scope the tribe select picks *which tribe's* default unit
-		// you are editing; land on one that already has a unit saved.
-		const tribe = isGlobal
+		// In global scope the tribe picks *which tribe's* default unit you are
+		// editing (a filter, not a saved setting); land on one with a unit saved.
+		let tribe = isGlobal
 			? tribeKeys.find((t) => res[lcKey('auto_unit', server, t)]) || 'Teutons'
 			: res[lcKey('tribe', server)] || 'Teutons';
 
 		settingsRoot.innerHTML = '';
 
-		if (isGlobal) {
-			const note = document.createElement('div');
-			note.className = 'lc-note';
-			note.textContent = 'Applies to servers without their own settings.';
-			settingsRoot.appendChild(note);
-		}
+		// --- Left card: tribe + default unit ---
+		const unitCard = el('section', 'card lc-card');
+		const unitHead = el('div', 'lc-card__head');
+		unitHead.appendChild(el('span', 'lc-card__title', 'Default unit'));
+		if (isGlobal) unitHead.appendChild(el('span', 'lc-card__hint', 'Servers without own settings'));
+		unitCard.appendChild(unitHead);
 
-		// Bind label -> input via `for`/`id` so screen readers announce the
-		// label when the select gains focus.
-		const tribeRow = document.createElement('div');
-		tribeRow.className = 'lc-row';
-		const tribeLbl = document.createElement('label');
-		tribeLbl.htmlFor = 'lc-tribe';
-		tribeLbl.textContent = isGlobal ? 'Default unit for tribe' : 'Tribe';
-		tribeRow.appendChild(tribeLbl);
-		const tribeSel = document.createElement('select');
-		tribeSel.id = 'lc-tribe';
+		const tribeGrid = el('div', 'lc-tribes');
+		tribeGrid.setAttribute('role', 'radiogroup');
+		tribeGrid.setAttribute('aria-label', 'Tribe');
+		const unitList = el('div', 'lc-units');
+		unitList.setAttribute('role', 'radiogroup');
+		unitList.setAttribute('aria-label', 'Default unit');
+
 		for (const t of tribeKeys) {
-			const opt = document.createElement('option');
-			opt.value = t;
-			opt.textContent = t;
-			if (t === tribe) opt.selected = true;
-			tribeSel.appendChild(opt);
+			const { label, input } = radioOption('lc-tribe', t, t === tribe, 'lc-tribe');
+			label.append(unitIcon(t, 1), el('span', null, t));
+			input.onchange = () => {
+				tribe = t;
+				if (!isGlobal) chrome.storage.local.set({ [lcKey('tribe', server)]: t }, flashSaved);
+				fillUnits();
+			};
+			tribeGrid.appendChild(label);
 		}
-		tribeRow.appendChild(tribeSel);
 
-		const unitRow = document.createElement('div');
-		unitRow.className = 'lc-row';
-		const unitLbl = document.createElement('label');
-		unitLbl.htmlFor = 'lc-unit';
-		unitLbl.textContent = 'Default unit';
-		unitRow.appendChild(unitLbl);
-		const unitSel = document.createElement('select');
-		unitSel.id = 'lc-unit';
-		function fillUnits(forTribe) {
-			const selected = isGlobal
-				? res[lcKey('auto_unit', server, forTribe)] || ''
-				: res[lcKey('auto_unit', server)] || '';
-			const builtin = BUILTIN_DEFAULT_UNIT[forTribe];
-			const fallback = res[lcKey('auto_unit', LC_GLOBAL, forTribe)] || builtin;
-			unitSel.innerHTML = '';
-			const blank = document.createElement('option');
-			blank.value = '';
-			if (isGlobal) blank.textContent = builtin ? `(built-in: ${builtin})` : '(none)';
-			else blank.textContent = fallback ? `(use default: ${fallback})` : '(none)';
-			unitSel.appendChild(blank);
-			for (const [name, cap] of BASE_TRIBES[forTribe] || []) {
-				const opt = document.createElement('option');
-				opt.value = name;
-				opt.textContent = `${name} (${cap})`;
-				if (name === selected) opt.selected = true;
-				unitSel.appendChild(opt);
+		function fillUnits() {
+			const unitKey = lcKey('auto_unit', server, tribe);
+			const selected = res[unitKey] || '';
+			const builtin = BUILTIN_DEFAULT_UNIT[tribe];
+			const fallback = isGlobal ? builtin : res[lcKey('auto_unit', LC_GLOBAL, tribe)] || builtin;
+			unitList.innerHTML = '';
+
+			const def = radioOption('lc-unit', '', selected === '', 'lc-unit lc-unit--default');
+			def.label.append(
+				el('span', 'lc-unit__name', isGlobal ? 'Built-in' : 'Use default'),
+				el('span', 'lc-unit__cap', fallback || '—'),
+			);
+			unitList.appendChild(def.label);
+
+			const maxCap = Math.max(...(BASE_TRIBES[tribe] || []).map((u) => u[1]));
+			for (const [name, cap, slot] of BASE_TRIBES[tribe] || []) {
+				const opt = radioOption('lc-unit', name, name === selected, 'lc-unit');
+				const bar = el('span', 'lc-unit__bar');
+				bar.style.setProperty('--fill', `${Math.round((cap / maxCap) * 100)}%`);
+				opt.label.append(unitIcon(tribe, slot), el('span', 'lc-unit__name', name), bar, el('span', 'lc-unit__cap', String(cap)));
+				unitList.appendChild(opt.label);
 			}
-		}
-		fillUnits(tribe);
-		unitRow.appendChild(unitSel);
 
-		const autoRow = document.createElement('label');
-		autoRow.className = 'lc-row lc-row--check';
+			unitList.querySelectorAll('input').forEach((input) => {
+				input.onchange = () => {
+					res[unitKey] = input.value;
+					chrome.storage.local.set({ [unitKey]: input.value }, flashSaved);
+				};
+			});
+		}
+		fillUnits();
+		unitCard.append(tribeGrid, unitList);
+
+		// --- Right column: report badges (+ override notice in global view) ---
+		const side = el('div', 'lc-side');
+		const badgeCard = el('section', 'card lc-card');
+		const badgeHead = el('div', 'lc-card__head');
+		badgeHead.appendChild(el('span', 'lc-card__title', 'Report badges'));
+		badgeCard.appendChild(badgeHead);
+
+		const autoRow = el('label', 'lc-line');
+		autoRow.appendChild(el('span', 'lc-line__label', 'Show on reports'));
 		const autoChk = document.createElement('input');
 		autoChk.type = 'checkbox';
 		autoChk.className = 'switch';
 		autoChk.checked = !!autoEnabled;
-		autoRow.append(autoChk, document.createTextNode('Unit badges on report pages'));
-
-		const debugRow = document.createElement('label');
-		debugRow.className = 'lc-row lc-row--check';
-		const debugChk = document.createElement('input');
-		debugChk.type = 'checkbox';
-		debugChk.className = 'switch';
-		debugChk.checked = !!debug;
-		debugRow.append(debugChk, document.createTextNode('Debug logging'));
-
-		const offRow = document.createElement('div');
-		offRow.className = 'lc-row';
-		const offLbl = document.createElement('label');
-		offLbl.htmlFor = 'lc-offx';
-		offLbl.textContent = 'Badge offset X / Y';
-		offRow.appendChild(offLbl);
-		const offXInput = document.createElement('input');
-		offXInput.type = 'number';
-		offXInput.id = 'lc-offx';
-		offXInput.value = offX;
-		offXInput.className = 'lc-num';
-		offXInput.setAttribute('aria-label', 'Badge X offset');
-		const offYInput = document.createElement('input');
-		offYInput.type = 'number';
-		offYInput.value = offY;
-		offYInput.className = 'lc-num';
-		offYInput.setAttribute('aria-label', 'Badge Y offset');
-		offRow.append(offXInput, offYInput);
-
-		settingsRoot.append(tribeRow, unitRow, autoRow, debugRow, offRow);
-
-		// Global view only: name the servers that shadow this default, and
-		// offer to drop their overrides so it takes effect everywhere.
-		if (isGlobal) {
-			const overrideRow = document.createElement('div');
-			overrideRow.className = 'lc-override';
-			unitRow.after(overrideRow);
-			const renderOverrides = async () => {
-				const overrides = await findUnitOverrides();
-				overrideRow.innerHTML = '';
-				overrideRow.hidden = overrides.length === 0;
-				if (overrides.length === 0) return;
-				const text = document.createElement('span');
-				text.textContent =
-					`${overrides.length} server${overrides.length === 1 ? '' : 's'} ignore this default, ` +
-					`having a unit of their own: ${overrides.map((o) => `${o.host} (${o.unit})`).join(', ')}.`;
-				const btn = document.createElement('button');
-				btn.type = 'button';
-				btn.className = 'btn';
-				btn.textContent = 'Clear server overrides';
-				btn.onclick = async () => {
-					await chrome.storage.local.remove(overrides.map((o) => `tlw_auto_unit_${o.host}`));
-					flashSaved();
-					renderOverrides();
-				};
-				overrideRow.append(text, btn);
-			};
-			renderOverrides();
-		}
-
-		// Persist on change. We write each setting individually so partial
-		// edits are immediately visible to the in-page feature.
-		tribeSel.onchange = () => {
-			// Global scope: the tribe select is a filter, not a saved setting.
-			if (!isGlobal) chrome.storage.local.set({ [lcKey('tribe', server)]: tribeSel.value }, flashSaved);
-			fillUnits(tribeSel.value);
-		};
-		unitSel.onchange = () => {
-			const key = lcKey('auto_unit', server, tribeSel.value);
-			res[key] = unitSel.value;
-			chrome.storage.local.set({ [key]: unitSel.value }, flashSaved);
-		};
 		autoChk.onchange = () => chrome.storage.local.set({ [lcKey('auto_enabled', server)]: autoChk.checked }, flashSaved);
-		debugChk.onchange = () => chrome.storage.local.set({ [lcKey('debug', server)]: debugChk.checked }, flashSaved);
-		offXInput.oninput = () => {
-			const v = parseInt(offXInput.value, 10);
-			if (Number.isFinite(v)) chrome.storage.local.set({ [lcKey('offset_x', server)]: v }, flashSaved);
-		};
-		offYInput.oninput = () => {
-			const v = parseInt(offYInput.value, 10);
-			if (Number.isFinite(v)) chrome.storage.local.set({ [lcKey('offset_y', server)]: v }, flashSaved);
-		};
+		autoRow.appendChild(autoChk);
+		badgeCard.append(autoRow, buildOffsetRow(server, offX, offY));
+		side.appendChild(badgeCard);
+		if (isGlobal) side.appendChild(buildOverrideNotice());
+
+		settingsRoot.append(unitCard, side);
 	}
 
 	async function initLootCalcTab() {

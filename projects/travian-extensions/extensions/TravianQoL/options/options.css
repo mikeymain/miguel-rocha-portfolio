@@ -385,31 +385,161 @@ body {
 }
 .card__body { padding: 4px 16px; }
 
-/* --- Loot Calculator form -------------------------------------------------- */
-.form { display: flex; flex-direction: column; }
-.lc-row {
-	display: flex;
+/* --- Loot Calculator ------------------------------------------------------- */
+.lc-grid { display: flex; flex-direction: column; gap: 12px; }
+.lc-side { display: flex; flex-direction: column; gap: 12px; }
+/* Badge settings as one horizontal strip: title | switch | offset. */
+.lc-side .lc-card { display: flex; align-items: stretch; }
+.lc-side .lc-card__head {
+	flex: 0 0 150px;
 	align-items: center;
-	gap: 16px;
-	min-height: 46px;
-	padding: 8px 0;
+	border-bottom: none;
+	border-right: 1px solid var(--border-subtle);
+}
+.lc-side .lc-line { flex: 1 1 0; border-top: none; }
+.lc-side .lc-line + .lc-line { border-left: 1px solid var(--border-subtle); }
+.lc-card__head {
+	display: flex;
+	align-items: baseline;
+	gap: 10px;
+	padding: 9px 14px;
+	background: var(--bg-raised);
 	border-bottom: 1px solid var(--border-subtle);
 }
-.form > :last-child { border-bottom: none; }
-.lc-row > label { flex: 0 0 200px; font-size: 12.5px; font-weight: 500; color: var(--text-primary); }
-.lc-row--check {
-	cursor: pointer;
-	color: var(--text-primary);
-	font-size: 12.5px;
-	font-weight: 500;
+.lc-card__title {
+	font-size: 11px;
+	font-weight: 650;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
 }
-.lc-row--check .switch { order: 2; margin-left: auto; }
+.lc-card__hint {
+	margin-left: auto;
+	font-family: var(--font-mono);
+	font-size: 10px;
+	color: var(--amber);
+}
+
+/* Radios stay focusable for keyboard and screen readers, visually hidden. */
+.sr-radio {
+	position: absolute;
+	opacity: 0;
+	width: 1px; height: 1px;
+	margin: 0;
+	pointer-events: none;
+}
+
+/* Game unit icon from options/units/<tribe>_small.png (16px strip). */
+.unit-ico {
+	flex: 0 0 16px;
+	width: 16px; height: 16px;
+	background-repeat: no-repeat;
+}
+
+/* Tribe chips: one segmented row of six. */
+.lc-tribes {
+	display: grid;
+	grid-template-columns: repeat(6, 1fr);
+	gap: 6px;
+	padding: 12px 14px;
+}
+.lc-tribe {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	height: 36px;
+	padding: 0 8px;
+	font-size: 12px;
+	color: var(--text-secondary);
+	background: var(--bg-input);
+	border: 1px solid var(--border-subtle);
+	border-radius: var(--radius-sm);
+	cursor: pointer;
+	transition: background 140ms var(--ease), color 140ms var(--ease), border-color 140ms var(--ease);
+}
+.lc-tribe:hover { color: var(--text-primary); border-color: var(--border-strong); }
+.lc-tribe:has(:checked) {
+	color: var(--amber-hi);
+	background: var(--amber-dim);
+	border-color: var(--amber-line);
+	font-weight: 550;
+}
+.lc-tribe:has(:focus-visible) { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+/* Unit list: icon, name, carry bar, carry value. */
+.lc-units {
+	display: flex;
+	flex-direction: column;
+	padding: 4px 8px 10px;
+	border-top: 1px solid var(--border-subtle);
+}
+.lc-unit {
+	position: relative;
+	display: grid;
+	grid-template-columns: 16px minmax(0, 1fr) 260px 40px;
+	align-items: center;
+	gap: 12px;
+	min-height: 40px;
+	padding: 0 8px;
+	border-radius: var(--radius-sm);
+	cursor: pointer;
+	transition: background 140ms var(--ease);
+}
+.lc-unit:hover { background: rgba(255, 255, 255, 0.03); }
+.lc-unit:has(:checked) {
+	background: var(--amber-dim);
+	box-shadow: inset 2px 0 0 var(--amber);
+}
+.lc-unit:has(:focus-visible) { outline: 2px solid var(--amber); outline-offset: -2px; }
+.lc-unit__name { font-size: 12.5px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lc-unit:has(:checked) .lc-unit__name { color: var(--text-primary); font-weight: 550; }
+.lc-unit__bar {
+	height: 4px;
+	border-radius: 2px;
+	background: linear-gradient(90deg, var(--amber) var(--fill), var(--bg-input) var(--fill));
+	opacity: 0.55;
+}
+.lc-unit:has(:checked) .lc-unit__bar { opacity: 1; }
+.lc-unit__cap {
+	font-family: var(--font-mono);
+	font-size: 11.5px;
+	color: var(--text-tertiary);
+	text-align: right;
+}
+.lc-unit:has(:checked) .lc-unit__cap { color: var(--amber-hi); }
+/* "Use default" row: no icon or bar; fallback unit name on the right. */
+.lc-unit--default { grid-template-columns: minmax(0, 1fr) auto; border-bottom: 1px dashed var(--border-subtle); border-radius: var(--radius-sm) var(--radius-sm) 0 0; margin-bottom: 4px; }
+.lc-unit--default .lc-unit__cap { font-family: var(--font-body); font-size: 11.5px; }
+
+/* Settings lines in the side card. */
+.lc-line {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	min-height: 48px;
+	padding: 8px 14px;
+	border-top: 1px solid var(--border-subtle);
+}
+.lc-card__head + .lc-line { border-top: none; }
+label.lc-line { cursor: pointer; }
+.lc-line__label { font-size: 12.5px; font-weight: 500; }
+.lc-offset { display: flex; gap: 6px; }
+.lc-offset__field { position: relative; display: flex; align-items: center; }
+.lc-offset__axis {
+	position: absolute;
+	left: 9px;
+	font-family: var(--font-mono);
+	font-size: 10px;
+	color: var(--text-tertiary);
+	pointer-events: none;
+}
+.lc-offset input.lc-num { width: 64px; padding-left: 22px; }
 
 /* --- Inputs & selects ------------------------------------------------------ */
 .select,
-.lc-row select,
-input.lc-num,
-.lc-row input[type="number"] {
+input.lc-num {
 	height: 30px;
 	background: var(--bg-input);
 	color: var(--text-primary);
@@ -422,7 +552,7 @@ input.lc-num,
 	font-variant-numeric: tabular-nums;
 	transition: border-color 140ms var(--ease), box-shadow 140ms var(--ease);
 }
-.select, .lc-row select {
+.select {
 	appearance: none;
 	-webkit-appearance: none;
 	background-image: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%23f5a623" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>');
@@ -432,17 +562,16 @@ input.lc-num,
 	padding-right: 26px;
 	cursor: pointer;
 }
-.lc-row select, .select { width: 100%; max-width: 260px; }
-.select:hover, .lc-row select:hover, input.lc-num:hover { border-color: var(--border-strong); }
-.select:focus, .lc-row select:focus, input.lc-num:focus, .lc-row input[type="number"]:focus {
+.select { width: 100%; max-width: 260px; }
+.select:hover, input.lc-num:hover { border-color: var(--border-strong); }
+.select:focus, input.lc-num:focus {
 	border-color: rgba(245, 166, 35, 0.5);
 	box-shadow: 0 0 0 3px var(--amber-dim);
 }
 select option, select optgroup { background: var(--bg-raised); color: var(--text-primary); }
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.lc-row input[type="number"], input.lc-num { width: 78px; text-align: right; }
-.lc-row input[type="number"] + input[type="number"] { margin-left: -8px; }
+input.lc-num { width: 78px; text-align: right; }
 
 .server-pick { display: flex; align-items: center; gap: 8px; margin-left: auto; }
 .server-pick label {
@@ -454,23 +583,12 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; marg
 }
 .server-pick .select { width: 260px; }
 
-/* Notices inside the Loot Calculator form. */
-.lc-note {
-	margin: 12px 0 4px;
-	padding: 9px 12px;
-	font-size: 12px;
-	color: var(--text-secondary);
-	background: var(--bg-raised);
-	border: 1px solid var(--border-subtle);
-	border-left: 2px solid var(--amber);
-	border-radius: var(--radius-sm);
-}
+/* Global view: servers that override the default unit. */
 .lc-override {
 	display: flex;
 	flex-direction: column;
 	align-items: flex-start;
 	gap: 8px;
-	margin: 4px 0 8px;
 	padding: 10px 12px;
 	font-size: 12px;
 	color: var(--amber);

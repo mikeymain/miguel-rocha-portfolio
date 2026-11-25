@@ -79,75 +79,76 @@
 							<select id="lc-server" class="select"></select>
 						</div>
 					</header>
-					<div class="card">
-						<div id="lc-settings" class="card__body form"></div>
-					</div>
+					<div id="lc-settings" class="lc-grid"></div>
 				</section>
 
 				<section id="tab-counter" class="panel" role="tabpanel" aria-labelledby="tabbtn-counter" tabindex="0">
-					<header class="panel__head">
-						<h1 class="panel__title">Counter-attack</h1>
-					</header>
-					<div class="card">
-						<div class="card__body ca">
-							<!-- Top: shared attack info -->
-							<div class="ca__row ca__row--shared">
-								<label class="ca__field">
-									<span class="ca__label">Attacked village</span>
-									<input id="ca-target" type="text" placeholder="(x|y)" class="lc-num ca__coords">
-								</label>
-								<label class="ca__field">
-									<span class="ca__label">Arrival</span>
-									<input id="ca-arrival" type="datetime-local" step="1" class="lc-num ca__time">
-								</label>
-								<label class="ca__field ca__field--arrives-in">
-									<span class="ca__label">Arrives in</span>
-									<input id="ca-arrives-in" type="text" placeholder="h:mm:ss" inputmode="numeric" class="lc-num ca__time">
-								</label>
-								<label class="ca__field">
-									<span class="ca__label">Server</span>
-									<select id="ca-server-speed" class="select ca__sel">
-										<option value="1">1×</option>
-										<option value="2">2×</option>
-										<option value="3" selected>3×</option>
-										<option value="5">5×</option>
-										<option value="10">10×</option>
-									</select>
-								</label>
-								<label class="ca__field">
-									<span class="ca__label">Map</span>
-									<select id="ca-map" class="select ca__sel">
-										<option value="200">200 (S)</option>
-										<option value="400" selected>400</option>
-										<option value="800">800 (L)</option>
-									</select>
-								</label>
-							</div>
+					<div class="ca">
+						<div class="ca__inputs">
+							<!-- Incoming attack -->
+							<fieldset class="ca__block">
+								<legend class="ca__legend ca__legend--hit">Incoming attack</legend>
+								<div class="ca__grid ca__grid--3">
+									<label class="ca__field">
+										<span class="ca__label">Arrives in</span>
+										<input id="ca-arrives-in" type="text" placeholder="h:mm:ss" inputmode="numeric" autocomplete="off" class="lc-num ca__time">
+									</label>
+									<label class="ca__field ca__span-2">
+										<span class="ca__label">Arrival</span>
+										<input id="ca-arrival" type="datetime-local" step="1" class="lc-num ca__time">
+									</label>
+								</div>
+								<div class="ca__grid ca__grid--3">
+									<label class="ca__field">
+										<span class="ca__label">Target village</span>
+										<input id="ca-target" type="text" placeholder="(x|y)" autocomplete="off" class="lc-num ca__coords">
+									</label>
+									<label class="ca__field">
+										<span class="ca__label">Speed</span>
+										<select id="ca-server-speed" class="select">
+											<option value="1">1×</option>
+											<option value="2">2×</option>
+											<option value="3" selected>3×</option>
+											<option value="5">5×</option>
+											<option value="10">10×</option>
+										</select>
+									</label>
+									<label class="ca__field">
+										<span class="ca__label">Map</span>
+										<select id="ca-map" class="select">
+											<option value="200">200</option>
+											<option value="400" selected>400</option>
+											<option value="800">800</option>
+										</select>
+									</label>
+								</div>
+							</fieldset>
 
-							<!-- Side-by-side armies -->
-							<div class="ca__armies">
-								<!-- ATTACKER -->
-								<fieldset class="ca__army" data-side="att">
-									<legend class="ca__legend">Attacker</legend>
+							<!-- Attacker -->
+							<fieldset class="ca__block" data-side="att">
+								<legend class="ca__legend ca__legend--att">Attacker</legend>
+								<div class="ca__grid ca__grid--unit">
 									<label class="ca__field">
 										<span class="ca__label">Coords</span>
-										<input data-att="coords" type="text" placeholder="(x|y)" class="lc-num">
+										<input data-att="coords" type="text" placeholder="(x|y)" autocomplete="off" class="lc-num ca__coords">
 									</label>
 									<label class="ca__field">
 										<span class="ca__label">Slowest unit</span>
 										<select data-att="speed" class="select"></select>
 									</label>
+								</div>
+								<div class="ca__grid ca__grid--3">
 									<label class="ca__field">
-										<span class="ca__label">TS lvl</span>
+										<span class="ca__label">TS</span>
 										<select data-att="ts" class="select"></select>
 									</label>
 									<label class="ca__field">
 										<span class="ca__label">Boots</span>
 										<select data-att="boots" class="select">
 											<option value="1">—</option>
-											<option value="1.25">Mercenary (+25%)</option>
-											<option value="1.50">Warrior (+50%)</option>
-											<option value="1.75">Archon (+75%)</option>
+											<option value="1.25">+25%</option>
+											<option value="1.50">+50%</option>
+											<option value="1.75">+75%</option>
 										</select>
 									</label>
 									<label class="ca__field">
@@ -162,34 +163,44 @@
 											<option value="3">3×</option>
 										</select>
 									</label>
-								</fieldset>
+								</div>
+							</fieldset>
 
-								<!-- INTERCEPTOR -->
-								<fieldset class="ca__army" data-side="int">
-									<legend class="ca__legend">Interceptor (you)</legend>
+							<!-- Interceptor -->
+							<fieldset class="ca__block" data-side="int">
+								<legend class="ca__legend ca__legend--you">Your counter</legend>
+								<div class="ca__grid ca__grid--unit">
 									<label class="ca__field">
-										<span class="ca__label">Coords</span>
-										<input data-int="coords" type="text" placeholder="(x|y)" class="lc-num">
+										<span class="ca__label">From</span>
+										<input data-int="coords" type="text" placeholder="(x|y)" autocomplete="off" class="lc-num ca__coords">
 									</label>
 									<label class="ca__field ca__field--village" hidden>
 										<span class="ca__label">My village</span>
-										<select id="ca-int-village" class="select" title="Pick from your villages"></select>
+										<select id="ca-int-village" class="select"></select>
+									</label>
+								</div>
+								<div class="ca__grid ca__grid--unit">
+									<label class="ca__field">
+										<span class="ca__label">Land after (s)</span>
+										<input data-int="delay" type="number" min="0" step="1" value="0" class="lc-num">
 									</label>
 									<label class="ca__field">
 										<span class="ca__label">Slowest unit</span>
 										<select data-int="speed" class="select"></select>
 									</label>
+								</div>
+								<div class="ca__grid ca__grid--3">
 									<label class="ca__field">
-										<span class="ca__label">TS lvl</span>
+										<span class="ca__label">TS</span>
 										<select data-int="ts" class="select"></select>
 									</label>
 									<label class="ca__field">
 										<span class="ca__label">Boots</span>
 										<select data-int="boots" class="select">
 											<option value="1">—</option>
-											<option value="1.25">Mercenary (+25%)</option>
-											<option value="1.50">Warrior (+50%)</option>
-											<option value="1.75">Archon (+75%)</option>
+											<option value="1.25">+25%</option>
+											<option value="1.50">+50%</option>
+											<option value="1.75">+75%</option>
 										</select>
 									</label>
 									<label class="ca__field">
@@ -204,14 +215,11 @@
 											<option value="3">3×</option>
 										</select>
 									</label>
-									<label class="ca__field">
-										<span class="ca__label">Land after (s)</span>
-										<input data-int="delay" type="number" min="0" step="1" value="0" class="lc-num">
-									</label>
-								</fieldset>
-							</div>
+								</div>
+							</fieldset>
+						</div>
 
-							<!-- Output -->
+						<div class="ca__result">
 							<div class="ca__out" id="ca-out" role="status" aria-live="polite"></div>
 						</div>
 					</div>

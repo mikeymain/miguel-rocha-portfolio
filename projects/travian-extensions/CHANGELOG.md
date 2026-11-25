@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.5.1 — 2026-11-25
+
+- Loot Calculator settings reworked: tribes are a row of buttons, the default unit is picked from a list with game unit icons and carry capacity bars, and badge settings sit in one strip. The debug logging switch is removed from the menu.
+
 ## Travian QoL 1.5.0 — 2026-11-25
 
 - Settings menu reworked: tabs move to a top bar with a save indicator and version, features are grouped (Farm lists, Reports, Hero, Resources, Tools) in two columns, each group has its own on/off switch, and All on / All off buttons switch every feature at once.
