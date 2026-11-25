@@ -641,8 +641,8 @@
 		posRow.innerHTML = `
 			<label>Pos Offset (X/Y):</label>
 			<div class="tlw-pos-inputs">
-				<input type="number" id="tlw-off-x" value="${offsetX}" placeholder="X">
-				<input type="number" id="tlw-off-y" value="${offsetY}" placeholder="Y">
+				<input type="number" id="tlw-off-x" value="${offsetX - DEFAULT_OFFSET_X}" placeholder="X">
+				<input type="number" id="tlw-off-y" value="${offsetY - DEFAULT_OFFSET_Y}" placeholder="Y">
 			</div>
 		`;
 		const defUnitRow = document.createElement('div');
@@ -781,8 +781,8 @@
 			const enabled = autoChk.checked;
 			const debugOn = debugChk.checked;
 			const unitName = autoUnitSelect.value;
-			const newOffsetX = parseInt(offXInput.value, 10) || 0;
-			const newOffsetY = parseInt(offYInput.value, 10) || 0;
+			const newOffsetX = DEFAULT_OFFSET_X + (parseInt(offXInput.value, 10) || 0);
+			const newOffsetY = DEFAULT_OFFSET_Y + (parseInt(offYInput.value, 10) || 0);
 			const saveObj = buildSettingsObject(enabled, debugOn, unitName, newOffsetX, newOffsetY);
 			if (shouldDebounce) debouncedSave(() => chrome.storage.local.set(saveObj));
 			else {

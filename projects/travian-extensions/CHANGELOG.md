@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.6.23 — 2026-11-25
+
+- Show the default Loot Calculator badge position as X 0, Y 0 in both settings views while preserving existing placements.
+
 ## Oasis Finder 70.21 — 2026-11-25
 
 - Map oasis **Clear** heading uses the dialog text colour; the table sits 8px higher.

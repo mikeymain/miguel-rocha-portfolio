@@ -366,22 +366,22 @@
 		const row = el('div', 'lc-line');
 		row.appendChild(el('span', 'lc-line__label', 'Badge position'));
 		const inputs = el('div', 'lc-offset');
-		const make = (axis, value, setting) => {
+		const make = (axis, value, setting, origin) => {
 			const wrap = el('label', 'lc-offset__field');
 			wrap.appendChild(el('span', 'lc-offset__axis', axis));
 			const input = document.createElement('input');
 			input.type = 'number';
 			input.className = 'lc-num';
-			input.value = value;
+			input.value = value - origin;
 			input.setAttribute('aria-label', `Badge position ${axis}`);
 			input.oninput = () => {
 				const v = parseInt(input.value, 10);
-				if (Number.isFinite(v)) chrome.storage.local.set({ [lcKey(setting, server)]: v }, flashSaved);
+				if (Number.isFinite(v)) chrome.storage.local.set({ [lcKey(setting, server)]: origin + v }, flashSaved);
 			};
 			wrap.appendChild(input);
 			return wrap;
 		};
-		inputs.append(make('X', offX, 'offset_x'), make('Y', offY, 'offset_y'));
+		inputs.append(make('X', offX, 'offset_x', DEFAULT_OFFSET_X), make('Y', offY, 'offset_y', DEFAULT_OFFSET_Y));
 		row.appendChild(inputs);
 		return row;
 	}
@@ -416,13 +416,13 @@
 		// Global units are read in both modes: in per-server mode they name the
 		// value the "default" option falls back to.
 		keys.push(...tribeKeys.map((t) => lcKey('auto_unit', LC_GLOBAL, t)));
-		if (!isGlobal) keys.push(lcKey('auto_unit', server), lcKey('auto_enabled', LC_GLOBAL));
+		if (!isGlobal) keys.push(lcKey('auto_unit', server), lcKey('auto_enabled', LC_GLOBAL), lcKey('offset_x', LC_GLOBAL), lcKey('offset_y', LC_GLOBAL));
 		const res = await chrome.storage.local.get(keys);
 
 		// Same fallback chain as features/loot-calc: server, then global, then on.
 		const autoEnabled = res[lcKey('auto_enabled', server)] ?? res[lcKey('auto_enabled', LC_GLOBAL)] ?? true;
-		const offX = res[lcKey('offset_x', server)] ?? DEFAULT_OFFSET_X;
-		const offY = res[lcKey('offset_y', server)] ?? DEFAULT_OFFSET_Y;
+		const offX = res[lcKey('offset_x', server)] ?? res[lcKey('offset_x', LC_GLOBAL)] ?? DEFAULT_OFFSET_X;
+		const offY = res[lcKey('offset_y', server)] ?? res[lcKey('offset_y', LC_GLOBAL)] ?? DEFAULT_OFFSET_Y;
 		// In global scope the tribe picks *which tribe's* default unit you are
 		// editing (a filter, not a saved setting); land on one with a unit saved.
 		let tribe = isGlobal

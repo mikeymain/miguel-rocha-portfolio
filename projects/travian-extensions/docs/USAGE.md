@@ -102,6 +102,10 @@ TravAlarm refreshes game data only while its Travian tab is visible (a second mo
 
 ## Travian QoL
 
+In Loot Calculator, badge position **X 0, Y 0** uses the default placement. Adjust either value in pixels.
+
+![Loot Calculator badge position with both axes at zero](images/qol-badge-position.png)
+
 The popup opens on **Build order** the first time. Reopening it restores the last tab you selected by mouse or keyboard.
 
 <a href="images/qol-settings.png"><img src="images/qol-settings.png" alt="Travian QoL feature controls" width="520" /></a>
