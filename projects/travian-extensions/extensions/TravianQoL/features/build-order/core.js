@@ -72,7 +72,9 @@
 
 	/** Max field level for this village: 10, or 20 once any field is past 10. */
 	function maxLevelFor(fields) {
-		return fields.some((f) => f.level > NON_CAPITAL_MAX) ? CAPITAL_MAX : NON_CAPITAL_MAX;
+		// A 15c is always simulated to level 20.
+		const is15c = fields.length >= 15 && fields.every((f) => f.gid === 4);
+		return is15c || fields.some((f) => f.level > NON_CAPITAL_MAX) ? CAPITAL_MAX : NON_CAPITAL_MAX;
 	}
 
 	/** Base production per resource from field levels. */
