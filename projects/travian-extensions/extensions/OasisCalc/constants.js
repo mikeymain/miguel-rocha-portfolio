@@ -39,6 +39,18 @@ const ANIMAL_STATS = {
 	40: { name: "Elephant", defI: 440, defC: 520, xp: 5, res: 800 },
 };
 
+// Effective oasis defense for an attacker whose offense is `cavShare` cavalry
+// (0 = pure infantry, 1 = pure cavalry) — the game weighs each defender's two
+// defense values by the attacker's offense split.
+function oasisDefense(animals, cavShare) {
+  let def = 0;
+  animals.forEach((u) => {
+    const s = ANIMAL_STATS[u.id];
+    def += (s.defI * (1 - cavShare) + s.defC * cavShare) * u.count;
+  });
+  return def + OASIS_BASE_DEF;
+}
+
 // Original stats for 3-tribe servers (Romans, Teutons, Gauls only)
 const TROOP_DATA_ORIGINAL = {
 	1: {

@@ -32,9 +32,11 @@ Replace the files in the same installed folder, click **Reload** in the extensio
 
 **Features:** Discovery/Update modes, scan coverage, local oasis database, observation ages, Hero/Troops views, hero-stat fetch, troop counts and smithy levels, optional hero inclusion, troop preview/cap, five risk levels, sort controls, density controls, draggable/collapsible panel, database and error viewers. Native farm-list name sorting groups oases by bonus type, then distance.
 
-The farm list shows the last saved count for each animal species beneath the oasis name. Hover over the counts for the scan time when available. **No animal data** means Oasis Finder has no saved garrison for those coordinates. Run **Update** on the map to refresh known oases.
+The farm list shows the last saved count beside each animal’s unit icon beneath the oasis name. Hover over the counts for the scan time when available. **No animal data** means Oasis Finder has no saved garrison for those coordinates. Run **Update** on the map to refresh known oases.
 
-![Farm list showing saved animal counts for a sample oasis](images/oasis-farm-animals.png)
+Select **Inf def** or **Cav def** in the Target header to see the defence score and sort weakest first. Select it again for strongest first. Targets without a score follow scored targets within each enabled-first group. Select a native sort header to return to the game’s ordering.
+
+![Infantry and cavalry defence sort buttons on the farm list](images/oasis-farm-animals.png)
 
 **Usage:**
 

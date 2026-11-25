@@ -103,18 +103,6 @@ function heroIsMounted() {
   return document.getElementById("_vphero-mounted")?.value !== "0";
 }
 
-// Effective oasis defense for an attacker whose offense is `cavShare` cavalry
-// (0 = pure infantry, 1 = pure cavalry) — the game weighs each defender's two
-// defense values by the attacker's offense split.
-function oasisDefense(animals, cavShare) {
-  let def = 0;
-  animals.forEach((u) => {
-    const s = ANIMAL_STATS[u.id];
-    def += (s.defI * (1 - cavShare) + s.defC * cavShare) * u.count;
-  });
-  return def + OASIS_BASE_DEF;
-}
-
 function calculateMetrics(oasis, s) {
   const dx = torusDelta(oasis.x, s.cx);
   const dy = torusDelta(oasis.y, s.cy);

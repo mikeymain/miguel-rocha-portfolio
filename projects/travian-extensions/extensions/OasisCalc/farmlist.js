@@ -18,6 +18,8 @@
   let knownOases = new Set();
   let scans = new Map();
   let timer = 0;
+  let defenceMode = "";
+  let direction = 1;
 
   function parseNum(text) {
     const n = parseInt(String(text ?? "").replace(BIDI, "").replace(/[−–]/g, "-").replace(/[^\d-]/g, ""), 10);
@@ -71,8 +73,6 @@
     const animals = scan?.animals;
     const valid = Array.isArray(animals) && animals.length && animals.every(a =>
       a && Number.isInteger(a.id) && ANIMAL_STATS[a.id] && Number.isSafeInteger(a.count) && a.count > 0);
-    const counts = valid ? animals.map(a => `${ANIMAL_STATS[a.id].name} ×${a.count}`).join(" · ") : "No animal data";
-    const text = scan?.observationIncomplete && valid ? counts + " (last known)" : counts;
     const title = valid && Number.isFinite(scan.scannedAt)
       ? "Observed " + new Date(scan.scannedAt).toLocaleString() : "Animal counts from saved Oasis Finder scans";
     if (!label) {
@@ -80,7 +80,32 @@
       label.className = "_vpfl-animals";
       cell.appendChild(label);
     }
-    if (label.textContent !== text) label.textContent = text;
+    const state = JSON.stringify([animals, !!scan?.observationIncomplete, defenceMode]);
+    if (label.dataset.state !== state) {
+      label.dataset.state = state;
+      label.replaceChildren();
+      if (valid) {
+        for (const { id, count } of animals) {
+          const item = document.createElement("span");
+          const icon = document.createElement("i");
+          const name = ANIMAL_STATS[id].name;
+          item.title = name + " ×" + count;
+          icon.className = "unit u" + id;
+          icon.setAttribute("role", "img");
+          icon.setAttribute("aria-label", name);
+          item.append(icon, " ×" + count);
+          label.appendChild(item);
+        }
+        label.dataset.infantry = oasisDefense(animals, 0);
+        label.dataset.cavalry = oasisDefense(animals, 1);
+        if (defenceMode) label.append("Def " + label.dataset[defenceMode]);
+        if (scan.observationIncomplete) label.append(" (last known)");
+      } else {
+        delete label.dataset.infantry;
+        delete label.dataset.cavalry;
+        label.textContent = "No animal data";
+      }
+    }
     if (label.title !== title) label.title = title;
   }
 
@@ -126,6 +151,12 @@
   // → crop, unknown last), then by distance within each group.
   function groupOases() {
     for (const table of document.querySelectorAll("table.slots")) {
+      const header = table.querySelector("thead th.target");
+      if (header) defenceControls(header);
+      if (defenceMode) {
+        sortByDefence(table);
+        continue;
+      }
       // The game marks the active sort column with an arrow lacking .inactive.
       if (!table.querySelector("th.target .sortingArrow:not(.inactive)")) continue;
       const tbody = table.querySelector("tbody");
@@ -148,6 +179,56 @@
       flush();
     }
   }
+
+  function defenceControls(header) {
+    for (const [mode, caption] of [["infantry", "Inf"], ["cavalry", "Cav"]]) {
+      let btn = header.querySelector(`button[data-vpfl-def="${mode}"]`);
+      if (!btn) {
+        btn = document.createElement("button");
+        btn.type = "button";
+        btn.dataset.vpflDef = mode;
+        btn.title = "Sort by defence against " + mode;
+        btn.setAttribute("aria-label", btn.title);
+        btn.addEventListener("click", event => {
+          event.stopPropagation();
+          direction = defenceMode === mode ? -direction : 1;
+          defenceMode = mode;
+          decorate();
+        });
+        header.appendChild(btn);
+      }
+      const active = mode === defenceMode;
+      const captionText = caption + " def" + (active ? (direction === 1 ? " ↑" : " ↓") : "");
+      if (btn.textContent !== captionText) btn.textContent = captionText;
+      btn.setAttribute("aria-pressed", String(active));
+    }
+  }
+
+  function sortByDefence(table) {
+    const tbody = table.tBodies[0];
+    if (!tbody) return;
+    const rows = [...tbody.querySelectorAll(":scope > tr.slot")];
+    const strength = row => Number(row.querySelector("._vpfl-animals")?.dataset[defenceMode]);
+    const enabledFirst = table.querySelector("th.state .sortingArrow:not(.inactive)");
+    const sorted = rows.map(row => ({row, value: strength(row)})).sort((a, b) => {
+      if (enabledFirst) {
+        const disabled = Number(a.row.classList.contains("disabled")) - Number(b.row.classList.contains("disabled"));
+        if (disabled) return disabled;
+      }
+      return Number.isNaN(a.value) - Number.isNaN(b.value) || direction * (a.value - b.value) || 0;
+    });
+    if (sorted.every((item, i) => item.row === rows[i])) return;
+    const after = rows[rows.length - 1].nextSibling;
+    for (const {row} of sorted) tbody.insertBefore(row, after);
+  }
+
+  document.addEventListener("click", event => {
+    if (defenceMode && !event.target.closest("[data-vpfl-def]") &&
+        event.target.closest("th.sortable, .contextMenu.sorting a")) {
+      defenceMode = "";
+      scheduleDecorate();
+    }
+  }, true);
 
   function reorderRun(tbody, run) {
     const sorted = run

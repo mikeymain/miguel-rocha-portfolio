@@ -1,5 +1,9 @@
 # Changelog
 
+## Oasis Finder 70.14 — 2026-11-25
+
+- Show species icons and sort farm targets by observed defence against infantry or cavalry in either direction.
+
 ## Oasis Finder 70.13 — 2026-11-25
 
 - Show saved animal counts by species beneath each oasis on the native farm list.
