@@ -17,12 +17,16 @@
 			if (!row.querySelector('.messageStatusUnread')) return;
 
 			// 2. Find the report link in this row.
-			//    Each unread row contains an 'id=' link to the report itself
-			//    AND a separate 'build.php' link to the attacker's/defender's village.
-			//    We want only the report link.
-			const reportLink = Array.from(row.querySelectorAll('a')).find(
-				(a) => a.href.includes('id=') && !a.href.includes('build.php'),
-			);
+			//    A row also holds links to villages, the rally point, etc.
+			//    Accept only a link whose path is /report and has an id param.
+			const reportLink = Array.from(row.querySelectorAll('a')).find((a) => {
+				try {
+					const url = new URL(a.href, location.href);
+					return /\/report\/?$/.test(url.pathname) && url.searchParams.has('id');
+				} catch {
+					return false;
+				}
+			});
 
 			if (reportLink) links.push(reportLink.href);
 		});

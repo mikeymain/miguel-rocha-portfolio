@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.6.19 — 2026-11-25
+
+- Report opener: only real report links are opened; rows whose first matching link led to the rally point no longer open it.
+
 ## Travian QoL 1.6.18 — 2026-11-25
 
 - Report opener: the Open Unread button appears on the next frame after the reports list renders, not after a 100 ms debounce.
