@@ -208,5 +208,42 @@
 		});
 	}
 
-	root.TravianQoLBuildOrder = { plan, boostSchedule, costAt, popAt, gainOf, maxLevelFor, boostPct, FIELDS, BOOSTS, MANSION, MANSION_FOR_OASIS };
+	// Hero's Mansion annex range: 3 tiles each way (7x7 minus the village).
+	const OASIS_RANGE = 3;
+	const MAP_HALF = 200;
+	const MAP_SIZE = 2 * MAP_HALF + 1;
+	const wrap = (n) => (((n + MAP_HALF) % MAP_SIZE) + MAP_SIZE) % MAP_SIZE - MAP_HALF;
+
+	/**
+	 * Oases in annex range of a village, from map tiles seen in game.
+	 * @param {Object<string, 0|{b:number[], o:boolean}>} tiles "x|y" -> 0 (not an
+	 *   oasis) or { b: bonus % [wood, clay, iron, crop], o: occupied }
+	 * @returns {{seen:number, total:number, oases:{x:number,y:number,bonus:number[],occupied:boolean}[]}}
+	 */
+	function nearbyOases(x, y, tiles) {
+		const oases = [];
+		let seen = 0;
+		for (let dy = -OASIS_RANGE; dy <= OASIS_RANGE; dy++) {
+			for (let dx = -OASIS_RANGE; dx <= OASIS_RANGE; dx++) {
+				if (!dx && !dy) continue;
+				const tx = wrap(x + dx), ty = wrap(y + dy);
+				const tile = tiles?.[`${tx}|${ty}`];
+				if (tile === undefined) continue;
+				seen++;
+				if (tile && Array.isArray(tile.b)) oases.push({ x: tx, y: ty, bonus: tile.b.map(Number), occupied: !!tile.o });
+			}
+		}
+		return { seen, total: (2 * OASIS_RANGE + 1) ** 2 - 1, oases };
+	}
+
+	/** Free oases by hourly gain (base units) for these field levels, best first. */
+	function rankOases(fields, oases) {
+		const base = baseProduction(fields, new Map(fields.map((f) => [f.slot, f.level])));
+		return oases
+			.filter((o) => !o.occupied)
+			.map((o) => ({ ...o, gain: Math.round(sum(o.bonus.map((pct, r) => (base[r] * pct) / 100))) }))
+			.sort((a, b) => b.gain - a.gain);
+	}
+
+	root.TravianQoLBuildOrder = { plan, boostSchedule, nearbyOases, rankOases, costAt, popAt, gainOf, maxLevelFor, boostPct, FIELDS, BOOSTS, MANSION, MANSION_FOR_OASIS };
 })(typeof window !== 'undefined' ? window : globalThis);

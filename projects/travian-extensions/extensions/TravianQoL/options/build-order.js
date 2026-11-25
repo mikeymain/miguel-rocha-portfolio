@@ -46,6 +46,10 @@
 	let setupStore = {}; // host -> { villageId: setup }
 	let goldStore = {}; // host -> bool (Plus bonus is account wide)
 	let max20Store = {}; // host -> { villageId: bool }
+	// Per-host map tiles seen in game (features/build-order, map pages).
+	const TILES_PREFIX = 'travianQoL.mapTiles.';
+	let tilesStore = {}; // host -> { "x|y": 0 | { b, o } }
+	const NEARBY_SHOWN = 5;
 
 	function el(tag, className, text) {
 		const node = document.createElement(tag);
@@ -81,8 +85,11 @@
 		setupStore = {};
 		goldStore = {};
 		max20Store = {};
+		tilesStore = {};
 		for (const [key, value] of Object.entries(all)) {
-			if (key.startsWith(MAX20_PREFIX)) {
+			if (key.startsWith(TILES_PREFIX)) {
+				tilesStore[key.slice(TILES_PREFIX.length)] = value || {};
+			} else if (key.startsWith(MAX20_PREFIX)) {
 				max20Store[key.slice(MAX20_PREFIX.length)] = value || {};
 			} else if (key.startsWith(GOLD_PREFIX)) {
 				goldStore[key.slice(GOLD_PREFIX.length)] = !!value;
@@ -92,7 +99,7 @@
 				const host = key.slice(FIELDS_PREFIX.length);
 				for (const [id, v] of Object.entries(value || {})) {
 					if (!Array.isArray(v?.fields) || !v.fields.length) continue;
-					villages.push({ value: `${host}|${id}`, host, id, name: v.name || id, fields: v.fields, buildings: v.buildings || null, updatedAt: v.updatedAt || 0 });
+					villages.push({ value: `${host}|${id}`, host, id, name: v.name || id, fields: v.fields, buildings: v.buildings || null, updatedAt: v.updatedAt || 0, x: v.x, y: v.y });
 				}
 			} else if (key.startsWith(BONUS_PREFIX) && key !== PICK_KEY) {
 				bonusStore[key.slice(BONUS_PREFIX.length)] = value || {};
@@ -287,6 +294,60 @@
 		return wrap;
 	}
 
+	// --- Nearby oases (annex range, from map tiles seen in game) ------------
+
+	const typeOf = (bonus) => Object.keys(OASES).find((k) => k && OASES[k].bonus.every((p, r) => p === bonus[r])) || '';
+
+	// Free oases in range, best hourly gain for this village first.
+	function nearbyRanked(v) {
+		const near = planner.nearbyOases(v.x, v.y, tilesStore[v.host] || {});
+		return { ...near, ranked: planner.rankOases(v.fields, near.oases).filter((o) => typeOf(o.bonus)) };
+	}
+
+	// Empty slots get the best free oases not already planned in a slot.
+	function pickBest(setup, ranked) {
+		const left = [...ranked];
+		for (const o of setup.oases) {
+			const i = o.type && !o.owned ? left.findIndex((r) => typeOf(r.bonus) === o.type) : -1;
+			if (i >= 0) left.splice(i, 1);
+		}
+		const oases = setup.oases.map((o) => {
+			if (o.type || !left.length) return o;
+			return { type: typeOf(left.shift().bonus), owned: false };
+		});
+		return { ...setup, oases };
+	}
+
+	function buildNearbyBlock(v, setup, update) {
+		const box = el('div', 'bo-near');
+		const head = el('div', 'bo__block-head');
+		head.appendChild(el('span', 'bo__block-title', 'Nearby'));
+		box.appendChild(head);
+		if (!Number.isInteger(v.x) || !Number.isInteger(v.y)) {
+			head.appendChild(el('span', 'bo__hint', 'Open the resources view to read coordinates'));
+			return box;
+		}
+		const near = nearbyRanked(v);
+		head.appendChild(el('span', 'bo__hint', `Seen ${near.seen}/${near.total}`));
+		if (!near.ranked.length) {
+			box.appendChild(el('div', 'bo__hint', near.seen < near.total ? 'Hover the tiles around the village on the map' : 'No free oases in range'));
+			return box;
+		}
+		for (const o of near.ranked.slice(0, NEARBY_SHOWN)) {
+			const row = el('div', 'bo-near__row');
+			const gain = el('span', 'bo-near__gain', `+${o.gain}/h`);
+			gain.title = 'Speed x1';
+			row.append(oasisFace(typeOf(o.bonus)), el('span', 'bo-near__xy', `(${o.x}|${o.y})`), gain);
+			box.appendChild(row);
+		}
+		const use = el('button', 'bo-link', 'Use best');
+		use.type = 'button';
+		use.disabled = !setup.oases.some((o) => !o.type);
+		use.addEventListener('click', () => update((s) => pickBest(s, nearbyRanked(v).ranked)));
+		box.appendChild(use);
+		return box;
+	}
+
 	// --- Bonus card ---------------------------------------------------------
 
 	function oasisRow(o, i, update) {
@@ -329,6 +390,7 @@
 		const oasisBox = el('div', 'bo__block');
 		oasisBox.appendChild(el('span', 'bo__block-title', 'Oases'));
 		setup.oases.forEach((o, i) => oasisBox.appendChild(oasisRow(o, i, update)));
+		oasisBox.appendChild(buildNearbyBlock(v, setup, update));
 
 		const bldBox = el('div', 'bo__block');
 		const bldTitle = el('div', 'bo__block-head');
@@ -492,7 +554,7 @@
 	// Snapshots arrive while the popup is open: refresh in place.
 	chrome.storage.onChanged.addListener((changes, area) => {
 		if (area !== 'local') return;
-		if (!Object.keys(changes).some((k) => k.startsWith(FIELDS_PREFIX))) return;
+		if (!Object.keys(changes).some((k) => k.startsWith(FIELDS_PREFIX) || k.startsWith(TILES_PREFIX))) return;
 		const keep = select.value;
 		load().then(() => {
 			fillSelect(keep);

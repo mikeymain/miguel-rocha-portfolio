@@ -14,6 +14,10 @@
 
 - Fix: the extension failed to load because `analyzer.js` contained a non-UTF-8 byte.
 
+## Travian QoL 1.6.21 — 2026-11-25
+
+- Build order: **Nearby** under the oasis slots ranks the free oases within 3 tiles of the village (the 7×7 annex range) by extra production per hour for that village. Oasis tiles are recorded when you hover or open them on the map (**Seen n/48**). **Use best** fills empty slots with the best ones as planned.
+
 ## Travian QoL 1.6.20 — 2026-11-25
 
 - Build order: per-village **Simulate to level 20** toggle in the Build order tab; it also applies to the in-game field highlight.

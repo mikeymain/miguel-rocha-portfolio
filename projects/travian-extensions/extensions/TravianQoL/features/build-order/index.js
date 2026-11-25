@@ -63,6 +63,20 @@
 		return name.replace(/[‪-‮‎‏⁦-⁩]/g, '').replace(/\s+/g, ' ').trim() || 'Village';
 	}
 
+	// Coordinate text from a .coordinateX/.coordinateY span: "(‭−‭6‬‬" -> -6.
+	function coordOf(el) {
+		const text = (el?.textContent || '').replace(/[()\s؜‎‏‪-‮⁦-⁩]/g, '').replace(/[−‒–]/g, '-');
+		return /^-?\d+$/.test(text) ? Number(text) : NaN;
+	}
+
+	/** { x, y } of the active village from the sidebar, or {} if not shown. */
+	function villageCoords() {
+		const el = activeVillage();
+		const x = coordOf(el?.querySelector('.coordinateX'));
+		const y = coordOf(el?.querySelector('.coordinateY'));
+		return Number.isSafeInteger(x) && Number.isSafeInteger(y) ? { x, y } : {};
+	}
+
 	/** Resource fields with their effective level (queued upgrades counted). */
 	function readFields() {
 		const out = [];
@@ -90,7 +104,7 @@
 	// Written only when it changes.
 	function saveSnapshot(part) {
 		const id = villageId();
-		const entry = { name: villageName(), ...part };
+		const entry = { name: villageName(), ...villageCoords(), ...part };
 		const sig = id + JSON.stringify(entry);
 		if (sig === lastSnapshot) return;
 		lastSnapshot = sig;
@@ -208,6 +222,80 @@
 		observer.observe(container, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'data-level'] });
 	}
 
+	// --- Map: tiles seen in tooltips and tile details --------------------
+	// Per-host { "x|y": 0 | { b: bonus % [wood, clay, iron, crop], o: occupied } }.
+	// The Build order tab reads it to rank the oases in annex range.
+	const TILES_PREFIX = 'travianQoL.mapTiles.';
+	const TILE_SELECTOR = '#tileDetails, .tippy-box[data-state="visible"]';
+	const TILE_SAVE_MS = 500;
+	const isMapPage = () => /^\/(karte\.php|map|position_details\.php)$/.test(location.pathname);
+	let tileBuffer = {};
+	let tileTimer = null;
+
+	/** Bonus % per resource from "<i class="r4"></i> Crop 25%" pairs. */
+	function readBonus(box, details) {
+		const bonus = [0, 0, 0, 0];
+		const icons = details ? box.querySelectorAll('#distribution tr .ico i') : box.querySelectorAll('.text i');
+		for (const icon of icons) {
+			const r = Number(icon.className.match(/\br([1-4])\b/)?.[1]);
+			if (!r) continue;
+			const text = details ? icon.closest('tr')?.querySelector('.val')?.textContent : icon.nextSibling?.textContent;
+			const pct = Number((text || '').replace(/[‎‏‪-‮⁦-⁩]/g, '').match(/(\d+)\s*%/)?.[1]);
+			if (pct) bonus[r - 1] += pct;
+		}
+		return bonus;
+	}
+
+	/** [key, value] for a tooltip or tile details box, or null if unreadable. */
+	function readTile(box) {
+		const details = box.id === 'tileDetails';
+		const pair = box.querySelector('.coordinatesWrapper');
+		const x = coordOf(pair?.querySelector('.coordinateX'));
+		const y = coordOf(pair?.querySelector('.coordinateY'));
+		if (!Number.isSafeInteger(x) || !Number.isSafeInteger(y)) return null;
+		const bonus = readBonus(box, details);
+		const title = (box.querySelector(details ? 'h1' : '.title')?.textContent || '').trim();
+		if (!bonus.some(Boolean)) return /oasis/i.test(title) ? null : [`${x}|${y}`, 0];
+		const occupied = /^occupied\b/i.test(title) || (details && !!box.querySelector('#village_info'));
+		return [`${x}|${y}`, { b: bonus, o: occupied }];
+	}
+
+	function saveTiles() {
+		const batch = tileBuffer;
+		tileBuffer = {};
+		const key = TILES_PREFIX + location.host;
+		chrome.storage.local.get(key, (res) => {
+			const all = res[key] || {};
+			const changed = Object.entries(batch).filter(([k, v]) => JSON.stringify(all[k]) !== JSON.stringify(v));
+			if (changed.length) chrome.storage.local.set({ [key]: { ...all, ...Object.fromEntries(changed) } });
+		});
+	}
+
+	function inspectTile(box) {
+		const tile = readTile(box);
+		if (!tile) return;
+		tileBuffer[tile[0]] = tile[1];
+		clearTimeout(tileTimer);
+		tileTimer = setTimeout(saveTiles, TILE_SAVE_MS);
+	}
+
+	function startMap() {
+		document.querySelectorAll(TILE_SELECTOR).forEach(inspectTile);
+		observer = new MutationObserver((records) => {
+			for (const record of records) {
+				const target = record.target.nodeType === 1 ? record.target : record.target.parentElement;
+				const box = target?.closest(TILE_SELECTOR);
+				if (box) inspectTile(box);
+				for (const node of record.addedNodes) {
+					if (node.nodeType !== 1) continue;
+					if (node.matches(TILE_SELECTOR)) inspectTile(node);
+					node.querySelectorAll(TILE_SELECTOR).forEach(inspectTile);
+				}
+			}
+		});
+		observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['data-state'] });
+	}
+
 	// The settings popup asks the active tab which village it shows.
 	let messageListener = null;
 
@@ -222,7 +310,7 @@
 				return false;
 			};
 			chrome.runtime?.onMessage?.addListener(messageListener);
-			const run = isResourcesPage() ? start : isVillagePage() ? startVillage : null;
+			const run = isResourcesPage() ? start : isVillagePage() ? startVillage : isMapPage() ? startMap : null;
 			if (!run) return;
 			if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run, { once: true });
 			else run();
@@ -236,6 +324,9 @@
 			storageListener = null;
 			clearTimeout(debounceTimer);
 			debounceTimer = null;
+			if (tileTimer) saveTiles();
+			clearTimeout(tileTimer);
+			tileTimer = null;
 			lastSnapshot = '';
 			document.getElementById(STYLE_ID)?.remove();
 			document.querySelectorAll('[data-tqol-bo]').forEach((el) => delete el.dataset[ORDER_ATTR]);
