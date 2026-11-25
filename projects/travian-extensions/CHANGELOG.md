@@ -1,5 +1,9 @@
 # Changelog
 
+## Oasis Finder 70.21 — 2026-11-25
+
+- Map oasis **Clear** heading uses the dialog text colour; the table sits 8px higher.
+
 ## Oasis Finder 70.20 — 2026-11-25
 
 - Map oasis **Clear** table shows one unit: the one chosen under **Troops → Unit** (formerly **Preview**). The **Time** column is removed. The table updates when the unit, risk, hero or Tournament Square settings change.
