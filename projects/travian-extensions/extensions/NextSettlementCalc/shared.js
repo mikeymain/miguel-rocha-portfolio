@@ -377,15 +377,15 @@ globalThis.TSP = (() => {
 	function predictSettlement(p = {}) {
 		const total = nonNegative(p.totalCp);
 		const rate = nonNegative(p.passiveRate);
-		// The main forecast continues the production growth we measured, never
-		// faster than the game's building history. Continuing that history
-		// trend in full is the separate, optimistic scenario.
+		// The main forecast continues the game's production history trend.
+		// Backtested on logged forecasts it beat our own few-day readings,
+		// which swing with every building upgrade and dip. Without history
+		// it falls back to those readings. The growth scenario takes the
+		// faster of the two.
 		const history = nonNegative(p.passiveAccel);
 		const measured = nonNegative(p.measuredAccel);
-		const trend = Number.isFinite(p.passiveAccel)
-			? Math.min(measured, history)
-			: measured;
-		const accel = p.useGrowthTrend ? Math.max(trend, history) : trend;
+		const trend = history > 0 ? history : measured;
+		const accel = p.useGrowthTrend ? Math.max(history, measured) : trend;
 		const elapsed = nonNegative(p.dt);
 		const observed = -elapsed; // the CP measurement, in seconds from now
 		const cap = rate * TREND.MAX_GROWTH;

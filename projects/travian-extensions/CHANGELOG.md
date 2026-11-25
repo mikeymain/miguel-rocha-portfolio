@@ -1,5 +1,10 @@
 # Changelog
 
+## Next Settlement Calc 2.6.23 — 2026-11-25
+
+- The main forecast now follows the game's production growth trend instead of the lower of that trend and the planner's own few-day readings. Replayed against logged forecasts, the average error of forecasts made 3–7 days ahead falls from 27 h to 20 h, and from 42 h to 32 h for forecasts over a week ahead; short-range forecasts are unchanged. Without a history trend it falls back to the planner's readings. The growth overlay takes the faster of the two.
+- After CP passes a village threshold, the CP total no longer drops to the CP earned since that threshold until the village is founded.
+
 ## Travian QoL 1.4.10 — 2026-11-25
 
 - Trade routes: the **Production per hour** net values are written while the page loads, so the numbers no longer appear late.

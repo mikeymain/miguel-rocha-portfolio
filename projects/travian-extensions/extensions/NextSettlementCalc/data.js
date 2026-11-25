@@ -140,6 +140,12 @@ Object.assign(
 				hasData: false,
 			};
 			if (validNumber(totalCp)) scan.totalCp = totalCp;
+			if (
+				!validNumber(rank?.soFar?.cpProduction) &&
+				validNumber(overview?.cpProducedForNextSlot) &&
+				validNumber(slotBase)
+			)
+				scan.slotProgress = overview.cpProducedForNextSlot;
 			if (validNumber(actualDailyCp)) scan.actualDailyCp = actualDailyCp;
 			if (villages) scan.villages = villages;
 			const worldStart = extractWorldStart(html);
@@ -159,6 +165,24 @@ Object.assign(
 			const from = at - TREND.MEASURED_DAYS * SECS_PER_DAY * 1000;
 			const anchor = history.findLastIndex(([time]) => time <= from);
 			return anchor > 0 ? history.slice(anchor) : history;
+		}
+		/** CP may read up to this share below the last reading (rounding). */
+		const CP_DROP_TOLERANCE = 0.01;
+		/**
+		 * Per-slot CP restarts at each threshold CP reaches, but usedSlots only
+		 * grows once the village is founded. A total below the last reading is
+		 * then counted from too low a threshold: move it up to the first one
+		 * that keeps CP from falling.
+		 */
+		function slotTotal(previous, scan) {
+			const floor = nonNegative(previous.totalCp) * (1 - CP_DROP_TOLERANCE);
+			if (!validNumber(scan.slotProgress) || scan.totalCp >= floor)
+				return scan.totalCp;
+			const thresholds = CP_REQUIREMENTS[normalizeSpeed(scan.speed)];
+			const base = thresholds.find(
+				(cp) => cp + scan.slotProgress >= floor,
+			);
+			return validNumber(base) ? base + scan.slotProgress : scan.totalCp;
 		}
 		function mergeScan(previous = {}, scan) {
 			const next = { ...previous };
@@ -190,7 +214,7 @@ Object.assign(
 					scan.totalCp === previous.totalCp && previous.lastUpdate > 0
 						? previous.cpSince || previous.lastUpdate
 						: observedAt;
-				next.totalCp = scan.totalCp;
+				next.totalCp = slotTotal(previous, scan);
 				next.lastUpdate = observedAt;
 				if (validNumber(scan.actualDailyCp)) {
 					next.actualDailyCp = scan.actualDailyCp;
