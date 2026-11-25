@@ -45,7 +45,7 @@
 /* Nearby oases: free oases in annex range, best first. */
 .bo-near { display: grid; gap: 4px; margin-top: 4px; }
 .bo-near__row { display: grid; grid-template-columns: minmax(0, 1fr) auto 60px; gap: 6px; align-items: center; font-size: 11px; }
-.bo-near__xy { font-family: var(--font-mono); color: var(--text-secondary); }
+.bo-near__xy { font-family: var(--font-mono); font-variant-ligatures: none; color: var(--text-secondary); }
 .bo-near__gain { font-family: var(--font-mono); text-align: right; color: var(--emerald); }
 .bo-near > .bo-link { justify-self: end; }
 
