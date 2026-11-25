@@ -197,10 +197,13 @@
 	}
 
 	function renderChooser(link, store, parsed) {
+		const matches = matchingLists(store, parsed);
+		// One known list: the native edit link already opens the right slot.
+		if (matches.length <= 1) return;
 		const nativeOption = link.closest('.option') || link.parentElement;
 		const nativeOnclick = link.getAttribute('onclick');
 		let anchor = nativeOption;
-		for (const entry of matchingLists(store, parsed)) {
+		for (const entry of matches) {
 			const option = makeOption(nativeOption);
 			const a = document.createElement('a');
 			a.className = link.className;

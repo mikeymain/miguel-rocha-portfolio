@@ -1,5 +1,10 @@
 # Changelog
 
+## Travian QoL 1.6.0 — 2026-11-25
+
+- New **Build order** feature: on the resources page the resource field with the shortest payback glows, the next 5 upgrades are numbered, and a panel under the production table lists them. Per-village production bonus % inputs weight the ranking.
+- Farm-list edit chooser: the extra edit links no longer appear when the target is in only one farm list.
+
 ## Travian QoL 1.5.3 — 2026-11-25
 
 - Counter-attack tab reworked: server speed and map size sit in the tab header, the attacker's coordinates and slowest unit are part of the incoming-attack card, and TS / boots / artefact fold into a Bonuses line per side that shows the values in use. The tab fits the popup without scrolling.
