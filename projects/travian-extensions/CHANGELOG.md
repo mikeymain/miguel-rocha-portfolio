@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.6.11 — 2026-11-25
+
+- Smithy efficiency rates attacking units on attack: Haeduan, Swordsman, Khopesh Warrior and rams no longer use their defence. Hybrid units keep the larger stat.
+
 ## Travian QoL 1.6.10 — 2026-11-25
 
 - Build order: a resource field that already has an upgrade in the queue no longer glows; the glow moves to the next best field.
