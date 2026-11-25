@@ -363,7 +363,24 @@
 		node.querySelector('.ca__answer-note').textContent = s.sub;
 	}
 
+	// Collapsed "Bonuses" line shows the active TS / boots / artefact values.
+	function updateBonusSummary(side) {
+		const sum = root.querySelector(`[data-sum="${side}"]`);
+		if (!sum) return;
+		const parts = [];
+		const ts = parseInt(read(side, 'ts'), 10) || 0;
+		if (ts > 0) parts.push(`TS ${ts}`);
+		const boots = parseFloat(read(side, 'boots')) || 1;
+		if (boots !== 1) parts.push(`Boots +${Math.round((boots - 1) * 100)}%`);
+		const art = parseFloat(read(side, 'art')) || 1;
+		if (art !== 1) parts.push(`Art ${art}×`);
+		sum.textContent = parts.length ? parts.join(' · ') : 'None';
+		sum.classList.toggle('is-set', parts.length > 0);
+	}
+
 	function recompute() {
+		updateBonusSummary('att');
+		updateBonusSummary('int');
 		const target = parseCoords(document.getElementById('ca-target').value);
 		const att = parseCoords(read('att', 'coords'));
 		const inter = parseCoords(read('int', 'coords'));

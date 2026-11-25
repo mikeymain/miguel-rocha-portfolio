@@ -83,140 +83,155 @@
 				</section>
 
 				<section id="tab-counter" class="panel" role="tabpanel" aria-labelledby="tabbtn-counter" tabindex="0">
+					<header class="panel__head">
+						<h1 class="panel__title">Counter-attack</h1>
+						<div class="ca__server">
+							<label class="ca__inline">
+								<span>Speed</span>
+								<select id="ca-server-speed" class="select">
+									<option value="1">1×</option>
+									<option value="2">2×</option>
+									<option value="3" selected>3×</option>
+									<option value="5">5×</option>
+									<option value="10">10×</option>
+								</select>
+							</label>
+							<label class="ca__inline">
+								<span>Map</span>
+								<select id="ca-map" class="select">
+									<option value="200">200</option>
+									<option value="400" selected>400</option>
+									<option value="800">800</option>
+								</select>
+							</label>
+						</div>
+					</header>
+
 					<div class="ca">
 						<div class="ca__inputs">
-							<!-- Incoming attack -->
-							<fieldset class="ca__block">
-								<legend class="ca__legend ca__legend--hit">Incoming attack</legend>
-								<div class="ca__grid ca__grid--3">
-									<label class="ca__field">
-										<span class="ca__label">Arrives in</span>
-										<input id="ca-arrives-in" type="text" placeholder="h:mm:ss" inputmode="numeric" autocomplete="off" class="lc-num ca__time">
-									</label>
-									<label class="ca__field ca__span-2">
-										<span class="ca__label">Arrival</span>
-										<input id="ca-arrival" type="datetime-local" step="1" class="lc-num ca__time">
-									</label>
+							<!-- Incoming attack + attacker -->
+							<section class="card ca__card" data-side="att">
+								<div class="lc-card__head ca__head">
+									<span class="ca__dot ca__dot--hit" aria-hidden="true"></span>
+									<span class="lc-card__title">Incoming attack</span>
 								</div>
-								<div class="ca__grid ca__grid--3">
-									<label class="ca__field">
-										<span class="ca__label">Target village</span>
-										<input id="ca-target" type="text" placeholder="(x|y)" autocomplete="off" class="lc-num ca__coords">
-									</label>
-									<label class="ca__field">
-										<span class="ca__label">Speed</span>
-										<select id="ca-server-speed" class="select">
-											<option value="1">1×</option>
-											<option value="2">2×</option>
-											<option value="3" selected>3×</option>
-											<option value="5">5×</option>
-											<option value="10">10×</option>
-										</select>
-									</label>
-									<label class="ca__field">
-										<span class="ca__label">Map</span>
-										<select id="ca-map" class="select">
-											<option value="200">200</option>
-											<option value="400" selected>400</option>
-											<option value="800">800</option>
-										</select>
-									</label>
+								<div class="ca__body">
+									<div class="ca__grid ca__grid--time">
+										<label class="ca__field">
+											<span class="ca__label">Arrives in</span>
+											<input id="ca-arrives-in" type="text" placeholder="h:mm:ss" inputmode="numeric" autocomplete="off" class="lc-num">
+										</label>
+										<label class="ca__field">
+											<span class="ca__label">Arrival</span>
+											<input id="ca-arrival" type="datetime-local" step="1" class="lc-num">
+										</label>
+									</div>
+									<div class="ca__grid ca__grid--coords">
+										<label class="ca__field">
+											<span class="ca__label">Target</span>
+											<input id="ca-target" type="text" placeholder="(x|y)" autocomplete="off" class="lc-num">
+										</label>
+										<label class="ca__field">
+											<span class="ca__label">Attacker</span>
+											<input data-att="coords" type="text" placeholder="(x|y)" autocomplete="off" class="lc-num">
+										</label>
+										<label class="ca__field">
+											<span class="ca__label">Slowest unit</span>
+											<select data-att="speed" class="select"></select>
+										</label>
+									</div>
 								</div>
-							</fieldset>
+								<details class="ca__bonus">
+									<summary><span>Bonuses</span><span class="ca__bonus-sum" data-sum="att"></span></summary>
+									<div class="ca__grid ca__grid--3">
+										<label class="ca__field">
+											<span class="ca__label">TS</span>
+											<select data-att="ts" class="select"></select>
+										</label>
+										<label class="ca__field">
+											<span class="ca__label">Boots</span>
+											<select data-att="boots" class="select">
+												<option value="1">—</option>
+												<option value="1.25">+25%</option>
+												<option value="1.50">+50%</option>
+												<option value="1.75">+75%</option>
+											</select>
+										</label>
+										<label class="ca__field">
+											<span class="ca__label">Artefact</span>
+											<select data-att="art" class="select">
+												<option value="0.33">0.33×</option>
+												<option value="0.5">0.5×</option>
+												<option value="0.67">0.67×</option>
+												<option value="1" selected>—</option>
+												<option value="1.5">1.5×</option>
+												<option value="2">2×</option>
+												<option value="3">3×</option>
+											</select>
+										</label>
+									</div>
+								</details>
+							</section>
 
-							<!-- Attacker -->
-							<fieldset class="ca__block" data-side="att">
-								<legend class="ca__legend ca__legend--att">Attacker</legend>
-								<div class="ca__grid ca__grid--unit">
-									<label class="ca__field">
-										<span class="ca__label">Coords</span>
-										<input data-att="coords" type="text" placeholder="(x|y)" autocomplete="off" class="lc-num ca__coords">
-									</label>
-									<label class="ca__field">
-										<span class="ca__label">Slowest unit</span>
-										<select data-att="speed" class="select"></select>
-									</label>
+							<!-- Your counter -->
+							<section class="card ca__card" data-side="int">
+								<div class="lc-card__head ca__head">
+									<span class="ca__dot ca__dot--you" aria-hidden="true"></span>
+									<span class="lc-card__title">Your counter</span>
 								</div>
-								<div class="ca__grid ca__grid--3">
-									<label class="ca__field">
-										<span class="ca__label">TS</span>
-										<select data-att="ts" class="select"></select>
-									</label>
-									<label class="ca__field">
-										<span class="ca__label">Boots</span>
-										<select data-att="boots" class="select">
-											<option value="1">—</option>
-											<option value="1.25">+25%</option>
-											<option value="1.50">+50%</option>
-											<option value="1.75">+75%</option>
-										</select>
-									</label>
-									<label class="ca__field">
-										<span class="ca__label">Artefact</span>
-										<select data-att="art" class="select">
-											<option value="0.33">0.33×</option>
-											<option value="0.5">0.5×</option>
-											<option value="0.67">0.67×</option>
-											<option value="1" selected>—</option>
-											<option value="1.5">1.5×</option>
-											<option value="2">2×</option>
-											<option value="3">3×</option>
-										</select>
-									</label>
+								<div class="ca__body">
+									<div class="ca__grid ca__grid--from">
+										<label class="ca__field">
+											<span class="ca__label">From</span>
+											<input data-int="coords" type="text" placeholder="(x|y)" autocomplete="off" class="lc-num">
+										</label>
+										<label class="ca__field ca__field--village" hidden>
+											<span class="ca__label">My village</span>
+											<select id="ca-int-village" class="select"></select>
+										</label>
+									</div>
+									<div class="ca__grid ca__grid--from">
+										<label class="ca__field">
+											<span class="ca__label">Land after (s)</span>
+											<input data-int="delay" type="number" min="0" step="1" value="0" class="lc-num">
+										</label>
+										<label class="ca__field">
+											<span class="ca__label">Slowest unit</span>
+											<select data-int="speed" class="select"></select>
+										</label>
+									</div>
 								</div>
-							</fieldset>
-
-							<!-- Interceptor -->
-							<fieldset class="ca__block" data-side="int">
-								<legend class="ca__legend ca__legend--you">Your counter</legend>
-								<div class="ca__grid ca__grid--unit">
-									<label class="ca__field">
-										<span class="ca__label">From</span>
-										<input data-int="coords" type="text" placeholder="(x|y)" autocomplete="off" class="lc-num ca__coords">
-									</label>
-									<label class="ca__field ca__field--village" hidden>
-										<span class="ca__label">My village</span>
-										<select id="ca-int-village" class="select"></select>
-									</label>
-								</div>
-								<div class="ca__grid ca__grid--unit">
-									<label class="ca__field">
-										<span class="ca__label">Land after (s)</span>
-										<input data-int="delay" type="number" min="0" step="1" value="0" class="lc-num">
-									</label>
-									<label class="ca__field">
-										<span class="ca__label">Slowest unit</span>
-										<select data-int="speed" class="select"></select>
-									</label>
-								</div>
-								<div class="ca__grid ca__grid--3">
-									<label class="ca__field">
-										<span class="ca__label">TS</span>
-										<select data-int="ts" class="select"></select>
-									</label>
-									<label class="ca__field">
-										<span class="ca__label">Boots</span>
-										<select data-int="boots" class="select">
-											<option value="1">—</option>
-											<option value="1.25">+25%</option>
-											<option value="1.50">+50%</option>
-											<option value="1.75">+75%</option>
-										</select>
-									</label>
-									<label class="ca__field">
-										<span class="ca__label">Artefact</span>
-										<select data-int="art" class="select">
-											<option value="0.33">0.33×</option>
-											<option value="0.5">0.5×</option>
-											<option value="0.67">0.67×</option>
-											<option value="1" selected>—</option>
-											<option value="1.5">1.5×</option>
-											<option value="2">2×</option>
-											<option value="3">3×</option>
-										</select>
-									</label>
-								</div>
-							</fieldset>
+								<details class="ca__bonus">
+									<summary><span>Bonuses</span><span class="ca__bonus-sum" data-sum="int"></span></summary>
+									<div class="ca__grid ca__grid--3">
+										<label class="ca__field">
+											<span class="ca__label">TS</span>
+											<select data-int="ts" class="select"></select>
+										</label>
+										<label class="ca__field">
+											<span class="ca__label">Boots</span>
+											<select data-int="boots" class="select">
+												<option value="1">—</option>
+												<option value="1.25">+25%</option>
+												<option value="1.50">+50%</option>
+												<option value="1.75">+75%</option>
+											</select>
+										</label>
+										<label class="ca__field">
+											<span class="ca__label">Artefact</span>
+											<select data-int="art" class="select">
+												<option value="0.33">0.33×</option>
+												<option value="0.5">0.5×</option>
+												<option value="0.67">0.67×</option>
+												<option value="1" selected>—</option>
+												<option value="1.5">1.5×</option>
+												<option value="2">2×</option>
+												<option value="3">3×</option>
+											</select>
+										</label>
+									</div>
+								</details>
+							</section>
 						</div>
 
 						<div class="ca__result">

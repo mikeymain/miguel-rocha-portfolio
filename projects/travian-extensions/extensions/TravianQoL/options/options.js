@@ -359,7 +359,7 @@
 
 	function buildOffsetRow(server, offX, offY) {
 		const row = el('div', 'lc-line');
-		row.appendChild(el('span', 'lc-line__label', 'Badge offset'));
+		row.appendChild(el('span', 'lc-line__label', 'Badge position'));
 		const inputs = el('div', 'lc-offset');
 		const make = (axis, value, setting) => {
 			const wrap = el('label', 'lc-offset__field');
@@ -368,7 +368,7 @@
 			input.type = 'number';
 			input.className = 'lc-num';
 			input.value = value;
-			input.setAttribute('aria-label', `Badge ${axis} offset`);
+			input.setAttribute('aria-label', `Badge position ${axis}`);
 			input.oninput = () => {
 				const v = parseInt(input.value, 10);
 				if (Number.isFinite(v)) chrome.storage.local.set({ [lcKey(setting, server)]: v }, flashSaved);
@@ -411,10 +411,11 @@
 		// Global units are read in both modes: in per-server mode they name the
 		// value the "default" option falls back to.
 		keys.push(...tribeKeys.map((t) => lcKey('auto_unit', LC_GLOBAL, t)));
-		if (!isGlobal) keys.push(lcKey('auto_unit', server));
+		if (!isGlobal) keys.push(lcKey('auto_unit', server), lcKey('auto_enabled', LC_GLOBAL));
 		const res = await chrome.storage.local.get(keys);
 
-		const autoEnabled = res[lcKey('auto_enabled', server)] ?? true;
+		// Same fallback chain as features/loot-calc: server, then global, then on.
+		const autoEnabled = res[lcKey('auto_enabled', server)] ?? res[lcKey('auto_enabled', LC_GLOBAL)] ?? true;
 		const offX = res[lcKey('offset_x', server)] ?? DEFAULT_OFFSET_X;
 		const offY = res[lcKey('offset_y', server)] ?? DEFAULT_OFFSET_Y;
 		// In global scope the tribe picks *which tribe's* default unit you are

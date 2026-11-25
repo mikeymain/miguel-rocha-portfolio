@@ -1,5 +1,10 @@
 # Changelog
 
+## Travian QoL 1.5.3 — 2026-11-25
+
+- Counter-attack tab reworked: server speed and map size sit in the tab header, the attacker's coordinates and slowest unit are part of the incoming-attack card, and TS / boots / artefact fold into a Bonuses line per side that shows the values in use. The tab fits the popup without scrolling.
+- Loot Calculator: "Badge offset" is renamed "Badge position", and a server's report-badge switch now falls back to the default (all servers) value, which is on.
+
 ## Travian QoL 1.5.2 — 2026-11-25
 
 - Counter-attack tab reworked: inputs on the left in Incoming attack / Attacker / Your counter blocks, result pinned on the right so the launch countdown stays visible while typing.
