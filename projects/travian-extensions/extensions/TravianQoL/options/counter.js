@@ -134,7 +134,10 @@
 	// already sees the new arrival.
 	const arrivesInEl = document.getElementById('ca-arrives-in');
 	function parseCountdown(str) {
-		const parts = String(str).trim().split(':');
+		// Accept pasted text around the timer, e.g. "in 1:23:45 hrs.".
+		const match = String(str).match(/\d+(?::\d+){1,2}/);
+		if (!match) return null;
+		const parts = match[0].split(':');
 		if (parts.length < 2 || parts.length > 3 || parts.some((p) => !/^\d+$/.test(p))) return null;
 		const [h, m, s] = parts.length === 3 ? parts.map(Number) : [0, ...parts.map(Number)];
 		if (m > 59 || s > 59) return null;
@@ -334,7 +337,7 @@
 	function statusFor(launchAt) {
 		// No counter target → neutral banner.
 		if (!launchAt) {
-			return { cls: '', label: 'Waiting', value: '—', sub: 'Add interceptor coords to plan a counter.' };
+			return { cls: '', label: 'Waiting', value: '—', sub: villages.length > 1 ? 'Pick a village below.' : 'Enter your counter coords.' };
 		}
 		const ms = launchAt.getTime() - Date.now();
 		if (ms <= -1000) {
@@ -379,13 +382,17 @@
 		const iBoots = parseFloat(read('int', 'boots')) || 1;
 		const iArt = parseFloat(read('int', 'art')) || 1;
 
-		const errs = [];
-		if (!target) errs.push('target coords');
-		if (!att) errs.push('attacker coords');
-		if (!arrival || isNaN(arrival)) errs.push('arrival time');
+		const missing = [
+			[!target, document.getElementById('ca-target'), 'target village'],
+			[!att, root.querySelector('[data-att="coords"]'), 'attacker coords'],
+			[!arrival || isNaN(arrival), arrivalEl, 'arrival'],
+		];
+		// Outline the inputs still needed, so the next step is visible.
+		for (const [isMissing, el] of missing) el.classList.toggle('is-missing', isMissing);
+		const errs = missing.filter(([isMissing]) => isMissing).map(([, , name]) => name);
 		if (errs.length) {
 			outEl.className = 'ca__out';
-			outEl.innerHTML = `<div class="ca__hint">Fill ${errs.join(', ')} to calculate.</div>`;
+			outEl.innerHTML = `<div class="ca__hint">Enter ${escapeHtml(errs.join(', '))}.</div>`;
 			plan = null;
 			return;
 		}

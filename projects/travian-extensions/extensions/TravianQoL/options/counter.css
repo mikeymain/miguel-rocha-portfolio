@@ -1,77 +1,70 @@
-/* Counter-attack tab. Split from options.css. */
-#tab-counter .card { overflow: visible; }
+/* Counter-attack tab. Inputs on the left, result pinned on the right so the
+   answer stays visible while typing. Split from options.css. */
 .ca {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 360px;
+	gap: 12px;
+	align-items: start;
+}
+.ca__inputs { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.ca__result {
+	position: sticky;
+	top: 0;
+	min-width: 0;
+}
+
+.ca__block {
+	margin: 0;
+	min-width: 0;
 	display: flex;
 	flex-direction: column;
-	gap: 10px;
-	padding: 10px 14px 12px;
+	gap: 8px;
+	padding: 8px 12px 12px;
+	background: var(--bg-surface);
+	border: none;
+	border-radius: var(--radius);
+	box-shadow: var(--shadow-card);
 }
-.ca__row--shared {
-	display: grid;
-	/* target is sized for "(-XXX|-XXX)" only; arrival flexes wide enough
-	   to fit "dd/mm/yyyy hh:mm:ss" + the native picker icon. */
-	grid-template-columns: 120px minmax(220px, 1fr) 70px 90px;
-	gap: 10px;
-	padding-bottom: 8px;
-	border-bottom: 1px solid var(--border-subtle);
-}
-/* The countdown alternative sits on its own row, directly under Arrival. */
-.ca__row--shared .ca__field--arrives-in { grid-column: 2; grid-row: 2; }
-.ca__armies {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 10px;
-}
-.ca__army {
-	all: unset;
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 6px 10px;
-	padding: 8px 10px 10px;
-	background: var(--bg-raised);
-	border: 1px solid var(--border-subtle);
-	border-radius: var(--radius-sm);
-}
+.ca__block:focus-within { box-shadow: var(--shadow-card-hi); }
 .ca__legend {
-	grid-column: 1 / -1;
-	font-family: var(--font-mono);
-	font-size: 10px;
-	letter-spacing: 0.2em;
-	text-transform: uppercase;
-	color: var(--amber);
-	padding: 0 0 4px;
-	margin-bottom: 2px;
+	float: left; /* keeps the legend inside the fieldset box */
+	width: 100%;
+	padding: 0;
 	display: flex;
 	align-items: center;
 	gap: 8px;
+	font-size: 10.5px;
+	font-weight: 650;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--text-primary);
 }
 .ca__legend::before {
 	content: '';
-	width: 6px; height: 6px;
-	background: var(--amber);
-	transform: rotate(45deg);
-	box-shadow: 0 0 6px var(--amber-glow);
+	width: 7px; height: 7px;
+	border-radius: 50%;
+	background: var(--text-tertiary);
 }
-.ca__legend::after {
-	content: '';
-	flex: 1;
-	height: 1px;
-	background: linear-gradient(90deg,
-		rgba(245, 166, 35, 0.35),
-		rgba(245, 166, 35, 0.05) 60%,
-		transparent);
-}
+.ca__legend--hit::before { background: var(--rose); box-shadow: 0 0 6px rgba(248, 113, 113, 0.5); }
+.ca__legend--att::before { background: var(--amber-hi); }
+.ca__legend--you::before { background: var(--emerald); box-shadow: 0 0 6px rgba(52, 211, 153, 0.5); }
+
+.ca__grid { display: grid; gap: 8px; clear: both; }
+.ca__grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ca__grid--unit { grid-template-columns: 110px minmax(0, 1fr); }
+.ca__span-2 { grid-column: span 2; }
+
 .ca__field {
 	display: flex;
 	flex-direction: column;
 	gap: 3px;
 	min-width: 0;
-	cursor: pointer;
 }
+.ca__field[hidden] { display: none; }
 .ca__label {
 	font-family: var(--font-mono);
 	font-size: 9.5px;
-	letter-spacing: 0.12em;
+	letter-spacing: 0.1em;
 	text-transform: uppercase;
 	color: var(--text-tertiary);
 }
@@ -79,17 +72,9 @@
 .ca__field select {
 	width: 100%;
 	max-width: none;
-	padding: 4px 8px;
 }
-/* "My village" picker — sits in the army grid as a normal field cell,
-   matching the layout of Coords/Slowest unit/etc. Populated from
-   chrome.storage.local by the content script that scrapes the sidebar.
-   The amber border distinguishes it from the static config selects. */
-.ca__field--village select { border-color: rgba(245, 166, 35, 0.35); }
-.ca__field--village select:hover { background: var(--amber-dim); }
-.ca__field .ca__coords,
-.ca__field .ca__time { font-family: var(--font-mono); text-align: left; }
 .ca__field input.lc-num { text-align: left; }
+.ca__field--village select { border-color: var(--amber-line); color: var(--amber-hi); }
 
 .ca__out {
 	display: flex;
@@ -353,3 +338,18 @@
 .ca__vt-sel td:first-child { box-shadow: inset 2px 0 0 var(--amber); }
 .ca__vt-missed td { color: var(--text-tertiary); }
 .ca__vt-missed td:last-child { color: var(--rose); }
+
+/* Narrow result column: stack the answer, sequence and raw strip. */
+.ca__result .ca__out { margin: 0; }
+.ca__result .ca__plan,
+.ca__result .ca__raw { grid-template-columns: 1fr; }
+.ca__result .ca__answer { border-right: none; border-bottom: 1px solid var(--border-subtle); padding: 14px 16px; gap: 6px; }
+.ca__result .ca__countdown { font-size: 36px; }
+.ca__result .ca__seq { padding: 12px 16px 10px; }
+.ca__result .ca__raw > span { padding: 7px 16px; }
+.ca__result .ca__raw > span + span { border-left: none; border-top: 1px solid var(--border-subtle); margin-left: 0; padding-left: 16px; }
+.ca__result .ca__vt th:first-child, .ca__result .ca__vt td:first-child { padding-left: 16px; }
+.ca__result .ca__vt th, .ca__result .ca__vt td { padding-right: 8px; padding-left: 8px; }
+.ca__result .ca__hint { padding: 14px 16px; }
+.ca__field input.is-missing { border-color: rgba(245, 166, 35, 0.45); }
+.ca__result .ca__out { background: var(--bg-surface); border: none; border-radius: var(--radius); box-shadow: var(--shadow-card); overflow: hidden; padding: 0; }

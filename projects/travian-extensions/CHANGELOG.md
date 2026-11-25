@@ -1,5 +1,10 @@
 # Changelog
 
+## Travian QoL 1.5.2 — 2026-11-25
+
+- Counter-attack tab reworked: inputs on the left in Incoming attack / Attacker / Your counter blocks, result pinned on the right so the launch countdown stays visible while typing.
+- "Arrives in" accepts the timer pasted with surrounding text (e.g. `in 1:12:30 hrs.`); missing target, attacker coords or arrival are outlined; with no counter village set, the result points to the village table.
+
 ## Travian QoL 1.5.1 — 2026-11-25
 
 - Loot Calculator settings reworked: tribes are a row of buttons, the default unit is picked from a list with game unit icons and carry capacity bars, and badge settings sit in one strip. The debug logging switch is removed from the menu.
