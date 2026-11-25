@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.4.11 — 2026-11-25
+
+- Farm-list edit chooser: on the map, a target that is in several farm lists gets one edit link per list, so you can choose which list's slot to edit. Lists are learned when you expand them on the Farm List page; a note shows how many are not loaded yet.
+
 ## Next Settlement Calc 2.6.25 — 2026-11-25
 
 - ETA history ranges are now 24h, 48h, 72h, 7d and All.
