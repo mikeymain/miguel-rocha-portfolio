@@ -32,6 +32,8 @@ Replace the files in the same installed folder, click **Reload** in the extensio
 
 **Features:** Discovery/Update modes, scan coverage, local oasis database, observation ages, Hero/Troops views, hero-stat fetch, troop counts and smithy levels, optional hero inclusion, troop preview/cap, five risk levels, sort controls, density controls, draggable/collapsible panel, database and error viewers. Native farm-list name sorting groups oases by bonus type, then distance.
 
+Click an unoccupied oasis on the map to see the **Clear** table under its animals: the number of each unit to send so no animals survive, predicted losses and travel time from the panel's selected village. It uses the smithy levels, Tournament Square, hero and risk settings from the panel; hover a count to see the reserve animals it includes.
+
 The farm list shows the last saved count beside each animal’s unit icon beneath the oasis name. Hover over the counts for the scan time when available. **No animal data** means Oasis Finder has no saved garrison for those coordinates. Run **Update** on the map to refresh known oases.
 
 Select **Inf def** or **Cav def** in the Target header to see the defence score and sort weakest first. Select it again for strongest first. Targets without a score follow scored targets within each enabled-first group. Select a native sort header to return to the game’s ordering.

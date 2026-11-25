@@ -1,5 +1,9 @@
 # Changelog
 
+## Oasis Finder 70.17 — 2026-11-25
+
+- Map oasis dialog shows a **Clear** table: how many of each unit to send to clear the oasis, predicted losses and travel time. Uses the panel's village, smithy levels, Tournament Square, hero and risk settings.
+
 ## Oasis Finder 70.16 — 2026-11-25
 
 - Fix: the extension failed to load because `analyzer.js` contained a non-UTF-8 byte.
