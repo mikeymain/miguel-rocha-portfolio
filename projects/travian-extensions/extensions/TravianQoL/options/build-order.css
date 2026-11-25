@@ -1,0 +1,130 @@
+/* Build order tab. Split from options.css. */
+.bo {
+	display: grid;
+	grid-template-columns: 290px minmax(0, 1fr);
+	gap: 12px;
+	align-items: start;
+}
+.bo > .bo__empty { grid-column: 1 / -1; }
+.bo__bonus { overflow: visible; }
+.bo__age { margin-left: auto; font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); }
+.bo__empty { padding: 16px 14px; font-size: 12.5px; color: var(--text-secondary); }
+
+/* Game resource icon (options/res/*_small.png, about 26x19). */
+.res-ico {
+	display: inline-block;
+	flex: 0 0 18px;
+	width: 18px;
+	height: 14px;
+	background: center / contain no-repeat;
+	vertical-align: middle;
+}
+
+.bo__block { display: flex; flex-direction: column; gap: 6px; padding: 10px 14px; border-top: 1px solid var(--border-subtle); }
+.lc-card__head + .bo__block { border-top: none; }
+.bo__block-head { display: flex; align-items: center; gap: 8px; }
+.bo__block-title {
+	font-family: var(--font-mono);
+	font-size: 9.5px;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--text-tertiary);
+}
+.bo__hint { margin-left: auto; font-size: 10.5px; color: var(--amber); }
+.bo-link {
+	all: unset;
+	margin-left: auto;
+	font-size: 10.5px;
+	color: var(--amber);
+	cursor: pointer;
+}
+.bo-link:hover { text-decoration: underline; }
+.bo-link:disabled { color: var(--text-tertiary); cursor: default; text-decoration: none; }
+.bo-link:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+/* Oasis row: icon picker + owned/planned toggle. */
+.bo-oasis { display: grid; grid-template-columns: minmax(0, 1fr) 70px; gap: 6px; }
+.bo-state {
+	all: unset;
+	display: grid;
+	place-items: center;
+	height: 30px;
+	font-family: var(--font-mono);
+	font-size: 10px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--text-secondary);
+	background: var(--bg-input);
+	border: 1px dashed var(--border-strong);
+	border-radius: var(--radius-sm);
+	cursor: pointer;
+}
+.bo-state.is-owned { color: var(--emerald); border: 1px solid rgba(52, 211, 153, 0.4); background: rgba(52, 211, 153, 0.08); }
+.bo-state:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+.bo-pick { position: relative; min-width: 0; }
+.bo-pick__btn { display: flex; align-items: center; width: 100%; max-width: none; text-align: left; }
+.bo-pick__face { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
+.bo-pick__part { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-mono); font-size: 11.5px; color: var(--text-primary); }
+.bo-pick__none { font-family: var(--font-mono); font-size: 11.5px; color: var(--text-tertiary); }
+.bo-pick__list {
+	position: absolute;
+	z-index: 20;
+	top: calc(100% + 4px);
+	left: 0;
+	right: 0;
+	margin: 0;
+	padding: 4px;
+	list-style: none;
+	background: var(--bg-raised);
+	border: 1px solid var(--border-visible);
+	border-radius: var(--radius-sm);
+	box-shadow: var(--shadow-card-hi);
+}
+.bo-pick__list[hidden] { display: none; }
+.bo-pick__opt { display: flex; align-items: center; height: 28px; padding: 0 8px; border-radius: 4px; cursor: pointer; }
+.bo-pick__opt:hover, .bo-pick__opt:focus { background: var(--amber-dim); outline: none; }
+.bo-pick__opt[aria-selected="true"] { box-shadow: inset 2px 0 0 var(--amber); }
+
+/* Building levels: two columns of name + level select. */
+.bo-blds { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; }
+.bo-bld { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-width: 0; }
+.bo-bld__name { display: inline-flex; align-items: center; gap: 4px; min-width: 0; font-size: 11.5px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bo-bld .select { width: 52px; flex: 0 0 52px; padding-left: 8px; }
+
+.bo-gold { min-height: 40px; padding: 6px 14px; }
+
+.bo__totals {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	border-top: 1px solid var(--border-subtle);
+	background: rgba(0, 0, 0, 0.14);
+	border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+.bo__totals span { display: flex; align-items: center; justify-content: center; gap: 5px; padding: 9px 0; }
+.bo__totals b { font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; color: var(--text-tertiary); }
+.bo__totals .is-set b { color: var(--amber-hi); }
+
+/* Steps table. */
+.bo__table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.bo__table th {
+	padding: 8px 12px 6px;
+	text-align: left;
+	font-family: var(--font-mono);
+	font-size: 9.5px;
+	font-weight: 500;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--text-tertiary);
+}
+.bo__table td { padding: 6px 12px; border-top: 1px solid var(--border-subtle); color: var(--text-secondary); }
+.bo__table .bo__n { width: 24px; font-family: var(--font-mono); color: var(--text-tertiary); }
+.bo__field { display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+.bo__field .bo-pick__part { font-size: 10.5px; color: inherit; }
+.bo__table .bo__lvl, .bo__table .bo__num { font-family: var(--font-mono); font-size: 11.5px; white-space: nowrap; }
+.bo__table .bo__num { text-align: right; }
+.bo__table th:nth-child(n + 4) { text-align: right; }
+.bo__table tr.is-building td:nth-child(2) { color: var(--blue); }
+.bo__table tr.is-oasis td:nth-child(2) { color: var(--emerald); }
+.bo__table tr.is-next td { color: var(--amber-hi); background: var(--amber-dim); }
+.bo__table tr.is-next td:first-child { box-shadow: inset 2px 0 0 var(--amber); }

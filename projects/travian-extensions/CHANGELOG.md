@@ -1,5 +1,11 @@
 # Changelog
 
+## Travian QoL 1.6.8 — 2026-11-25
+
+- Build order plans more than fields: Sawmill, Brickyard, Iron Foundry, Grain Mill and Bakery (+5% per level, with their requirements) and the Hero's Mansion levels needed to take an oasis (10 / 15 / 20). Mark each oasis as owned or planned; planned ones are scheduled when their payback beats the next field.
+- Building levels are read from the village centre and can be changed in the tab; Gold +25% is a switch. Steps show 12 upgrades.
+- The oasis picker and resources use the game's icons in the installed copy.
+
 ## Travian QoL 1.6.7 — 2026-11-25
 
 - Smithy efficiency now includes the smithy building: each unit's break-even adds an even share of the smithy level's cost, split over the units listed on the page (as Friso's "Include Smithy cost").

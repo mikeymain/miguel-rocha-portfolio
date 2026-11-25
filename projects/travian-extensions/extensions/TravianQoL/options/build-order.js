@@ -1,18 +1,18 @@
 // Build order tab of the options page. Loaded after options.js.
 // Field levels come from features/build-order (saved on each village's
-// resources view); bonuses are shared with it, so edits here re-rank the
-// highlighted fields in open Travian tabs.
+// resources view) and building levels from its village centre. The summed
+// bonus is shared with the in-game highlight, so edits here re-rank it.
 (function initBuildOrderTab() {
 	const FIELDS_PREFIX = 'travianQoL.buildFields.';
 	const BONUS_PREFIX = 'travianQoL.buildOrder.';
 	const PICK_KEY = 'travianQoL.buildOrder.pick';
-	// Per-host { villageId: { oases: [type x3], extra: [4] } }. The summed
-	// bonus is also written to BONUS_PREFIX, which the in-game highlight reads.
+	// Per-host { villageId: setup } (see setupFor).
 	const SETUP_PREFIX = 'travianQoL.buildOasis.';
-	const STEPS = 10;
+	const STEPS = 12;
 	const RES_NAMES = ['Lumber', 'Clay', 'Iron', 'Crop'];
-	const MAX_BONUS = 500;
+	const RES_FILES = ['lumber', 'clay', 'iron', 'crop'];
 	const OASIS_SLOTS = 3;
+	const GOLD_PCT = 25;
 	// Travian oasis types: bonus % per [lumber, clay, iron, crop].
 	const OASES = {
 		'': { label: 'None', bonus: [0, 0, 0, 0] },
@@ -30,10 +30,16 @@
 	const select = document.getElementById('bo-village');
 	const planner = window.TravianQoLBuildOrder;
 	if (!root || !select || !planner) return;
+	// Editable buildings: the five boosts (max 5) and the Hero's Mansion (max 20).
+	const EDIT_BUILDINGS = [
+		...Object.entries(planner.BOOSTS).map(([gid, b]) => ({ gid: Number(gid), name: b.name, res: b.res, max: 5 })),
+		{ gid: planner.MANSION.gid, name: planner.MANSION.name, res: null, max: 20 },
+	];
+	const SHORT_NAMES = { 'Iron Foundry': 'Foundry', "Hero's Mansion": 'Mansion' };
 
-	let villages = []; // { value, host, id, name, fields, updatedAt }
+	let villages = []; // { value, host, id, name, fields, buildings, updatedAt }
 	let bonusStore = {}; // host -> { villageId: [4] }
-	let setupStore = {}; // host -> { villageId: { oases, extra } }
+	let setupStore = {}; // host -> { villageId: setup }
 
 	function el(tag, className, text) {
 		const node = document.createElement(tag);
@@ -42,9 +48,9 @@
 		return node;
 	}
 
-	function formatHours(h) {
-		return h < 48 ? `${Math.round(h)}h` : `${Math.round(h / 24)}d`;
-	}
+	const formatHours = (h) => (h < 48 ? `${Math.round(h)}h` : `${Math.round(h / 24)}d`);
+	const shortHost = (host) => host.replace(/\.travian\.[a-z.]+$/i, '');
+	const sumOf = (a) => a.reduce((x, y) => x + y, 0);
 
 	function formatAge(ms) {
 		const min = Math.round((Date.now() - ms) / 60000);
@@ -53,7 +59,14 @@
 		return h < 48 ? `${h}h ago` : `${Math.round(h / 24)}d ago`;
 	}
 
-	const shortHost = (host) => host.replace(/\.travian\.[a-z.]+$/i, '');
+	// Game resource icon (options/res/, kept out of the public repo).
+	function resIcon(r) {
+		const i = el('span', 'res-ico');
+		i.style.backgroundImage = `url(res/${RES_FILES[r]}_small.png)`;
+		i.title = RES_NAMES[r];
+		i.setAttribute('aria-hidden', 'true');
+		return i;
+	}
 
 	async function load() {
 		const all = await chrome.storage.local.get(null);
@@ -66,9 +79,8 @@
 			} else if (key.startsWith(FIELDS_PREFIX)) {
 				const host = key.slice(FIELDS_PREFIX.length);
 				for (const [id, v] of Object.entries(value || {})) {
-					if (Array.isArray(v?.fields) && v.fields.length) {
-						villages.push({ value: `${host}|${id}`, host, id, name: v.name || id, fields: v.fields, updatedAt: v.updatedAt || 0 });
-					}
+					if (!Array.isArray(v?.fields) || !v.fields.length) continue;
+					villages.push({ value: `${host}|${id}`, host, id, name: v.name || id, fields: v.fields, buildings: v.buildings || null, updatedAt: v.updatedAt || 0 });
 				}
 			} else if (key.startsWith(BONUS_PREFIX) && key !== PICK_KEY) {
 				bonusStore[key.slice(BONUS_PREFIX.length)] = value || {};
@@ -93,30 +105,49 @@
 
 	const current = () => villages.find((v) => v.value === select.value);
 
-	const clampPct = (n) => Math.min(MAX_BONUS, Math.max(0, Math.round(Number(n) || 0)));
-
-	// Oases + building bonus for a village. A bonus saved before oasis pickers
-	// existed becomes the building part, so nothing entered is lost.
+	// setup = { oases: [{ type, owned }] x3, gold, buildings: {gid: level} | null }
+	// buildings null = use the levels read in game. Older saves stored oases
+	// as plain type strings (all owned).
 	function setupFor(v) {
-		const s = setupStore[v.host]?.[v.id];
-		if (s && Array.isArray(s.oases) && Array.isArray(s.extra)) {
-			return {
-				oases: Array.from({ length: OASIS_SLOTS }, (_, i) => (s.oases[i] in OASES ? s.oases[i] : '')),
-				extra: [0, 1, 2, 3].map((i) => clampPct(s.extra[i])),
-			};
-		}
-		const old = bonusStore[v.host]?.[v.id];
-		const extra = Array.isArray(old) && old.length === 4 ? old.map(clampPct) : [0, 0, 0, 0];
-		return { oases: Array(OASIS_SLOTS).fill(''), extra };
+		const s = setupStore[v.host]?.[v.id] || {};
+		const oases = Array.from({ length: OASIS_SLOTS }, (_, i) => {
+			const o = s.oases?.[i];
+			const type = typeof o === 'string' ? o : o?.type;
+			return { type: type in OASES ? type : '', owned: typeof o === 'string' ? true : o?.owned !== false };
+		});
+		return { oases, gold: !!s.gold, buildings: s.buildings && typeof s.buildings === 'object' ? s.buildings : null };
 	}
 
-	function totalBonus(setup) {
-		return [0, 1, 2, 3].map((r) => setup.extra[r] + setup.oases.reduce((sum, t) => sum + OASES[t].bonus[r], 0));
+	function buildingLevels(v, setup) {
+		const game = v.buildings || {};
+		const levels = { ...game };
+		for (const b of EDIT_BUILDINGS) levels[b.gid] = Number((setup.buildings || game)[b.gid]) || 0;
+		return levels;
+	}
+
+	// Bonus % that is not from boost buildings: owned oases and gold.
+	function ownBonus(setup) {
+		return [0, 1, 2, 3].map((r) => (setup.gold ? GOLD_PCT : 0)
+			+ sumOf(setup.oases.filter((o) => o.owned).map((o) => OASES[o.type].bonus[r])));
+	}
+
+	function totalBonus(v, setup) {
+		const levels = buildingLevels(v, setup);
+		return ownBonus(setup).map((b, r) => b + planner.boostPct(levels, r));
+	}
+
+	function planFor(v, setup) {
+		const planned = setup.oases.filter((o) => !o.owned && o.type).map((o) => OASES[o.type].bonus);
+		return planner.plan(v.fields, ownBonus(setup), STEPS, {
+			buildings: buildingLevels(v, setup),
+			plannedOases: planned,
+			ownedOases: setup.oases.filter((o) => o.owned && o.type).length,
+		});
 	}
 
 	function saveSetup(v, setup) {
 		setupStore[v.host] = { ...(setupStore[v.host] || {}), [v.id]: setup };
-		bonusStore[v.host] = { ...(bonusStore[v.host] || {}), [v.id]: totalBonus(setup) };
+		bonusStore[v.host] = { ...(bonusStore[v.host] || {}), [v.id]: totalBonus(v, setup) };
 		chrome.storage.local.set({
 			[SETUP_PREFIX + v.host]: setupStore[v.host],
 			[BONUS_PREFIX + v.host]: bonusStore[v.host],
@@ -130,107 +161,204 @@
 		setTimeout(() => status?.classList.remove('is-saving'), 600);
 	}
 
-	function oasisSelect(value, index, onPick) {
+	// --- Oasis picker (custom listbox: <select> options cannot show icons) ---
+
+	function oasisFace(type) {
+		const face = el('span', 'bo-pick__face');
+		const parts = OASES[type].bonus.map((pct, r) => [pct, r]).filter(([pct]) => pct > 0);
+		if (!parts.length) face.appendChild(el('span', 'bo-pick__none', 'None'));
+		for (const [pct, r] of parts) {
+			const part = el('span', 'bo-pick__part');
+			part.append(resIcon(r), el('span', null, `${pct}%`));
+			face.appendChild(part);
+		}
+		return face;
+	}
+
+	let closeOpenPicker = null;
+	document.addEventListener('click', (e) => {
+		if (closeOpenPicker && !e.target.closest('.bo-pick')) closeOpenPicker(false);
+	});
+
+	function oasisPicker(value, index, onPick) {
+		const wrap = el('div', 'bo-pick');
+		const btn = el('button', 'select bo-pick__btn');
+		btn.type = 'button';
+		btn.setAttribute('aria-haspopup', 'listbox');
+		btn.setAttribute('aria-expanded', 'false');
+		btn.setAttribute('aria-label', `Oasis ${index + 1}: ${OASES[value].label}`);
+		btn.appendChild(oasisFace(value));
+		const list = el('ul', 'bo-pick__list');
+		list.setAttribute('role', 'listbox');
+		list.hidden = true;
+		const options = Object.keys(OASES).map((type) => {
+			const li = el('li', 'bo-pick__opt');
+			li.setAttribute('role', 'option');
+			li.setAttribute('aria-selected', String(type === value));
+			li.setAttribute('aria-label', OASES[type].label);
+			li.tabIndex = -1;
+			li.dataset.type = type;
+			li.appendChild(oasisFace(type));
+			list.appendChild(li);
+			return li;
+		});
+		function close(refocus) {
+			list.hidden = true;
+			btn.setAttribute('aria-expanded', 'false');
+			if (closeOpenPicker === close) closeOpenPicker = null;
+			if (refocus) btn.focus();
+		}
+		function open() {
+			if (closeOpenPicker) closeOpenPicker(false);
+			list.hidden = false;
+			btn.setAttribute('aria-expanded', 'true');
+			closeOpenPicker = close;
+			(options.find((o) => o.dataset.type === value) || options[0]).focus();
+		}
+		function choose(type) {
+			close(true);
+			if (type !== value) onPick(type);
+		}
+		btn.addEventListener('click', () => (list.hidden ? open() : close(false)));
+		btn.addEventListener('keydown', (e) => {
+			if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); open(); }
+		});
+		list.addEventListener('click', (e) => {
+			const li = e.target.closest('li[data-type]');
+			if (li) choose(li.dataset.type);
+		});
+		list.addEventListener('keydown', (e) => {
+			const i = options.indexOf(document.activeElement);
+			if (e.key === 'ArrowDown') { e.preventDefault(); options[Math.min(i + 1, options.length - 1)].focus(); }
+			else if (e.key === 'ArrowUp') { e.preventDefault(); options[Math.max(i - 1, 0)].focus(); }
+			else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (i >= 0) choose(options[i].dataset.type); }
+			else if (e.key === 'Escape' || e.key === 'Tab') close(e.key === 'Escape');
+		});
+		wrap.append(btn, list);
+		return wrap;
+	}
+
+	// --- Bonus card ---------------------------------------------------------
+
+	function oasisRow(o, i, update) {
+		const row = el('div', 'bo-oasis');
+		row.appendChild(oasisPicker(o.type, i, (type) => update((s) => ({ ...s, oases: s.oases.map((x, j) => (j === i ? { ...x, type } : x)) }))));
+		if (!o.type) return row;
+		const state = el('button', `bo-state${o.owned ? ' is-owned' : ''}`, o.owned ? 'Owned' : 'Planned');
+		state.type = 'button';
+		state.setAttribute('aria-pressed', String(o.owned));
+		state.addEventListener('click', () => update((s) => ({ ...s, oases: s.oases.map((x, j) => (j === i ? { ...x, owned: !x.owned } : x)) })));
+		row.appendChild(state);
+		return row;
+	}
+
+	function buildingCell(b, level, update) {
+		const cell = el('label', 'bo-bld');
+		const name = el('span', 'bo-bld__name');
+		name.title = b.name;
+		if (b.res != null) name.appendChild(resIcon(b.res));
+		name.appendChild(el('span', null, SHORT_NAMES[b.name] || b.name));
 		const sel = el('select', 'select');
-		sel.setAttribute('aria-label', `Oasis ${index + 1}`);
-		for (const [key, o] of Object.entries(OASES)) {
-			const opt = el('option', null, o.label);
-			opt.value = key;
+		sel.setAttribute('aria-label', `${b.name} level`);
+		for (let l = 0; l <= b.max; l++) {
+			const opt = el('option', null, String(l));
+			opt.value = String(l);
 			sel.appendChild(opt);
 		}
-		sel.value = value;
-		sel.addEventListener('change', () => onPick(sel.value));
-		return sel;
+		sel.value = String(level);
+		sel.addEventListener('change', () => update((s, v) => ({ ...s, buildings: { ...buildingLevels(v, s), [b.gid]: Number(sel.value) } })));
+		cell.append(name, sel);
+		return cell;
 	}
 
-	function pctInput(value, label, onSet) {
-		const input = document.createElement('input');
-		input.type = 'number';
-		input.min = '0';
-		input.max = String(MAX_BONUS);
-		input.step = '5';
-		input.className = 'lc-num';
-		input.value = String(value);
-		input.setAttribute('aria-label', label);
-		input.addEventListener('change', () => {
-			input.value = String(clampPct(input.value));
-			onSet(Number(input.value));
-		});
-		return input;
-	}
-
-	// Friso-style: three oasis pickers, plus editable building bonus %.
-	function buildBonusCard(v, onChange) {
+	function buildBonusCard(v, setup, update) {
 		const card = el('section', 'card lc-card bo__bonus');
 		const head = el('div', 'lc-card__head');
 		head.appendChild(el('span', 'lc-card__title', 'Production bonus'));
 		card.appendChild(head);
-		let setup = setupFor(v);
-		const totals = el('div', 'bo__totals');
-
-		function update(next) {
-			setup = next;
-			saveSetup(v, setup);
-			paintTotals();
-			onChange(totalBonus(setup));
-		}
-		function paintTotals() {
-			totals.innerHTML = '';
-			totalBonus(setup).forEach((pct, r) => {
-				const cell = el('span', pct > 0 ? 'is-set' : null);
-				cell.append(el('b', null, `${pct}%`), RES_NAMES[r]);
-				totals.appendChild(cell);
-			});
-		}
 
 		const oasisBox = el('div', 'bo__block');
 		oasisBox.appendChild(el('span', 'bo__block-title', 'Oases'));
-		for (let i = 0; i < OASIS_SLOTS; i++) {
-			oasisBox.appendChild(oasisSelect(setup.oases[i], i, (type) => {
-				update({ ...setup, oases: setup.oases.map((t, j) => (j === i ? type : t)) });
-			}));
+		setup.oases.forEach((o, i) => oasisBox.appendChild(oasisRow(o, i, update)));
+
+		const bldBox = el('div', 'bo__block');
+		const bldTitle = el('div', 'bo__block-head');
+		bldTitle.appendChild(el('span', 'bo__block-title', 'Buildings'));
+		if (setup.buildings) {
+			const reset = el('button', 'bo-link', 'Use game levels');
+			reset.type = 'button';
+			reset.disabled = !v.buildings;
+			reset.addEventListener('click', () => update((s) => ({ ...s, buildings: null })));
+			bldTitle.appendChild(reset);
+		} else if (!v.buildings) {
+			bldTitle.appendChild(el('span', 'bo__hint', 'Open the village centre to read levels'));
 		}
+		bldBox.appendChild(bldTitle);
+		const grid = el('div', 'bo-blds');
+		const levels = buildingLevels(v, setup);
+		for (const b of EDIT_BUILDINGS) grid.appendChild(buildingCell(b, levels[b.gid], update));
+		bldBox.appendChild(grid);
 
-		const extraBox = el('div', 'bo__block');
-		extraBox.appendChild(el('span', 'bo__block-title', 'Buildings %'));
-		const grid = el('div', 'bo__extra');
-		RES_NAMES.forEach((name, r) => {
-			const cell = el('label', 'bo__extra-cell');
-			cell.append(el('span', null, name), pctInput(setup.extra[r], `${name} building bonus %`, (value) => {
-				update({ ...setup, extra: setup.extra.map((x, j) => (j === r ? value : x)) });
-			}));
-			grid.appendChild(cell);
+		const gold = el('label', 'lc-line bo-gold');
+		gold.appendChild(el('span', 'lc-line__label', 'Gold +25%'));
+		const goldChk = document.createElement('input');
+		goldChk.type = 'checkbox';
+		goldChk.className = 'switch';
+		goldChk.checked = setup.gold;
+		goldChk.addEventListener('change', () => update((s) => ({ ...s, gold: goldChk.checked })));
+		gold.appendChild(goldChk);
+
+		const totals = el('div', 'bo__totals');
+		totalBonus(v, setup).forEach((pct, r) => {
+			const cell = el('span', pct > 0 ? 'is-set' : null);
+			cell.append(resIcon(r), el('b', null, `${pct}%`));
+			totals.appendChild(cell);
 		});
-		extraBox.appendChild(grid);
 
-		paintTotals();
-		card.append(oasisBox, extraBox, totals);
+		card.append(oasisBox, bldBox, gold, totals);
 		return card;
 	}
 
-	function buildStepsCard(v, bonuses) {
+	// --- Steps card ---------------------------------------------------------
+
+	function stepCell(s) {
+		const td = el('td', 'bo__field');
+		if (s.kind === 'oasis') {
+			td.append(el('span', null, s.from < s.to ? `${s.name} + oasis` : 'Take oasis'), oasisFaceFor(s.bonus));
+		} else {
+			td.append(resIcon(s.res), el('span', null, s.name));
+		}
+		return td;
+	}
+
+	function oasisFaceFor(bonus) {
+		const type = Object.keys(OASES).find((k) => OASES[k].bonus.every((p, r) => p === bonus[r])) || '';
+		return oasisFace(type);
+	}
+
+	function buildStepsCard(v, setup) {
 		const card = el('section', 'card lc-card bo__steps');
 		const head = el('div', 'lc-card__head');
 		head.appendChild(el('span', 'lc-card__title', 'Next upgrades'));
 		head.appendChild(el('span', 'bo__age', `Fields read ${formatAge(v.updatedAt)}`));
 		card.appendChild(head);
-		const steps = planner.plan(v.fields, bonuses, STEPS);
+		const steps = planFor(v, setup);
 		if (!steps.length) {
-			card.appendChild(el('div', 'bo__empty', 'All resource fields are at the maximum level.'));
+			card.appendChild(el('div', 'bo__empty', 'Nothing left to upgrade.'));
 			return card;
 		}
 		const table = el('table', 'bo__table');
 		const thead = el('thead');
 		const hr = el('tr');
-		['#', 'Field', 'Level', 'Cost', 'Payback (x1)'].forEach((h) => hr.appendChild(el('th', null, h)));
+		['#', 'Upgrade', 'Level', 'Cost', 'Payback (x1)'].forEach((h) => hr.appendChild(el('th', null, h)));
 		thead.appendChild(hr);
 		const tbody = el('tbody');
 		steps.forEach((s, i) => {
-			const tr = el('tr', i === 0 ? 'is-next' : null);
+			const tr = el('tr', [i === 0 ? 'is-next' : '', s.kind !== 'field' ? `is-${s.kind}` : ''].join(' ').trim() || null);
 			tr.append(
 				el('td', 'bo__n', String(i + 1)),
-				el('td', null, s.name),
-				el('td', 'bo__lvl', `${s.from} → ${s.to}`),
+				stepCell(s),
+				el('td', 'bo__lvl', s.from < s.to ? `${s.from} → ${s.to}` : '—'),
 				el('td', 'bo__num', s.cost.toLocaleString()),
 				el('td', 'bo__num', formatHours(s.payback)),
 			);
@@ -242,19 +370,19 @@
 	}
 
 	function render() {
+		if (closeOpenPicker) closeOpenPicker(false);
 		root.innerHTML = '';
 		const v = current();
 		if (!v) {
 			root.appendChild(el('div', 'bo__empty card', 'Open a village\'s resources view in Travian to load its fields.'));
 			return;
 		}
-		let steps = buildStepsCard(v, totalBonus(setupFor(v)));
-		const bonus = buildBonusCard(v, (next) => {
-			const fresh = buildStepsCard(v, next);
-			steps.replaceWith(fresh);
-			steps = fresh;
-		});
-		root.append(bonus, steps);
+		const setup = setupFor(v);
+		const update = (change) => {
+			saveSetup(v, change(setupFor(v), v));
+			render();
+		};
+		root.append(buildBonusCard(v, setup, update), buildStepsCard(v, setup));
 	}
 
 	select.addEventListener('change', () => {
@@ -262,7 +390,7 @@
 		render();
 	});
 
-	// Field snapshots arrive while the popup is open: refresh in place.
+	// Snapshots arrive while the popup is open: refresh in place.
 	chrome.storage.onChanged.addListener((changes, area) => {
 		if (area !== 'local') return;
 		if (!Object.keys(changes).some((k) => k.startsWith(FIELDS_PREFIX))) return;

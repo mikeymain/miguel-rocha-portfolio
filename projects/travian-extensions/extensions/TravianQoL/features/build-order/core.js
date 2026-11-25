@@ -1,13 +1,16 @@
 // Build-order planner core: pure functions, no DOM.
-// Greedy payback ranking for resource fields. Each step picks the field
-// upgrade with the lowest cost / net hourly gain, applies it, and repeats.
+// Greedy payback ranking. Each step picks the upgrade with the lowest
+// cost / net hourly gain, applies it, and repeats.
 //
-//   gain  = production delta * (1 + bonus%) - crop upkeep of the new pop
-//   cost  = wood + clay + iron + crop of the next level
+//   field     gain = production delta * (1 + bonus%) - crop upkeep of new pop
+//   building  gain = +5% of the base production of its resource - upkeep
+//   oasis     gain = oasis % of the base production it boosts, after building
+//             the Hero's Mansion up to 10 / 15 / 20 for the 1st / 2nd / 3rd
+//   cost      = wood + clay + iron + crop of the levels needed
 //
 // Values are in base (speed 1) units; server speed scales production and
 // upkeep alike, so the ranking does not depend on it.
-// Field data: kirilloid T4 (production, costs, upkeep).
+// Data: kirilloid T4 (production, costs, upkeep).
 (function (root) {
 	if (root.TravianQoLBuildOrder) return;
 	const PRODUCTION = [2, 5, 9, 15, 22, 33, 50, 70, 100, 145, 200, 280, 375, 495, 635, 800, 1000, 1300, 1600, 2000, 2450];
@@ -19,23 +22,45 @@
 		3: { name: 'Iron Mine', res: 2, cost: [100, 80, 30, 60], cu: 3 },
 		4: { name: 'Cropland', res: 3, cost: [70, 90, 70, 20], cu: 0 },
 	};
+	// Resource boost buildings: +5% per level, max 5. `field`: gid + level of
+	// a resource field needed first; `needs`: other buildings needed first.
+	const BOOSTS = {
+		5: { name: 'Sawmill', res: 0, cost: [520, 380, 290, 90], k: 1.8, cu: 4, field: [1, 10], needs: { 15: 5 } },
+		6: { name: 'Brickyard', res: 1, cost: [440, 480, 320, 50], k: 1.8, cu: 3, field: [2, 10], needs: { 15: 5 } },
+		7: { name: 'Iron Foundry', res: 2, cost: [200, 450, 510, 120], k: 1.8, cu: 6, field: [3, 10], needs: { 15: 5 } },
+		8: { name: 'Grain Mill', res: 3, cost: [500, 440, 380, 1240], k: 1.8, cu: 3, field: [4, 5], needs: {} },
+		9: { name: 'Bakery', res: 3, cost: [1200, 1480, 870, 1600], k: 1.8, cu: 4, field: [4, 10], needs: { 8: 5, 15: 5 } },
+	};
+	const BOOST_MAX = 5;
+	const BOOST_PCT = 5;
+	const MANSION = { gid: 37, name: "Hero's Mansion", cost: [700, 670, 700, 240], k: 1.33, cu: 2 };
+	const MANSION_FOR_OASIS = [10, 15, 20];
 	const NON_CAPITAL_MAX = 10;
 	const CAPITAL_MAX = PRODUCTION.length - 1;
 
 	const roundTo5 = (v) => Math.round(v / 5) * 5;
+	const sum = (a) => a.reduce((x, y) => x + y, 0);
 
 	/** Resources needed to build `level` of field `gid`. */
 	function costAt(gid, level) {
 		return FIELDS[gid].cost.map((c) => roundTo5(c * COST_GROWTH ** (level - 1)));
 	}
 
-	/** Population of field `gid` at `level` (same formula as building pages). */
-	function popAt(gid, level) {
-		const cu = FIELDS[gid].cu;
+	function buildingCost(b, level) {
+		return sum(b.cost.map((c) => roundTo5(c * b.k ** (level - 1))));
+	}
+
+	/** Population at `level` for upkeep coefficient `cu` (building page formula). */
+	function popFor(cu, level) {
 		if (level <= 0) return 0;
 		let total = cu;
 		for (let l = 2; l <= level; l++) total += Math.round((5 * cu + l - 1) / 10);
 		return total;
+	}
+
+	/** Population of field `gid` at `level`. */
+	function popAt(gid, level) {
+		return popFor(FIELDS[gid].cu, level);
 	}
 
 	/** Net hourly gain (base units) of taking `gid` from `level` to level + 1. */
@@ -50,35 +75,110 @@
 		return fields.some((f) => f.level > NON_CAPITAL_MAX) ? CAPITAL_MAX : NON_CAPITAL_MAX;
 	}
 
+	/** Base production per resource from field levels. */
+	function baseProduction(fields, levels) {
+		const out = [0, 0, 0, 0];
+		for (const f of fields) if (FIELDS[f.gid]) out[FIELDS[f.gid].res] += PRODUCTION[levels.get(f.slot)];
+		return out;
+	}
+
+	function maxFieldLevel(fields, levels, gid) {
+		return Math.max(0, ...fields.filter((f) => f.gid === gid).map((f) => levels.get(f.slot)));
+	}
+
+	function bestField(fields, levels, max, bonus) {
+		let best = null;
+		for (const f of fields) {
+			const level = levels.get(f.slot);
+			if (level >= max || !FIELDS[f.gid]) continue;
+			const gain = gainOf(f.gid, level, bonus);
+			if (gain <= 0) continue;
+			const cost = sum(costAt(f.gid, level + 1));
+			const payback = cost / gain;
+			if (!best || payback < best.payback || (payback === best.payback && f.slot < best.slot)) {
+				best = { kind: 'field', slot: f.slot, gid: f.gid, res: FIELDS[f.gid].res, name: FIELDS[f.gid].name, from: level, to: level + 1, cost, payback };
+			}
+		}
+		return best;
+	}
+
+	function bestBoost(fields, levels, bld) {
+		const base = baseProduction(fields, levels);
+		let best = null;
+		for (const [gid, b] of Object.entries(BOOSTS)) {
+			const level = bld[gid] || 0;
+			if (level >= BOOST_MAX) continue;
+			if (maxFieldLevel(fields, levels, b.field[0]) < b.field[1]) continue;
+			if (Object.entries(b.needs).some(([g, l]) => (bld[g] ?? l) < l)) continue;
+			const gain = (base[b.res] * BOOST_PCT) / 100 - (popFor(b.cu, level + 1) - popFor(b.cu, level));
+			if (gain <= 0) continue;
+			const cost = buildingCost(b, level + 1);
+			const step = { kind: 'building', gid: Number(gid), res: b.res, name: b.name, from: level, to: level + 1, cost, payback: cost / gain };
+			if (!best || step.payback < best.payback) best = step;
+		}
+		return best;
+	}
+
+	// Next planned oasis: build the Hero's Mansion to the level its slot needs.
+	function bestOasis(fields, levels, bld, planned, owned) {
+		if (!planned.length || owned >= MANSION_FOR_OASIS.length) return null;
+		const need = MANSION_FOR_OASIS[owned];
+		const from = bld[MANSION.gid] || 0;
+		const to = Math.max(need, from);
+		const base = baseProduction(fields, levels);
+		let cost = 0;
+		for (let l = from + 1; l <= to; l++) cost += buildingCost(MANSION, l);
+		const upkeep = popFor(MANSION.cu, to) - popFor(MANSION.cu, from);
+		let best = null;
+		planned.forEach((bonus, index) => {
+			const gain = sum(bonus.map((pct, r) => (base[r] * pct) / 100)) - upkeep;
+			if (gain <= 0) return;
+			const step = { kind: 'oasis', index, bonus, name: MANSION.name, from, to, cost, payback: cost / gain };
+			if (!best || step.payback < best.payback) best = step;
+		});
+		return best;
+	}
+
+	function boostPct(bld, r) {
+		return BOOST_PCT * sum(Object.entries(BOOSTS).filter(([, b]) => b.res === r).map(([g]) => bld[g] || 0));
+	}
+
 	/**
 	 * Next `steps` upgrades in order.
 	 * @param {{slot:number,gid:number,level:number}[]} fields effective levels
-	 * @param {number[]} bonuses production bonus % [wood, clay, iron, crop]
+	 * @param {number[]} bonuses production bonus % [wood, clay, iron, crop].
+	 *   With `extra` this excludes the boost buildings (owned oases, gold).
 	 * @param {number} steps how many upgrades to plan
+	 * @param {{buildings?:Object<number,number>, plannedOases?:number[][], ownedOases?:number}} [extra]
+	 *   building levels by gid (5-9 boosts, 15 main building, 37 Hero's
+	 *   Mansion) and oases still to take. Without it only fields are planned.
 	 */
-	function plan(fields, bonuses, steps) {
+	function plan(fields, bonuses, steps, extra) {
 		const levels = new Map(fields.map((f) => [f.slot, f.level]));
 		const max = maxLevelFor(fields);
+		const bld = { ...(extra?.buildings || {}) };
+		const planned = [...(extra?.plannedOases || [])];
+		const own = [...bonuses];
+		let owned = extra?.ownedOases || 0;
 		const out = [];
 		for (let i = 0; i < steps; i++) {
-			let best = null;
-			for (const f of fields) {
-				const level = levels.get(f.slot);
-				if (level >= max || !FIELDS[f.gid]) continue;
-				const gain = gainOf(f.gid, level, bonuses);
-				if (gain <= 0) continue;
-				const cost = costAt(f.gid, level + 1).reduce((a, b) => a + b, 0);
-				const payback = cost / gain;
-				if (!best || payback < best.payback || (payback === best.payback && f.slot < best.slot)) {
-					best = { slot: f.slot, gid: f.gid, name: FIELDS[f.gid].name, from: level, to: level + 1, cost, payback };
-				}
-			}
+			const bonus = own.map((b, r) => b + (extra ? boostPct(bld, r) : 0));
+			const options = [bestField(fields, levels, max, bonus)];
+			if (extra) options.push(bestBoost(fields, levels, bld), bestOasis(fields, levels, bld, planned, owned));
+			const best = options.filter(Boolean).sort((a, b) => a.payback - b.payback)[0];
 			if (!best) break;
-			levels.set(best.slot, best.to);
+			if (best.kind === 'field') levels.set(best.slot, best.to);
+			else if (best.kind === 'building') bld[best.gid] = best.to;
+			else {
+				bld[MANSION.gid] = best.to;
+				best.bonus.forEach((pct, r) => { own[r] += pct; });
+				planned.splice(best.index, 1);
+				owned += 1;
+			}
 			out.push(best);
 		}
 		return out;
 	}
 
-	root.TravianQoLBuildOrder = { plan, costAt, popAt, gainOf, maxLevelFor, FIELDS };
+	root.TravianQoLBuildOrder = { plan, costAt, popAt, gainOf, maxLevelFor, boostPct, FIELDS, BOOSTS, MANSION, MANSION_FOR_OASIS };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -46,6 +46,9 @@
 	let lastSnapshot = '';
 
 	const isResourcesPage = () => /^\/(dorf1\.php|resources)$/.test(location.pathname);
+	const isVillagePage = () => /^\/(dorf2\.php|village)$/.test(location.pathname);
+	// Buildings the planner uses: boosts 5-9, main building 15, Hero's Mansion 37.
+	const TRACKED_GIDS = [5, 6, 7, 8, 9, 15, 37];
 	const bonusKey = () => BONUS_PREFIX + location.host;
 	const fieldsKey = () => FIELDS_PREFIX + location.host;
 
@@ -83,25 +86,46 @@
 		document.head.appendChild(style);
 	}
 
-	// Field levels for the settings tab; written only when they change.
-	function saveSnapshot(fields) {
+	// Village snapshot for the settings tab, merged so the resources view
+	// (fields) and the village centre (buildings) each keep the other's part.
+	// Written only when it changes.
+	function saveSnapshot(part) {
 		const id = villageId();
-		const entry = { name: villageName(), fields: fields.map(({ slot, gid, level }) => ({ slot, gid, level })) };
+		const entry = { name: villageName(), ...part };
 		const sig = id + JSON.stringify(entry);
 		if (sig === lastSnapshot) return;
 		lastSnapshot = sig;
 		const key = fieldsKey();
 		chrome.storage.local.get(key, (res) => {
-			const all = { ...(res[key] || {}), [id]: { ...entry, updatedAt: Date.now() } };
-			chrome.storage.local.set({ [key]: all });
+			const all = res[key] || {};
+			const stamp = part.fields ? { updatedAt: Date.now() } : { buildingsAt: Date.now() };
+			chrome.storage.local.set({ [key]: { ...all, [id]: { ...(all[id] || {}), ...entry, ...stamp } } });
 		});
+	}
+
+	/** Levels of the tracked buildings, queued upgrades counted; 0 if absent. */
+	function readBuildings() {
+		const out = Object.fromEntries(TRACKED_GIDS.map((g) => [g, 0]));
+		for (const slot of document.querySelectorAll('#villageContent .buildingSlot[data-gid]')) {
+			const gid = Number(slot.dataset.gid);
+			if (!(gid in out)) continue;
+			const a = slot.querySelector('a[data-level]');
+			const level = Number(a?.dataset.level) + (a?.classList.contains('underConstruction') ? 1 : 0);
+			if (Number.isFinite(level)) out[gid] = Math.max(out[gid], level);
+		}
+		return out;
+	}
+
+	function scanVillage() {
+		if (!document.querySelector('#villageContent .buildingSlot[data-gid]')) return;
+		saveSnapshot({ buildings: readBuildings() });
 	}
 
 	function render() {
 		if (!isResourcesPage()) return;
 		const fields = readFields();
 		if (!fields.length) return;
-		saveSnapshot(fields);
+		saveSnapshot({ fields: fields.map(({ slot, gid, level }) => ({ slot, gid, level })) });
 		const steps = window.TravianQoLBuildOrder.plan(fields, bonuses, STEPS);
 		injectStyle();
 		const firstStep = new Map();
@@ -141,14 +165,25 @@
 		chrome.storage.onChanged?.addListener(storageListener);
 	}
 
+	function startVillage() {
+		scanVillage();
+		const container = document.getElementById('villageContent') || document.body;
+		observer = new MutationObserver(() => {
+			clearTimeout(debounceTimer);
+			debounceTimer = setTimeout(scanVillage, DEBOUNCE_MS);
+		});
+		observer.observe(container, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'data-level'] });
+	}
+
 	window.TravianQoL.register({
 		id: 'build-order',
 		label: 'Build order',
-		description: 'Highlights the resource field with the best payback and numbers the next upgrades. Steps and production bonuses are in the Build order tab.',
+		description: 'Highlights the resource field with the best payback and numbers the next upgrades. Steps, oases and boost buildings are in the Build order tab.',
 		init() {
-			if (!isResourcesPage()) return;
-			if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
-			else start();
+			const run = isResourcesPage() ? start : isVillagePage() ? startVillage : null;
+			if (!run) return;
+			if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run, { once: true });
+			else run();
 		},
 		destroy() {
 			observer?.disconnect();
