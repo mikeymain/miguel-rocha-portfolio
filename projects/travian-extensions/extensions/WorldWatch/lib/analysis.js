@@ -129,6 +129,19 @@
 		return { x, y };
 	}
 
+	// uid of the account owning most of the given {x,y} villages, or null.
+	function ownerUid(snap, villages) {
+		const counts = new Map();
+		for (const v of villages) {
+			for (let i = 0; i < snap.uid.length; i++) {
+				if (snap.x[i] === v.x && snap.y[i] === v.y) counts.set(snap.uid[i], (counts.get(snap.uid[i]) || 0) + 1);
+			}
+		}
+		let best = null;
+		for (const [uid, n] of counts) if (best == null || n > counts.get(best)) best = uid;
+		return best;
+	}
+
 	function nearestDistance(snap, acc, point) {
 		let best = Infinity;
 		for (const i of acc.idx) best = Math.min(best, distance(snap.x[i], snap.y[i], point.x, point.y));
@@ -156,9 +169,10 @@
 		const rows = [];
 		for (const { acc, old, gain } of all) {
 			let dist = null;
+			const pinned = acc.uid === opts.pinUid;
 			if (opts.point) {
 				dist = nearestDistance(cur.snap, acc, opts.point);
-				if (Number.isFinite(opts.radius) && dist > opts.radius) continue;
+				if (!pinned && Number.isFinite(opts.radius) && dist > opts.radius) continue;
 			}
 			rows.push({
 				uid: acc.uid,
@@ -173,9 +187,10 @@
 				spawn: `${acc.sx}|${acc.sy}`,
 				distance: dist == null ? null : round1(dist),
 				flag: p99 != null && gain > p99 && gain > 0,
+				own: pinned,
 			});
 		}
-		rows.sort((a, b) => b.gain - a.gain || a.uid - b.uid);
+		rows.sort((a, b) => Number(b.own) - Number(a.own) || b.gain - a.gain || a.uid - b.uid);
 		return { hours: round1(hours), p99, compared: all.length, rows: opts.limit ? rows.slice(0, opts.limit) : rows };
 	}
 
@@ -253,6 +268,7 @@
 		mapLayers,
 		topAccounts,
 		parsePoint,
+		ownerUid,
 		goldSuspects,
 		topAlliances,
 		growth,

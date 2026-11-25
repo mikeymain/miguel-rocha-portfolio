@@ -163,6 +163,10 @@ table.grid {
 .grid tr.flag td {
 	background: var(--warn-bg);
 }
+.grid tr.own td {
+	background: rgba(30, 136, 229, 0.18);
+	font-weight: 600;
+}
 .sr-only {
 	position: absolute;
 	width: 1px;

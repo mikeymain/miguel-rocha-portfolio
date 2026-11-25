@@ -191,13 +191,16 @@
 		const point = A.parsePoint($("point").value);
 		if ($("point").value.trim() && !point) return { rows: [], summary: "Point must be x|y within ±200." };
 		const radius = Number($("radius").value);
+		const olderSnap = await loadSnap(older.id);
+		const newerSnap = await loadSnap(newer.id);
+		const pinUid = state.own?.villages?.length ? A.ownerUid(newerSnap, state.own.villages) : null;
 		const result = A.goldSuspects(
-			{ t: older.t, snap: await loadSnap(older.id) },
-			{ t: newer.t, snap: await loadSnap(newer.id) },
-			{ point, radius: point && radius > 0 ? radius : undefined },
+			{ t: older.t, snap: olderSnap },
+			{ t: newer.t, snap: newerSnap },
+			{ point, radius: point && radius > 0 ? radius : undefined, pinUid },
 		);
 		let rows = result.rows.map((r) => ({ ...r, flagText: r.flag ? "▲" : "" }));
-		if ($("flagged").checked) rows = rows.filter((r) => r.flag);
+		if ($("flagged").checked) rows = rows.filter((r) => r.flag || r.own);
 		return { rows, summary: `${result.hours} h · compared ${result.compared} · p99 gain ${result.p99 ?? "–"}` };
 	}
 
@@ -265,7 +268,8 @@
 		const frag = document.createDocumentFragment();
 		for (const r of rows.slice(0, 1000)) {
 			const tr = document.createElement("tr");
-			if (r.flag) tr.className = "flag";
+			if (r.own) tr.className = "own";
+			else if (r.flag) tr.className = "flag";
 			for (const c of columns) {
 				const td = document.createElement("td");
 				if (c.key === "point" && r.href) {
