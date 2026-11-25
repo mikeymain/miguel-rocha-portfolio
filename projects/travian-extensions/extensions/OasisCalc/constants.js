@@ -499,13 +499,23 @@ const RISK_STEEPNESS = 2.5;
 // Safety margin (HP %) kept in reserve so estimation error can't kill the hero
 const HERO_HP_BUFFER = 7;
 
+// Minutes per reserve animal when sizing a raid. A planning allowance for animals
+// that appear between the scan and the arrival, not a measured spawn rate.
+const SPAWN_ALLOWANCE_MINUTES = 5;
+// Longest scan age plus travel time that still adds reserve animals.
+const RESERVE_WINDOW_CAP_MINUTES = 60;
+
+// hp/loss: scoring penalties. Troop sizing:
+//   reserveEvery: minutes per reserve animal (Infinity = no reserve)
+//   drift: extra animals for sends that land a little late
+//   lossCap: most of each unit type that may die (null = only the clear counts)
 function getRiskThresholds(level) {
 	const levels = {
-		1: { hp: 15, loss: 0.095, label: "Safe" },
-		2: { hp: 25, loss: 0.18, label: "Cautious" },
-		3: { hp: 35, loss: 0.25, label: "Balanced" },
-		4: { hp: 50, loss: 0.35, label: "Aggressive" },
-		5: { hp: 70, loss: 0.6, label: "Reckless" },
+		1: { hp: 15, loss: 0.095, label: "Safe", reserveEvery: SPAWN_ALLOWANCE_MINUTES, drift: 1, lossCap: 0.02 },
+		2: { hp: 25, loss: 0.18, label: "Cautious", reserveEvery: SPAWN_ALLOWANCE_MINUTES, drift: 0, lossCap: 0.05 },
+		3: { hp: 35, loss: 0.25, label: "Balanced", reserveEvery: SPAWN_ALLOWANCE_MINUTES * 2, drift: 0, lossCap: 0.1 },
+		4: { hp: 50, loss: 0.35, label: "Aggressive", reserveEvery: SPAWN_ALLOWANCE_MINUTES * 4, drift: 0, lossCap: 0.2 },
+		5: { hp: 70, loss: 0.6, label: "Reckless", reserveEvery: Infinity, drift: 0, lossCap: null },
 	};
 	return levels[level] || levels[3];
 }

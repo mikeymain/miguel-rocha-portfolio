@@ -206,8 +206,7 @@ function showUnitTooltip(tile, unit) {
   const smithyLvl = smithyEl ? parseInt(smithyEl.value) || 0 : 0;
   let atkHTML = String(unit.atk);
   if (smithyLvl > 0) {
-    const effectiveAtk =
-      Math.round(unit.atk * (1 + 0.015 * smithyLvl) * 10) / 10;
+    const effectiveAtk = Math.round(troopAttack(unit, smithyLvl) * 10) / 10;
     atkHTML += ` <span class="_vputt-bonus">→ ${effectiveAtk}</span>`;
   }
   const totalCost = unit.cost.reduce((s, v) => s + v, 0);

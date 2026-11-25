@@ -1,5 +1,11 @@
 # Changelog
 
+## Oasis Finder 70.18 — 2026-11-25
+
+- Troops: troop counts now use one raid model with per-unit-type rounding; the smithy bonus uses the game formula (TT 127.8 attack at level 20).
+- Risk now sets both the reserve animals added for scan age and travel time and the most of each unit type that may die. Reserve follows the observed species mix and never exceeds the observed total.
+- With troop counts entered, rows show **Clears** or **×k** (copies of the team needed) and sort clearing targets first. The hero HP limit raises the troop count instead of hiding the target.
+
 ## Oasis Finder 70.17 — 2026-11-25
 
 - Map oasis dialog shows a **Clear** table: how many of each unit to send to clear the oasis, predicted losses and travel time. Uses the panel's village, smithy levels, Tournament Square, hero and risk settings.

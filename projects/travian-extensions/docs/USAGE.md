@@ -48,6 +48,18 @@ Select **Inf def** or **Cav def** in the Target header to see the defence score 
 4. Choose a risk level and sort: **Best score**, **Net resources**, **Res / minute**, **Distance**, or **Res / HP**. Net resources includes modeled troop losses.
 5. Check observation age and current garrison before raiding. Coordinates open the map; **Send** opens a prefilled rally-point page. Sending the raid requires confirmation in the game.
 
+**Troop sizing.** With no troop counts entered, **Troops** lists the fewest of the preview unit that clear each oasis. With counts entered, each row shows **Clears** or **×k**, the copies of that team needed. A raid clears when every animal stack rounds to zero survivors: the winner loses x/(1+x) of each unit type, x = (def/att)^1.5, oases add a base defence of 10, and losses round separately for each unit type. With the hero included, hero HP stays within the **Adjust** limit.
+
+| Risk | Reserve animals | Most of each unit type lost |
+| --- | --- | --- |
+| Safe | 1 per 5 min of scan age + travel, +1 | 2% |
+| Cautious | 1 per 5 min | 5% |
+| Balanced | 1 per 10 min | 10% |
+| Aggressive | 1 per 20 min | 20% |
+| Reckless | none | any, if the oasis clears |
+
+Reserve animals cover at most 60 minutes, never exceed the observed animal total, and follow the observed species mix. They are a planning allowance, not measured spawn rates.
+
 Unknown-age or incomplete readings are excluded. **Errors** shows scan problems, and **Clear DB** deletes the oasis cache. In **Detail** density, each target shows its garrison, score, hero XP and res/HP.
 
 **View DB** lists every stored oasis:

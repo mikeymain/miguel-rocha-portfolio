@@ -41,12 +41,13 @@
     const tsLvl = parseInt(document.getElementById("_vpts-lvl")?.value) || 0;
     const riskLevel = parseInt(document.getElementById("_vprisk")?.value) || 3;
     const hero = getHeroForTroops();
+    const maxHp = hero ? (parseInt(document.getElementById("_vpmax-hp")?.value) || 100) - HERO_HP_BUFFER : null;
     return tribe.units
       .filter((unit) => unit.atk > 0 && !disabledUnits.has(unit.id))
       .map((unit) => {
         const smithyLvl = parseInt(document.getElementById(`_vpsmithy-${unit.id}`)?.value) || 0;
-        const { count, reserve } = calculateOptimalTroopCount(oasis, unit, smithyLvl, cx, cy, tsLvl, hero, riskLevel);
-        const m = calculateTroopMetrics(oasis, [{ unit, count, smithyLvl }], cx, cy, tsLvl, hero, riskLevel);
+        const { count, reserve } = calculateOptimalTroopCount(oasis, unit, smithyLvl, cx, cy, tsLvl, hero, riskLevel, maxHp);
+        const m = count == null ? null : calculateTroopMetrics(oasis, [{ unit, count, smithyLvl }], cx, cy, tsLvl, hero, riskLevel);
         return { unit, count, reserve, lost: m?.troopLossCount ?? 0, minutes: parseFloat(m?.time) || 0 };
       });
   }
@@ -87,8 +88,8 @@
       tr.insertCell().appendChild(icon);
       const send = tr.insertCell();
       send.className = "_vpclear-count";
-      send.textContent = r.count.toLocaleString();
-      send.title = `Includes ${r.reserve} reserve animals`;
+      send.textContent = r.count == null ? "—" : r.count.toLocaleString();
+      if (r.reserve) send.title = `Includes ${r.reserve} reserve animals`;
       const lost = tr.insertCell();
       lost.textContent = r.lost ? "−" + r.lost : "0";
       if (r.lost) lost.className = "_vpclear-lost";

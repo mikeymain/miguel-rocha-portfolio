@@ -181,6 +181,62 @@ function marchHours(dist, speed, tsLvl) {
   return (Math.min(20, dist) + Math.max(0, dist - 20) / (1 + 0.1 * tsLvl)) / speed;
 }
 
+// Raid result: the winner loses x/(1+x) of each unit type, x = (def/att)^1.5.
+// Kills and losses round separately for each animal stack and unit type.
+function raidOutcome(animals, troopUnits, hero) {
+  let infAtk = 0,
+    cavAtk = 0;
+  troopUnits.forEach(({ unit, count, smithyLvl }) => {
+    const atk = troopAttack(unit, smithyLvl) * count;
+    if (unit.cav) cavAtk += atk;
+    else infAtk += atk;
+  });
+  if (hero) {
+    if (hero.mounted) cavAtk += hero.off;
+    else infAtk += hero.off;
+  }
+  const totalAtk = infAtk + cavAtk;
+  if (!(totalAtk > 0)) return null;
+  const def = oasisDefense(animals, cavAtk / totalAtk);
+  const won = totalAtk > def;
+  const x = Math.pow(won ? def / totalAtk : totalAtk / def, 1.5);
+  const killFrac = won ? 1 / (1 + x) : x / (1 + x);
+  const lossFrac = won ? x / (1 + x) : 1 / (1 + x);
+  let remaining = 0,
+    res = 0,
+    xp = 0;
+  animals.forEach(({ id, count }) => {
+    const killed = Math.round(count * killFrac);
+    remaining += count - killed;
+    res += ANIMAL_STATS[id].res * killed;
+    xp += ANIMAL_STATS[id].xp * killed;
+  });
+  const losses = troopUnits.map(({ count }) => Math.round(count * lossFrac));
+  let lostRes = 0;
+  troopUnits.forEach(({ unit }, i) => (lostRes += losses[i] * TROOP_UNIT_COST(unit.cost)));
+  const heroHpLoss = hero
+    ? Math.max(0, Math.min(100, Math.round(lossFrac * 100 - (hero.dmgRed || 0))))
+    : null;
+  return {
+    won,
+    remaining,
+    res,
+    xp,
+    losses,
+    lostRes,
+    lostCount: losses.reduce((a, b) => a + b, 0),
+    heroHpLoss,
+  };
+}
+
+function teamMarchHours(troopUnits, hero, dist, tsLvl) {
+  const speeds = troopUnits
+    .filter(({ count }) => count > 0)
+    .map(({ unit }) => unit.spd * _serverSpeed);
+  if (hero) speeds.push(hero.speed);
+  return marchHours(dist, speeds.length > 0 ? Math.min(...speeds) : 1, tsLvl);
+}
+
 function calculateTroopMetrics(
   oasis,
   troopUnits,
@@ -190,71 +246,21 @@ function calculateTroopMetrics(
   hero,
   riskLevel,
 ) {
-  const serverSpeed = _serverSpeed;
-
-  const dx = torusDelta(oasis.x, cx);
-  const dy = torusDelta(oasis.y, cy);
-  const dist = Math.sqrt(dx * dx + dy * dy);
-
-  let infAtk = 0,
-    cavAtk = 0;
-  troopUnits.forEach(({ unit, count, smithyLvl }) => {
-    const effectiveAtk = troopAttack(unit, smithyLvl);
-    if (unit.cav) cavAtk += effectiveAtk * count;
-    else infAtk += effectiveAtk * count;
-  });
-
-  if (hero) {
-    if (hero.mounted) cavAtk += hero.off;
-    else infAtk += hero.off;
-  }
-
-  const totalAtk = infAtk + cavAtk;
-  if (totalAtk === 0) return null;
-
-  const oasisDef = oasisDefense(oasis.animals, cavAtk / totalAtk);
-
-  const stronger = totalAtk > oasisDef;
-  const ratio = stronger ? oasisDef / totalAtk : totalAtk / oasisDef;
-  const L = Math.pow(ratio, 1.5);
-  const NKP = stronger ? 1 / (1 + L) : L / (1 + L);
-  const troopLossFrac = stronger ? L / (1 + L) : 1 / (1 + L);
-
-  let oasisRes = 0;
-  let oasisXP = 0;
-  let remaining = 0;
-  oasis.animals.forEach((u) => {
-    const killed = Math.round(u.count * NKP);
-    remaining += u.count - killed;
-    oasisRes += ANIMAL_STATS[u.id].res * killed;
-    oasisXP += ANIMAL_STATS[u.id].xp * killed;
-  });
-
-  let troopLossRes = 0;
-  let troopLossCount = 0;
-  troopUnits.forEach(({ unit, count }) => {
-    const lost = Math.round(count * troopLossFrac);
-    troopLossRes += lost * TROOP_UNIT_COST(unit.cost);
-    troopLossCount += lost;
-  });
-
-  let heroHpLoss = null;
-  if (hero) {
-    heroHpLoss = Math.max(
-      0,
-      Math.min(100, Math.round(troopLossFrac * 100 - (hero.dmgRed || 0))),
-    );
-  }
+  const dist = Math.hypot(torusDelta(oasis.x, cx), torusDelta(oasis.y, cy));
+  const outcome = raidOutcome(oasis.animals, troopUnits, hero);
+  if (!outcome) return null;
+  const {
+    res: oasisRes,
+    xp: oasisXP,
+    lostRes: troopLossRes,
+    lostCount: troopLossCount,
+    remaining,
+    heroHpLoss,
+  } = outcome;
 
   const netRes = oasisRes - troopLossRes;
 
-  const speeds = troopUnits
-    .filter(({ count }) => count > 0)
-    .map(({ unit }) => unit.spd * serverSpeed);
-  if (hero) speeds.push(hero.speed);
-  const marchSpd = speeds.length > 0 ? Math.min(...speeds) : 1;
-
-  const timeHours = marchHours(dist, marchSpd, tsLvl);
+  const timeHours = teamMarchHours(troopUnits, hero, dist, tsLvl);
 
   const oneWayMinutes = Math.max(1, Math.round(timeHours * 60));
   const roundTripMinutes = Math.max(1, oneWayMinutes * 2);
@@ -558,39 +564,97 @@ function renderHeroTab() {
   });
 }
 
-// Size a raid against the observed stacks plus a selectable arrival reserve.
-// Reserve animals all use the strongest observed defence for this attack mix.
-function calculateOptimalTroopCount(oasis, unit, smithyLvl, cx, cy, tsLvl, hero, riskLevel) {
-  const attack = troopAttack(unit, smithyLvl);
-  const heroOff = hero?.off || 0;
-  const dist = Math.hypot(torusDelta(oasis.x, cx), torusDelta(oasis.y, cy));
-  const speed = Math.min(unit.spd * _serverSpeed, hero?.speed || Infinity);
-  const tripMinutes = marchHours(dist, speed, tsLvl) * 60;
-  const ageMinutes = oasis.scannedAt ? Math.max(0, Date.now() - oasis.scannedAt) / 60000 : 0;
-  // A planning allowance, not a measured spawn rate. Limit stale scans to one hour of reserve.
-  const window = Math.min(60, tripMinutes + ageMinutes);
-  const interval = [0, 5, 10, 20, 40, Infinity][riskLevel];
-  const reserve = Math.ceil(window / interval);
-  const largest = Math.max(...oasis.animals.map(a => a.count)) + reserve;
-  // Every stack must round to zero survivors and at least one attacker must return.
-  const clearRatio = Math.pow(2 * largest - 1, 2 / 3);
-  function clears(count) {
-    const total = count * attack + heroOff;
-    const cavShare = ((unit.cav ? count * attack : 0) + (hero?.mounted ? heroOff : 0)) / total;
-    const extraDef = Math.max(...oasis.animals.map(({ id }) => {
-      const stats = ANIMAL_STATS[id];
-      return stats.defI * (1 - cavShare) + stats.defC * cavShare;
-    }));
-    return total > (oasisDefense(oasis.animals, cavShare) + reserve * extraDef) * clearRatio;
+// Animals expected on arrival: the observed garrison plus the risk level's
+// reserve, spread over the observed species in proportion to their counts.
+// The reserve never exceeds the observed total (the garrison at most doubles).
+function arrivalAnimals(oasis, risk, tripMinutes) {
+  const scannedAt = Number(oasis.scannedAt);
+  const ageMinutes = scannedAt > 0 ? Math.max(0, Date.now() - scannedAt) / 60000 : 0;
+  const window = Math.min(RESERVE_WINDOW_CAP_MINUTES, tripMinutes + ageMinutes);
+  const observed = oasis.animals.reduce((sum, a) => sum + a.count, 0);
+  const reserve = Math.min(
+    observed,
+    (Number.isFinite(risk.reserveEvery) ? Math.ceil(window / risk.reserveEvery) : 0) +
+      (risk.drift || 0),
+  );
+  if (!reserve) return { animals: oasis.animals, reserve: 0 };
+  // Largest-remainder split; ties go to the stronger animal.
+  const shares = oasis.animals.map((a, i) => {
+    const exact = (reserve * a.count) / observed;
+    const s = ANIMAL_STATS[a.id];
+    return { i, add: Math.floor(exact), rest: exact - Math.floor(exact), def: s.defI + s.defC };
+  });
+  let left = reserve - shares.reduce((sum, x) => sum + x.add, 0);
+  [...shares]
+    .sort((a, b) => b.rest - a.rest || b.def - a.def)
+    .forEach((x) => {
+      if (left > 0) {
+        x.add++;
+        left--;
+      }
+    });
+  return {
+    animals: oasis.animals.map((a, i) => ({ id: a.id, count: a.count + shares[i].add })),
+    reserve,
+  };
+}
+
+// Cleared, every unit type within the risk level's loss cap, hero within maxHp.
+function meetsRisk(outcome, troopUnits, risk, maxHp) {
+  if (!outcome || !outcome.won || outcome.remaining > 0) return false;
+  if (maxHp != null && outcome.heroHpLoss != null && outcome.heroHpLoss > maxHp)
+    return false;
+  return troopUnits.every(({ count }, i) =>
+    risk.lossCap == null
+      ? outcome.losses[i] < count
+      : outcome.losses[i] <= Math.floor(count * risk.lossCap),
+  );
+}
+
+const MAX_TEAM_SCALE = 1 << 20;
+
+// Smallest k >= 1 for which k x the team clears the arrival garrison within
+// the risk level. Returns null when no animals are known or the team has no
+// attack; scale is null when no k up to MAX_TEAM_SCALE fits.
+function minimumScale(oasis, troopUnits, hero, risk, dist, tsLvl, maxHp) {
+  const team = troopUnits.filter(({ count }) => count > 0);
+  if (!team.length || !oasis.animals?.length) return null;
+  const troopAtk = team.reduce((sum, t) => sum + troopAttack(t.unit, t.smithyLvl) * t.count, 0);
+  if (!(troopAtk > 0)) return null;
+  const tripMinutes = teamMarchHours(team, hero, dist, tsLvl) * 60;
+  const { animals, reserve } = arrivalAnimals(oasis, risk, tripMinutes);
+  const fits = (k) => {
+    const scaled = team.map((t) => ({ ...t, count: t.count * k }));
+    return meetsRisk(raidOutcome(animals, scaled, hero), scaled, risk, maxHp);
+  };
+  let hi = 1;
+  while (!fits(hi)) {
+    if (hi >= MAX_TEAM_SCALE) return { scale: null, reserve };
+    hi *= 2;
   }
-  let lo = 1, hi = 1;
-  while (!clears(hi)) hi *= 2;
+  let lo = Math.max(1, hi >> 1);
   while (lo < hi) {
     const mid = Math.floor((lo + hi) / 2);
-    if (clears(mid)) hi = mid;
+    if (fits(mid)) hi = mid;
     else lo = mid + 1;
   }
-  return { count: lo, reserve };
+  return { scale: lo, reserve };
+}
+
+// Fewest of one unit type that clear the oasis at this risk level.
+// count is null when the oasis has no known animals or the unit cannot clear it.
+function calculateOptimalTroopCount(oasis, unit, smithyLvl, cx, cy, tsLvl, hero, riskLevel, maxHp) {
+  const dist = Math.hypot(torusDelta(oasis.x, cx), torusDelta(oasis.y, cy));
+  const fit = minimumScale(
+    oasis,
+    [{ unit, count: 1, smithyLvl }],
+    hero,
+    getRiskThresholds(riskLevel),
+    dist,
+    tsLvl,
+    maxHp,
+  );
+  return { count: fit?.scale ?? null, reserve: fit?.reserve ?? 0 };
 }
 
 function renderTroopTabPreview(
@@ -655,7 +719,9 @@ function renderTroopTabPreview(
       tsLvl,
       hero,
       riskLevel,
+      maxHp,
     );
+    if (targetCount == null) return;
 
     const metrics = calculateTroopMetrics(
       oasis,
@@ -724,7 +790,7 @@ function renderTroopTabPreview(
         ? `<span class="${hpClass(o.heroHpLoss)}">−${escapeHTML(String(o.heroHpLoss))}% hp</span>` +
           lossHTML
         : lossHTML;
-    const meta = _metaHTML(o, safety + `<span title="Extra animals allowed for before arrival">Reserve +${o.reserve}</span>`);
+    const meta = _metaHTML(o, safety + (o.reserve ? `<span title="Reserve animals on the strongest observed species">Reserve +${escapeHTML(String(o.reserve))}</span>` : ""));
     const stats =
       `<span>score <b class="_vpresult-xp">${escapeHTML(String(o.rawScore.toFixed(0)))}</b></span>` +
       `<span>xp <b class="_vpresult-xp">${escapeHTML(String(o.oasisXP))}</b></span>` +
@@ -821,6 +887,7 @@ function renderTroopTab() {
   const scanMode = document.getElementById("_vpmode")?.value || "GRID";
 
   const source = getSourceMap(scanMode);
+  const risk = getRiskThresholds(riskLevel);
   const list = [];
   source.forEach((o) => {
     const m = calculateTroopMetrics(
@@ -835,11 +902,16 @@ function renderTroopTab() {
     if (!m) return;
     if (parseFloat(m.dist) > radius) return;
     if (hero && m.heroHpLoss > maxHp) return;
-    list.push({ ...o, ...m });
+    // How many copies of the entered team clear the oasis at this risk level.
+    const fit = minimumScale(o, troopUnits, hero, risk, parseFloat(m.dist), tsLvl, maxHp);
+    list.push({ ...o, ...m, scale: fit?.scale ?? null, reserve: fit?.reserve ?? 0 });
   });
 
   list.sort((a, b) => {
     if (sortMode !== "dist") {
+      const fitsA = a.scale === 1;
+      const fitsB = b.scale === 1;
+      if (fitsA !== fitsB) return fitsA ? -1 : 1;
       if (a.netRes < 0 && b.netRes >= 0) return 1;
       if (b.netRes < 0 && a.netRes >= 0) return -1;
     }
@@ -885,7 +957,11 @@ function renderTroopTab() {
         ? `<span class="${hpClass(o.heroHpLoss)}">−${escapeHTML(String(o.heroHpLoss))}% hp</span>` +
           lossHTML
         : lossHTML;
-    const meta = _metaHTML(o, safety + `<span>${o.remaining ? o.remaining + " animals left" : "Predicted clear"}</span>`);
+    const fitHTML =
+      o.scale === 1
+        ? '<span class="_vphp-ok">Clears</span>'
+        : `<span class="_vphp-high" title="Copies of this team needed to clear at this risk level">${o.remaining ? escapeHTML(String(o.remaining)) + " left · " : ""}${o.scale ? "×" + escapeHTML(String(o.scale)) : "Can't clear"}</span>`;
+    const meta = _metaHTML(o, safety + fitHTML + (o.reserve ? `<span title="Reserve animals on the strongest observed species">Reserve +${escapeHTML(String(o.reserve))}</span>` : ""));
     const stats =
       `<span>score <b class="_vpresult-xp">${escapeHTML(String(o.rawScore.toFixed(0)))}</b></span>` +
       `<span>xp <b class="_vpresult-xp">${escapeHTML(String(o.oasisXP))}</b></span>` +
