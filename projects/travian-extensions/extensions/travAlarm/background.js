@@ -185,6 +185,7 @@ async function ensureOffscreen() {
 }
 
 function classifyAlarmCategory(a) {
+  if (a.customType === "farmlist") return "farmlist";
   const n = a.name || "";
   if (a.customType === "attack" || n.includes("🚨") || n.includes("⚠️"))
     return "attack";
@@ -192,7 +193,6 @@ function classifyAlarmCategory(a) {
   if (n.includes("🎓")) return "training";
   if (n.includes("🎉")) return "culture";
   if (a.customType === "storage" || n.includes("📦")) return "storage";
-  if (a.customType === "farmlist") return "farmlist";
   if (a.customType === "daily") return "daily";
   if (n.startsWith("⭐")) return a.customType === "manual" ? "custom" : "auto";
   return "building";
@@ -497,6 +497,8 @@ function handleMessage(msg, sender, sendResponse) {
             existing = alarms.find(matchesName);
           }
           if (existing) {
+            // Re-selecting an unchanged farm preset must preserve even an overdue alarm.
+            if (newB.customType === "farmlist" && Number(existing.recurring) === delay) return;
             if (stickyPreset) {
               existing.createdAt = now;
               existing.recurring = newB.recurring ?? existing.recurring;
@@ -624,12 +626,14 @@ function handleMessage(msg, sender, sendResponse) {
     case "EDIT_ALARM": {
       const alarmToEdit = alarms.find((a) => a.id === msg.id);
       if (alarmToEdit && alarmToEdit.customType !== "attack") {
+        if (alarmToEdit.customType === "farmlist" && msg.expectedScheduledTime !== undefined &&
+            msg.expectedScheduledTime !== alarmToEdit.scheduledTime) break;
         if (msg.newName) alarmToEdit.name = msg.newName;
         // A Farm List card sends a delay without a name when clicked to reset.
         // Use the saved interval because the card may still have an older copy.
         const delay = alarmToEdit.customType === "farmlist" && msg.newName === undefined &&
           msg.newDelay !== undefined && alarmToEdit.recurring > 0
-          ? alarmToEdit.recurring
+          ? Number(alarmToEdit.recurring)
           : msg.newDelay;
         if (delay) {
           const now = Date.now();

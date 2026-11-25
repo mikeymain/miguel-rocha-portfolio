@@ -63,7 +63,7 @@ Unknown-age or incomplete readings are excluded. **Errors** shows scan problems,
 
 1. Open Travian and visit the relevant game pages to populate timers. Expand a category to view its alarms.
 2. Click **Add** for a custom reminder. Durations: `15` = 15 minutes, `1:30` = 1 minute 30 seconds, `0:45:00` = 45 minutes. `10pm` schedules the next occurrence on your computer's clock.
-3. Use **Presets** for reusable reminders. Click a **Farm List** timer card to restart its preset interval. Pin or delete timers with their controls.
+3. Use **Presets** for reusable reminders. Selecting the same **Farm List** preset again keeps its deadline, even when it is overdue. Click its timer card to restart its preset interval. Pin or delete timers with their controls.
 4. Set volume, enabled categories and the **All sounds** mute under **Sound Settings**. Allow browser notifications for desktop alerts.
 5. Drag the widget by its title bar to move it. The position is saved.
 6. Click the TravAlarm icon in the browser toolbar for display settings: panel width, opacity, accent color, start minimized, a color for each category and training building, and reset buttons. Changes apply to open Travian tabs immediately.

@@ -108,6 +108,7 @@ const SECTION_META = {
 };
 
 function classifyAlarm(a) {
+  if (a.customType === "farmlist") return "farmlist";
   const n = a.name;
   if (n.includes("🚨") || n.includes("⚠️")) return "attack";
   if (n.includes("⚔️")) return "hero";
@@ -117,7 +118,6 @@ function classifyAlarm(a) {
   if (n.includes("🌾")) return "grain";
   if (n.includes("🪵") || n.includes("🧱") || n.includes("🔩"))
     return "resource";
-  if (a.customType === "farmlist") return "farmlist";
   if (a.customType === "daily") return "daily";
   if (n.startsWith("⭐")) return a.customType === "manual" ? "custom" : "auto";
   return "building";
@@ -1007,6 +1007,7 @@ function setupAlarmListeners(node, a, uniqueId) {
         .sendMessage({
           type: "EDIT_ALARM",
           id: a.id,
+          expectedScheduledTime: (currentAlarms.find(x => x.id === a.id) || a).scheduledTime,
           newDelay,
         })
         .then(() => syncState());
