@@ -1,5 +1,9 @@
 # Changelog
 
+## Oasis Finder 70.16 — 2026-11-25
+
+- Fix: the extension failed to load because `analyzer.js` contained a non-UTF-8 byte.
+
 ## Travian QoL 1.6.19 — 2026-11-25
 
 - Report opener: only real report links are opened; rows whose first matching link led to the rally point no longer open it.

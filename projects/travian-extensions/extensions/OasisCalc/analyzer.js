@@ -738,7 +738,7 @@ function renderTroopTabPreview(
       score: escapeHTML(String(o.oasisXP)),
       rallyHref: maxTroopsCap > 0 && o.minCount > maxTroopsCap ? null : rallyUrl,
       rallyAttrs: ` data-slot="${troopSlot}" data-count="${o.minCount}"`,
-      rallyLabel: maxTroopsCap > 0 && o.minCount > maxTroopsCap ? `Need ${o.minCount} · over cap` : `Send ${escapeHTML(String(o.minCount))}`,
+      rallyLabel: maxTroopsCap > 0 && o.minCount > maxTroopsCap ? `Need ${o.minCount} Â· over cap` : `Send ${escapeHTML(String(o.minCount))}`,
       chips: _garrisonChips(o.animals),
       stats,
     });
