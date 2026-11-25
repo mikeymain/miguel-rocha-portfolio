@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.4.7 — 2026-11-25
+
+- The resources page **Production per hour** table adds two columns: trade-route balance per hour (incoming minus outgoing) and net production after routes. Routes are read from **Marketplace → Trade routes** when you open it; expand each route group once to record it.
+
 ## TravAlarm 3.69 — 2026-11-25
 
 - Completing construction or research immediately with gold now removes those alarms from the list when you confirm, instead of leaving them until the queue is scanned again.
