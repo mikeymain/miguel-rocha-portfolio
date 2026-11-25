@@ -6,7 +6,7 @@
 	},
 	"manifest_version": 3,
 	"name": "Travian QoL",
-	"version": "1.4.9",
+	"version": "1.4.10",
 	"description": "Collection of small quality-of-life tweaks for Travian. Each feature is independently toggleable.",
 	"permissions": ["storage", "contextMenus"],
 	"host_permissions": [
@@ -74,6 +74,7 @@
 				"features/todolist/index.js",
 				"features/upgrade-values/index.js",
 				"features/resource-full-time/index.js",
+				"features/trade-route-production/core.js",
 				"features/trade-route-production/index.js",
 				"content.js"
 			],
@@ -95,7 +96,7 @@
 				"*://*.travian.tr/*",
 				"*://*.travian.ae/*"
 			],
-			"js": ["features/trade-route-production/early.js"],
+			"js": ["features/trade-route-production/core.js", "features/trade-route-production/early.js"],
 			"run_at": "document_start"
 		}
 	]
