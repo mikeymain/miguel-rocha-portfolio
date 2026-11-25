@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.6.12 and TravAlarm 3.71 — 2026-11-25
+
+- Removed the Net resources row from combat simulations and excluded simulator rewards from FNPC timers.
+
 ## Travian QoL 1.6.11 — 2026-11-25
 
 - Smithy efficiency rates attacking units on attack: Haeduan, Swordsman, Khopesh Warrior and rams no longer use their defence. Hybrid units keep the larger stat.

@@ -403,9 +403,7 @@
 	}
 
 	// ===== COMBAT SIMULATOR =====
-	// The simulator's statistics table has the same "Resources lost" row as a
-	// report. Add the total resources gained (bounty plus the animal rewards
-	// shown under the table) and the net row, like on oasis reports.
+	// Total the bounty and animal rewards shown in the simulation results.
 	function createSimTotalRow(total) {
 		const row = document.createElement('tr');
 		row.className = 'tlw-sim-total-row';
@@ -422,15 +420,12 @@
 		if (!statsTable) return;
 		let gained = 0;
 		results.querySelectorAll('.resourceWrapper').forEach((w) => (gained += sumResourceWrapper(w)));
-		const { attackerLost, defenderLost } = extractLostResources(statsTable);
-		// Each simulation re-renders the numbers, possibly into the same table:
-		// rebuild the rows whenever the inputs change.
-		const signature = `${gained}|${attackerLost}|${defenderLost}`;
+		const signature = String(gained);
 		if (statsTable.dataset.tlwSimSig === signature) return;
 		statsTable.querySelectorAll('.tlw-sim-total-row, .tlw-net-row').forEach((r) => r.remove());
 		statsTable.dataset.tlwSimSig = signature;
 		if (gained <= 0) return;
-		statsTable.append(createSimTotalRow(gained), createNetResourcesRow(gained - attackerLost, defenderLost));
+		statsTable.append(createSimTotalRow(gained));
 	}
 
 	// ===== REPORT BADGE INJECTION =====

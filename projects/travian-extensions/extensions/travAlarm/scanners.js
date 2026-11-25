@@ -151,7 +151,7 @@ function scanNPCBuild(activeVillage) {
   if (url.includes("report") || url.includes("berichte.php")) return;
   const costWrappers = Array.from(document.querySelectorAll(
     ".resourceWrapper, .contractCosts, .showCosts",
-  )).filter(el => !el.closest('.dialog'));
+  )).filter(el => !el.closest('.dialog, #combatSimulator'));
   if (costWrappers.length === 0) return;
 
   const l1 = parseInt(
