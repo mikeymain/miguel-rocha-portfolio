@@ -141,7 +141,7 @@
 .bo-boost { display: grid; grid-template-columns: minmax(0, 1fr) 52px 140px; align-items: center; gap: 8px; font-size: 12px; }
 .bo-boost__name { display: inline-flex; align-items: center; gap: 6px; min-width: 0; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bo-boost__lvl, .bo-boost__when { font-family: var(--font-mono); font-size: 11.5px; white-space: nowrap; }
-.bo-boost__lvl { color: var(--text-tertiary); }
+.bo-boost__lvl { color: var(--text-tertiary); text-align: right; }
 .bo-boost__when { text-align: right; color: var(--text-secondary); }
 .bo-boost__when.is-soon { color: var(--amber-hi); }
 .bo-boost__when.is-blocked { color: var(--text-tertiary); }
