@@ -2,6 +2,10 @@
 
 ## Travian QoL 1.6.16 — 2026-11-25
 
+- Build order: a Boost buildings list under Next upgrades shows the plan step at which each Sawmill, Brickyard, Iron Foundry, Grain Mill and Bakery level becomes worth building, or the missing prerequisite (field level 10 / Main Building 5).
+
+## Travian QoL 1.6.16 — 2026-11-25
+
 - Production overview: add a **Time to fill** row showing how long an empty storage takes to fill at the village's production plus its recorded trade-route balance.
 
 ## Travian QoL 1.6.15 — 2026-11-25
