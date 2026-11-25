@@ -1,5 +1,10 @@
 # Changelog
 
+## Travian QoL 1.5.0 — 2026-11-25
+
+- Settings menu reworked: tabs move to a top bar with a save indicator and version, features are grouped (Farm lists, Reports, Hero, Resources, Tools) in two columns, each group has its own on/off switch, and All on / All off buttons switch every feature at once.
+- Loot Calculator and Counter-attack tabs use the new layout; the server picker sits in the Loot Calculator header.
+
 ## Travian QoL 1.4.11 — 2026-11-25
 
 - Farm-list edit chooser: on the map, a target that is in several farm lists gets one edit link per list, so you can choose which list's slot to edit. Lists are learned when you expand them on the Farm List page; a note shows how many are not loaded yet.

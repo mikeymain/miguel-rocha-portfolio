@@ -1,0 +1,355 @@
+/* Counter-attack tab. Split from options.css. */
+#tab-counter .card { overflow: visible; }
+.ca {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: 10px 14px 12px;
+}
+.ca__row--shared {
+	display: grid;
+	/* target is sized for "(-XXX|-XXX)" only; arrival flexes wide enough
+	   to fit "dd/mm/yyyy hh:mm:ss" + the native picker icon. */
+	grid-template-columns: 120px minmax(220px, 1fr) 70px 90px;
+	gap: 10px;
+	padding-bottom: 8px;
+	border-bottom: 1px solid var(--border-subtle);
+}
+/* The countdown alternative sits on its own row, directly under Arrival. */
+.ca__row--shared .ca__field--arrives-in { grid-column: 2; grid-row: 2; }
+.ca__armies {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 10px;
+}
+.ca__army {
+	all: unset;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 6px 10px;
+	padding: 8px 10px 10px;
+	background: var(--bg-raised);
+	border: 1px solid var(--border-subtle);
+	border-radius: var(--radius-sm);
+}
+.ca__legend {
+	grid-column: 1 / -1;
+	font-family: var(--font-mono);
+	font-size: 10px;
+	letter-spacing: 0.2em;
+	text-transform: uppercase;
+	color: var(--amber);
+	padding: 0 0 4px;
+	margin-bottom: 2px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.ca__legend::before {
+	content: '';
+	width: 6px; height: 6px;
+	background: var(--amber);
+	transform: rotate(45deg);
+	box-shadow: 0 0 6px var(--amber-glow);
+}
+.ca__legend::after {
+	content: '';
+	flex: 1;
+	height: 1px;
+	background: linear-gradient(90deg,
+		rgba(245, 166, 35, 0.35),
+		rgba(245, 166, 35, 0.05) 60%,
+		transparent);
+}
+.ca__field {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	min-width: 0;
+	cursor: pointer;
+}
+.ca__label {
+	font-family: var(--font-mono);
+	font-size: 9.5px;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--text-tertiary);
+}
+.ca__field input,
+.ca__field select {
+	width: 100%;
+	max-width: none;
+	padding: 4px 8px;
+}
+/* "My village" picker — sits in the army grid as a normal field cell,
+   matching the layout of Coords/Slowest unit/etc. Populated from
+   chrome.storage.local by the content script that scrapes the sidebar.
+   The amber border distinguishes it from the static config selects. */
+.ca__field--village select { border-color: rgba(245, 166, 35, 0.35); }
+.ca__field--village select:hover { background: var(--amber-dim); }
+.ca__field .ca__coords,
+.ca__field .ca__time { font-family: var(--font-mono); text-align: left; }
+.ca__field input.lc-num { text-align: left; }
+
+.ca__out {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 8px 10px;
+	border: 1px solid var(--border-subtle);
+	border-left: 2px solid var(--amber);
+	border-radius: var(--radius-sm);
+	background:
+		radial-gradient(ellipse at top right, rgba(245, 166, 35, 0.045), transparent 60%),
+		var(--bg-base);
+	position: relative;
+}
+/* Faint scanline texture — the kind that makes a black box feel like a screen. */
+.ca__out--rich::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	background: repeating-linear-gradient(180deg,
+		rgba(255, 255, 255, 0.015) 0 1px,
+		transparent 1px 4px);
+	border-radius: inherit;
+	mix-blend-mode: screen;
+}
+.ca__hint {
+	font-size: 12px;
+	color: var(--text-tertiary);
+	padding: 6px 0;
+}
+
+/* --- Counter-attack: reworked output (split: answer + vertical sequence) -
+   Two-column plan — the answer hero on the left, a vertical event rail on
+   the right. A stacked rail can never overlap, so the old horizontal
+   timeline's collision problem is gone. Block container so the inner
+   sections don't get shrunk by the parent flex column. */
+.ca__out--rich {
+	display: block;
+	gap: 0;
+	padding: 0;
+	flex: 0 0 auto;
+	min-height: 0;
+}
+.ca__plan {
+	display: grid;
+	grid-template-columns: minmax(210px, 0.85fr) 1.15fr;
+}
+@media (max-width: 560px) {
+	.ca__plan { grid-template-columns: 1fr; }
+}
+
+/* Left column — the answer. Hero countdown is the dominant element; the
+   accent border + countdown color shift with status (ok/warn/bad). */
+.ca__answer {
+	display: flex;
+	flex-direction: column;
+	gap: 9px;
+	justify-content: center;
+	padding: 20px 22px;
+	border-right: 1px solid var(--border-subtle);
+	border-left: 3px solid var(--amber);
+	background:
+		linear-gradient(180deg, rgba(255, 184, 77, 0.045), transparent 55%),
+		repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.012) 0 1px, transparent 1px 3px),
+		var(--bg-raised);
+}
+@media (max-width: 560px) {
+	.ca__answer { border-right: none; border-bottom: 1px solid var(--border-subtle); }
+}
+.ca__answer-label {
+	font-family: var(--font-mono);
+	font-size: 10px;
+	font-weight: 500;
+	letter-spacing: 0.22em;
+	text-transform: uppercase;
+	color: var(--text-secondary);
+	display: inline-flex;
+	align-items: center;
+	gap: 9px;
+	line-height: 1.2;
+}
+.ca__answer-label::before {
+	content: '';
+	width: 8px; height: 8px;
+	background: var(--amber);
+	transform: rotate(45deg);
+	box-shadow: 0 0 10px var(--amber-glow);
+	flex-shrink: 0;
+}
+.ca__countdown {
+	font-family: var(--font-mono);
+	font-size: 44px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	color: var(--amber);
+	line-height: 1;
+	font-variant-numeric: tabular-nums;
+	text-shadow: 0 0 28px rgba(245, 166, 35, 0.35);
+}
+.ca__answer-note {
+	font-family: var(--font-mono);
+	font-size: 11.5px;
+	letter-spacing: 0.04em;
+	color: var(--text-secondary);
+	line-height: 1.4;
+}
+.ca__answer--ok    { border-left-color: var(--emerald); }
+.ca__answer--warn  { border-left-color: var(--amber-hi); }
+.ca__answer--bad   { border-left-color: var(--rose); }
+.ca__answer--ok   .ca__answer-label::before { background: var(--emerald); box-shadow: 0 0 10px rgba(52, 211, 153, 0.5); }
+.ca__answer--bad  .ca__answer-label::before { background: var(--rose); box-shadow: 0 0 10px rgba(251, 113, 133, 0.55); }
+.ca__answer--ok    .ca__countdown { color: var(--emerald); text-shadow: 0 0 28px rgba(52, 211, 153, 0.35); }
+.ca__answer--warn  .ca__countdown { color: var(--amber-hi); text-shadow: 0 0 28px rgba(255, 184, 77, 0.45); }
+.ca__answer--bad   .ca__countdown { color: var(--rose); text-shadow: 0 0 28px rgba(251, 113, 133, 0.4); animation: ca-pulse 1.8s ease-in-out infinite; }
+@keyframes ca-pulse {
+	0%, 100% { opacity: 1; }
+	50%      { opacity: 0.78; }
+}
+
+/* Right column — vertical event rail. Each row: [time] [dot+line] [body].
+   The connector line is omitted on the last row by the renderer. */
+.ca__seq {
+	display: flex;
+	flex-direction: column;
+	padding: 16px 20px 14px;
+}
+.ca__seq-head {
+	font-family: var(--font-mono);
+	font-size: 9px;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	color: var(--text-tertiary);
+	margin-bottom: 6px;
+}
+.ca__seq-row {
+	display: grid;
+	grid-template-columns: 72px 20px 1fr;
+	align-items: start;
+	column-gap: 9px;
+}
+.ca__seq-time {
+	font-family: var(--font-mono);
+	font-size: 12px;
+	color: var(--text-primary);
+	text-align: right;
+	padding-top: 6px;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+.ca__seq-rail {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	align-self: stretch;
+}
+.ca__seq-dot {
+	width: 11px; height: 11px;
+	margin-top: 7px;
+	border-radius: 50%;
+	background: var(--text-tertiary);
+	flex-shrink: 0;
+}
+.ca__seq-line {
+	width: 2px;
+	flex: 1;
+	min-height: 18px;
+	background: var(--border-visible);
+}
+.ca__seq-body {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 4px 0 16px;
+}
+.ca__seq-row:last-child .ca__seq-body { padding-bottom: 0; }
+.ca__seq-label {
+	font-family: var(--font-mono);
+	font-size: 9.5px;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--text-secondary);
+	line-height: 1.2;
+}
+.ca__seq-desc {
+	font-size: 11px;
+	color: var(--text-tertiary);
+	line-height: 1.3;
+}
+/* Per-event coloring of dot, connector and label. */
+.ca__seq-row[data-kind="hit-us"]  .ca__seq-dot {
+	background: transparent;
+	box-shadow: 0 0 0 2px var(--rose), inset 0 0 0 1px rgba(251, 113, 133, 0.4);
+}
+.ca__seq-row[data-kind="hit-us"]  .ca__seq-label { color: var(--rose); }
+.ca__seq-row[data-kind="counter"] .ca__seq-dot {
+	background: var(--amber-hi);
+	box-shadow: 0 0 0 1px var(--amber-glow), 0 0 12px var(--amber-glow);
+}
+.ca__seq-row[data-kind="counter"] .ca__seq-label { color: var(--amber); }
+.ca__seq-row[data-kind="return"]  .ca__seq-dot {
+	background: var(--emerald);
+	box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.5), 0 0 8px rgba(52, 211, 153, 0.35);
+}
+.ca__seq-row[data-kind="return"]  .ca__seq-label,
+.ca__seq-row[data-kind="return"]  .ca__seq-time { color: var(--emerald); font-weight: 600; }
+.ca__seq-row[data-kind="counter"] .ca__seq-time { color: var(--amber-hi); font-weight: 600; }
+
+/* Bottom raw strip — grid mirrors .ca__plan columns so the cell divider
+   lines up exactly with the answer/sequence boundary above. */
+.ca__raw {
+	display: grid;
+	grid-template-columns: minmax(210px, 0.85fr) 1.15fr;
+	border-top: 1px solid var(--border-subtle);
+	background: rgba(0, 0, 0, 0.14);
+	font-family: var(--font-mono);
+	font-size: 11px;
+	color: var(--text-secondary);
+}
+.ca__raw > span {
+	padding: 10px 20px;
+}
+.ca__raw > span:first-child { padding-left: 25px; }
+.ca__raw > span + span { border-left: 1px solid var(--border-subtle); margin-left: -2px; padding-left: 22px; }
+.ca__raw b {
+	color: var(--text-tertiary);
+	font-weight: 500;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	font-size: 9.5px;
+}
+@media (max-width: 560px) {
+	.ca__raw { grid-template-columns: 1fr; }
+	.ca__raw > span + span { border-left: none; border-top: 1px solid var(--border-subtle); }
+}
+
+/* Launch time from each of the player's villages. */
+.ca__vt {
+	width: 100%;
+	border-collapse: collapse;
+	border-top: 1px solid var(--border-subtle);
+	font-family: var(--font-mono);
+	font-size: 11px;
+	color: var(--text-secondary);
+}
+.ca__vt th {
+	padding: 6px 12px;
+	text-align: left;
+	font-weight: 500;
+	font-size: 9.5px;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--text-tertiary);
+}
+.ca__vt td { padding: 5px 12px; border-top: 1px solid var(--border-subtle); }
+.ca__vt th:first-child, .ca__vt td:first-child { padding-left: 25px; }
+.ca__vt tbody tr { cursor: pointer; }
+.ca__vt tbody tr:hover, .ca__vt tbody tr:focus-visible { background: var(--amber-dim); outline: none; }
+.ca__vt-xy { color: var(--text-tertiary); }
+.ca__vt-sel td { color: var(--amber-hi); }
+.ca__vt-sel td:first-child { box-shadow: inset 2px 0 0 var(--amber); }
+.ca__vt-missed td { color: var(--text-tertiary); }
+.ca__vt-missed td:last-child { color: var(--rose); }

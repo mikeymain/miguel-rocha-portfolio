@@ -9,10 +9,10 @@
 (function () {
 	const KEY = window.TravianQoL.STORAGE_KEY;
 
-	// ---- Tabs (rail items) ----
+	// ---- Tabs ----
 	// Keep aria-selected in sync with the visual is-active state so screen
 	// readers and assistive tech announce the active tab correctly.
-	const tabs = document.querySelectorAll('.rail__item[data-tab]');
+	const tabs = document.querySelectorAll('.tabs__item[data-tab]');
 	const panels = document.querySelectorAll('.panel');
 	function activateTab(tab) {
 		tabs.forEach((t) => {
@@ -29,11 +29,11 @@
 		tab.addEventListener('keydown', (e) => {
 			const list = [...tabs];
 			const i = list.indexOf(tab);
-			if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+			if (e.key === 'ArrowRight') {
 				e.preventDefault();
 				const next = list[(i + 1) % list.length];
 				next.focus(); activateTab(next);
-			} else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+			} else if (e.key === 'ArrowLeft') {
 				e.preventDefault();
 				const prev = list[(i - 1 + list.length) % list.length];
 				prev.focus(); activateTab(prev);
@@ -47,70 +47,167 @@
 		});
 	});
 
-	// Live "saved" indicator — call flashSaved() after any change that has
-	// already been persisted, so the user sees the rail footer briefly
-	// acknowledge the write.
+	// Header save indicator: flashes after every persisted change.
 	const saveStatus = document.getElementById('save-status');
+	const saveText = saveStatus?.querySelector('.bar__status-text');
 	let saveFlashTimer = null;
 	function flashSaved() {
-		if (!saveStatus) return;
+		if (!saveStatus || !saveText) return;
+		saveStatus.classList.remove('is-saving');
+		void saveStatus.offsetWidth; // restart the pulse animation
 		saveStatus.classList.add('is-saving');
-		saveStatus.querySelector('span:last-child').textContent = 'saved · just now';
+		saveText.textContent = 'Saving';
 		clearTimeout(saveFlashTimer);
 		saveFlashTimer = setTimeout(() => {
 			saveStatus.classList.remove('is-saving');
-			saveStatus.querySelector('span:last-child').textContent = 'autosaved';
-		}, 1600);
+			saveText.textContent = 'Saved';
+		}, 1200);
 	}
 
+	const versionEl = document.getElementById('app-version');
+	if (versionEl) versionEl.textContent = `v${chrome.runtime.getManifest().version}`;
+
 	// ---- Features tab ----
+	// Features are grouped here by id so the feature modules stay untouched.
+	// Any id missing from GROUPS lands in "Other", so new features still show.
+	const ICONS = {
+		farm: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/>',
+		reports: '<path d="M4 4h16v16H4z"/><path d="M4 8l8 5 8-5"/>',
+		resources: '<path d="M12 2l3 7h7l-5.5 4.5 2 7.5L12 16.5 5.5 21l2-7.5L2 9h7z"/>',
+		hero: '<circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 5.4 8 12 8 12s8-6.6 8-12a8 8 0 0 0-8-8z"/>',
+		tools: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+	};
+	const GROUPS = [
+		{ id: 'farm', name: 'Farm lists', col: 0, ids: ['farmlist-multi-select', 'farmlist-bounty-sort', 'farmlist-edit-chooser'] },
+		{ id: 'reports', name: 'Reports', col: 0, ids: ['report-opener', 'loot-calc'] },
+		{ id: 'hero', name: 'Hero', col: 0, ids: ['adventure-sort'] },
+		{ id: 'resources', name: 'Resources', col: 1, ids: ['village-resource-total', 'resource-full-time', 'trade-route-production', 'upgrade-values'] },
+		{ id: 'tools', name: 'Tools', col: 1, ids: ['todolist'] },
+	];
+
 	const featuresRoot = document.getElementById('features');
 	const featureCountEl = document.getElementById('feature-active-count');
-	function updateFeatureCount(enabled) {
-		const total = window.TravianQoL.features.length;
-		const active = window.TravianQoL.features.filter((f) => enabled[f.id] !== false).length;
-		if (featureCountEl) featureCountEl.textContent = `${active}/${total}`;
+	const allFeatures = window.TravianQoL.features;
+	const isOn = (enabled, id) => enabled[id] !== false;
+
+	function groupedFeatures() {
+		const byId = new Map(allFeatures.map((f) => [f.id, f]));
+		const used = new Set();
+		const groups = GROUPS.map((g) => {
+			const features = g.ids.map((id) => byId.get(id)).filter(Boolean);
+			features.forEach((f) => used.add(f.id));
+			return { ...g, features };
+		});
+		const rest = allFeatures.filter((f) => !used.has(f.id));
+		if (rest.length) groups.push({ id: 'tools', name: 'Other', col: 1, features: rest });
+		return groups.filter((g) => g.features.length);
 	}
+
+	function svgIcon(paths) {
+		const span = document.createElement('span');
+		span.className = 'group__icon';
+		span.setAttribute('aria-hidden', 'true');
+		// Static, hard-coded markup from ICONS only.
+		span.innerHTML = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+		return span;
+	}
+
+	function makeSwitch(label) {
+		const cb = document.createElement('input');
+		cb.type = 'checkbox';
+		cb.className = 'switch';
+		if (label) cb.setAttribute('aria-label', label);
+		return cb;
+	}
+
 	function renderFeatures(enabled) {
-		featuresRoot.innerHTML = '';
-		updateFeatureCount(enabled);
-		for (const feature of window.TravianQoL.features) {
+		const save = () => chrome.storage.sync.set({ [KEY]: enabled }, flashSaved);
+		const groupViews = [];
+
+		function refresh() {
+			const active = allFeatures.filter((f) => isOn(enabled, f.id)).length;
+			featureCountEl.innerHTML = '';
+			const b = document.createElement('b');
+			b.textContent = String(active);
+			featureCountEl.append(b, `/${allFeatures.length} on`);
+			for (const v of groupViews) {
+				const on = v.features.filter((f) => isOn(enabled, f.id)).length;
+				const all = on === v.features.length;
+				v.count.textContent = `${on}/${v.features.length}`;
+				v.toggle.checked = all;
+				v.toggle.indeterminate = on > 0 && !all;
+				v.el.classList.toggle('is-all-on', all);
+				for (const r of v.rows) {
+					r.cb.checked = isOn(enabled, r.id);
+					r.row.classList.toggle('is-on', r.cb.checked);
+				}
+			}
+		}
+
+		function setMany(ids, value) {
+			for (const id of ids) enabled[id] = value;
+			save();
+			refresh();
+		}
+
+		function buildRow(feature) {
 			const row = document.createElement('label');
 			row.className = 'feature';
-			// Description moves to native tooltip in the compact popup
-			// layout so the row fits on a single line. Screen readers
-			// also read this on focus.
 			if (feature.description) row.title = feature.description;
-			const cb = document.createElement('input');
-			cb.type = 'checkbox';
-			cb.checked = enabled[feature.id] !== false;
-			cb.addEventListener('change', () => {
-				enabled[feature.id] = cb.checked;
-				chrome.storage.sync.set({ [KEY]: enabled }, flashSaved);
-				updateFeatureCount(enabled);
-			});
-			const meta = document.createElement('div');
-			meta.className = 'meta';
-			const label = document.createElement('div');
-			label.className = 'label';
-			const labelText = document.createElement('span');
-			labelText.textContent = feature.label || feature.id;
-			label.appendChild(labelText);
-			// Features without destroy() can't be torn down live, so they get a
-			// small "On refresh" tag: toggling them needs a page reload.
+			const label = document.createElement('span');
+			label.className = 'feature__label';
+			label.textContent = feature.label || feature.id;
+			row.appendChild(label);
+			// Features without destroy() cannot be torn down live.
 			if (typeof feature.destroy !== 'function') {
 				const tag = document.createElement('span');
-				tag.className = 'tag tag--page';
-				tag.textContent = 'On refresh';
-				label.appendChild(tag);
+				tag.className = 'feature__tag';
+				tag.textContent = 'Refresh';
+				tag.title = 'Takes effect after a page reload';
+				row.appendChild(tag);
 			}
-			const desc = document.createElement('div');
-			desc.className = 'desc';
-			desc.textContent = feature.description || '';
-			meta.append(label, desc);
-			row.append(cb, meta);
-			featuresRoot.append(row);
+			const cb = makeSwitch();
+			cb.addEventListener('change', () => setMany([feature.id], cb.checked));
+			row.appendChild(cb);
+			return { id: feature.id, row, cb };
 		}
+
+		function buildGroup(g) {
+			const el = document.createElement('section');
+			el.className = 'group';
+			const head = document.createElement('div');
+			head.className = 'group__head';
+			const name = document.createElement('span');
+			name.className = 'group__name';
+			name.textContent = g.name;
+			const count = document.createElement('span');
+			count.className = 'group__count';
+			const toggle = makeSwitch(`All ${g.name}`);
+			toggle.addEventListener('change', () => setMany(g.features.map((f) => f.id), toggle.checked));
+			head.append(svgIcon(ICONS[g.id] || ICONS.tools), name, count, toggle);
+			el.appendChild(head);
+			const rows = g.features.map(buildRow);
+			rows.forEach((r) => el.appendChild(r.row));
+			return { el, count, toggle, rows, features: g.features };
+		}
+
+		featuresRoot.innerHTML = '';
+		const cols = [0, 1].map(() => {
+			const c = document.createElement('div');
+			c.className = 'groups__col';
+			featuresRoot.appendChild(c);
+			return c;
+		});
+		for (const g of groupedFeatures()) {
+			const view = buildGroup(g);
+			cols[g.col].appendChild(view.el);
+			groupViews.push(view);
+		}
+
+		const allIds = allFeatures.map((f) => f.id);
+		document.getElementById('features-all-on').onclick = () => setMany(allIds, true);
+		document.getElementById('features-all-off').onclick = () => setMany(allIds, false);
+		refresh();
 	}
 	chrome.storage.sync.get([KEY], (res) => {
 		renderFeatures(res[KEY] || {});
@@ -249,9 +346,8 @@
 
 		if (isGlobal) {
 			const note = document.createElement('div');
-			note.className = 'lc-empty';
-			note.textContent =
-				'Used on every server that has no settings of its own. A new server picks up the default unit for whichever tribe it detects you playing.';
+			note.className = 'lc-note';
+			note.textContent = 'Applies to servers without their own settings.';
 			settingsRoot.appendChild(note);
 		}
 
@@ -278,7 +374,7 @@
 		unitRow.className = 'lc-row';
 		const unitLbl = document.createElement('label');
 		unitLbl.htmlFor = 'lc-unit';
-		unitLbl.textContent = 'Default Unit';
+		unitLbl.textContent = 'Default unit';
 		unitRow.appendChild(unitLbl);
 		const unitSel = document.createElement('select');
 		unitSel.id = 'lc-unit';
@@ -309,21 +405,23 @@
 		autoRow.className = 'lc-row lc-row--check';
 		const autoChk = document.createElement('input');
 		autoChk.type = 'checkbox';
+		autoChk.className = 'switch';
 		autoChk.checked = !!autoEnabled;
-		autoRow.append(autoChk, document.createTextNode(' Show unit badges on report pages'));
+		autoRow.append(autoChk, document.createTextNode('Unit badges on report pages'));
 
 		const debugRow = document.createElement('label');
 		debugRow.className = 'lc-row lc-row--check';
 		const debugChk = document.createElement('input');
 		debugChk.type = 'checkbox';
+		debugChk.className = 'switch';
 		debugChk.checked = !!debug;
-		debugRow.append(debugChk, document.createTextNode(' Enable debug logging'));
+		debugRow.append(debugChk, document.createTextNode('Debug logging'));
 
 		const offRow = document.createElement('div');
 		offRow.className = 'lc-row';
 		const offLbl = document.createElement('label');
 		offLbl.htmlFor = 'lc-offx';
-		offLbl.textContent = 'Badge offset (X / Y)';
+		offLbl.textContent = 'Badge offset X / Y';
 		offRow.appendChild(offLbl);
 		const offXInput = document.createElement('input');
 		offXInput.type = 'number';
@@ -344,7 +442,7 @@
 		// offer to drop their overrides so it takes effect everywhere.
 		if (isGlobal) {
 			const overrideRow = document.createElement('div');
-			overrideRow.className = 'lc-empty lc-override';
+			overrideRow.className = 'lc-override';
 			unitRow.after(overrideRow);
 			const renderOverrides = async () => {
 				const overrides = await findUnitOverrides();
@@ -357,7 +455,7 @@
 					`having a unit of their own: ${overrides.map((o) => `${o.host} (${o.unit})`).join(', ')}.`;
 				const btn = document.createElement('button');
 				btn.type = 'button';
-				btn.className = 'lc-reset';
+				btn.className = 'btn';
 				btn.textContent = 'Clear server overrides';
 				btn.onclick = async () => {
 					await chrome.storage.local.remove(overrides.map((o) => `tlw_auto_unit_${o.host}`));
@@ -425,483 +523,4 @@
 		renderServerSettings(initial);
 	}
 	initLootCalcTab();
-
-	// =====================================================================
-	// Counter-attack tab
-	// =====================================================================
-	// Mirrors inactivesearch.it/tools/counter-attack-calculator: take an
-	// incoming attack's arrival time + the attacker's slowest unit + both
-	// villages' coords, compute (a) when their army returns home, and
-	// (b) when you must launch a counter to land at that same moment.
-	(function initCounterAttackTab() {
-		const root = document.getElementById('tab-counter');
-		if (!root) return;
-
-		// Canonical Travian unit speeds (fields/hour) by tribe, including
-		// the slow late-game units that usually pace an attack (rams, catas,
-		// chiefs, settlers). Grouped in the dropdown by tribe.
-		const UNITS = {
-			Romans: [
-				['Legionnaire', 6], ['Praetorian', 5], ['Imperian', 7],
-				['Equites Legati', 16], ['Equites Imperatoris', 14], ['Equites Caesaris', 10],
-				['Battering Ram', 4], ['Fire Catapult', 3], ['Senator', 4], ['Settler', 5],
-			],
-			Teutons: [
-				['Clubswinger', 7], ['Spearman', 7], ['Axeman', 6], ['Scout', 9],
-				['Paladin', 10], ['Teutonic Knight', 9],
-				['Ram', 4], ['Catapult', 3], ['Chief', 4], ['Settler', 5],
-			],
-			Gauls: [
-				['Phalanx', 7], ['Swordsman', 6], ['Pathfinder', 17],
-				['Theutates Thunder', 19], ['Druidrider', 16], ['Haeduan', 13],
-				['Ram', 4], ['Trebuchet', 3], ['Chieftain', 5], ['Settler', 5],
-			],
-			Egyptians: [
-				['Slave Militia', 7], ['Ash Warden', 6], ['Khopesh Warrior', 7],
-				['Sopdu Explorer', 16], ['Anhur Guard', 15], ['Resheph Chariot', 10],
-				['Ram', 4], ['Stone Catapult', 3], ['Nomarch', 4], ['Settler', 5],
-			],
-			Huns: [
-				['Mercenary', 6], ['Bowman', 6], ['Spotter', 19],
-				['Steppe Rider', 16], ['Marksman', 14], ['Marauder', 13],
-				['Ram', 4], ['Catapult', 3], ['Logades', 5], ['Settler', 5],
-			],
-			Spartans: [
-				['Hoplite', 7], ['Sentinel', 9], ['Shieldsman', 7],
-				['Twinsteel Therion', 6], ['Elpida Rider', 16], ['Corinthian Crusher', 13],
-				['Ram', 4], ['Ballista', 3], ['Ephor', 5], ['Settler', 5],
-			],
-		};
-
-		function populateUnitSelect(sel) {
-			sel.innerHTML = '';
-			for (const tribe of Object.keys(UNITS)) {
-				const g = document.createElement('optgroup');
-				g.label = tribe;
-				for (const [name, speed] of UNITS[tribe]) {
-					const o = document.createElement('option');
-					o.value = String(speed);
-					o.textContent = `${name} — ${speed} f/h`;
-					g.appendChild(o);
-				}
-				sel.appendChild(g);
-			}
-		}
-		function populateTsSelect(sel) {
-			sel.innerHTML = '';
-			for (let i = 0; i <= 20; i++) {
-				const o = document.createElement('option');
-				o.value = String(i);
-				o.textContent = i === 0 ? '—' : String(i);
-				sel.appendChild(o);
-			}
-		}
-
-		root.querySelectorAll('select[data-att="speed"], select[data-int="speed"]').forEach(populateUnitSelect);
-		root.querySelectorAll('select[data-att="ts"], select[data-int="ts"]').forEach(populateTsSelect);
-
-		// Village picker for the interceptor — populated from the village
-		// snapshot the content script writes to chrome.storage.local on
-		// every Travian page load. Stays hidden until a snapshot exists.
-		const intCoordsEl = root.querySelector('[data-int="coords"]');
-		const villagePicker = document.getElementById('ca-int-village');
-		// The picker now lives in its own grid cell — hide the whole
-		// field (the wrapping <label>) when there's no snapshot, not just
-		// the <select>, so the column gap collapses cleanly.
-		const villageField = villagePicker.closest('.ca__field');
-		let villages = [];
-		function loadVillages(snapshot) {
-			const list = snapshot?.list || [];
-			villages = list.filter((v) => Number.isFinite(v.x) && Number.isFinite(v.y));
-			// Storage callbacks are async, so the rest of the tab is ready.
-			recompute();
-			if (!list.length) { villageField.hidden = true; return; }
-			villagePicker.innerHTML = '';
-			const placeholder = document.createElement('option');
-			placeholder.value = '';
-			placeholder.textContent = `— pick (${list.length}) —`;
-			villagePicker.appendChild(placeholder);
-			for (const v of list) {
-				const o = document.createElement('option');
-				o.value = `(${v.x}|${v.y})`;
-				o.textContent = `${v.name} (${v.x}|${v.y})`;
-				villagePicker.appendChild(o);
-			}
-			villageField.hidden = false;
-		}
-		villagePicker.addEventListener('change', () => {
-			if (!villagePicker.value) return;
-			intCoordsEl.value = villagePicker.value;
-			intCoordsEl.dispatchEvent(new Event('input', { bubbles: true }));
-			villagePicker.selectedIndex = 0;
-		});
-		chrome.storage.local.get(['travianQoL.villages'], (res) => loadVillages(res['travianQoL.villages']));
-		chrome.storage.onChanged.addListener((changes, area) => {
-			if (area === 'local' && changes['travianQoL.villages']) {
-				loadVillages(changes['travianQoL.villages'].newValue);
-			}
-		});
-
-		// Sensible defaults: slowest units on each side default to ram/cata.
-		root.querySelector('select[data-att="speed"]').value = '4';
-		root.querySelector('select[data-int="speed"]').value = '4';
-
-		// Pre-fill arrival time with "now + 30 min" so the user has a
-		// concrete starting point.
-		const arrivalEl = document.getElementById('ca-arrival');
-		function setArrival(t) {
-			const pad = (n) => String(n).padStart(2, '0');
-			arrivalEl.value = `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}T${pad(t.getHours())}:${pad(t.getMinutes())}:${pad(t.getSeconds())}`;
-		}
-		setArrival(new Date(Date.now() + 30 * 60 * 1000));
-
-		// "Arrives in" takes the countdown shown on the incoming attack
-		// (h:mm:ss or mm:ss) and turns it into the arrival time. Its own
-		// listener runs before the panel's bubbling one, so recompute()
-		// already sees the new arrival.
-		const arrivesInEl = document.getElementById('ca-arrives-in');
-		function parseCountdown(str) {
-			const parts = String(str).trim().split(':');
-			if (parts.length < 2 || parts.length > 3 || parts.some((p) => !/^\d+$/.test(p))) return null;
-			const [h, m, s] = parts.length === 3 ? parts.map(Number) : [0, ...parts.map(Number)];
-			if (m > 59 || s > 59) return null;
-			return (h * 3600 + m * 60 + s) * 1000;
-		}
-		arrivesInEl.addEventListener('input', () => {
-			const ms = parseCountdown(arrivesInEl.value);
-			if (ms != null) setArrival(new Date(Date.now() + ms));
-		});
-		arrivalEl.addEventListener('input', () => { arrivesInEl.value = ''; });
-
-		// Persist inputs across sessions. Arrival time is intentionally
-		// excluded — it auto-prefills to now+30m, which beats restoring a
-		// stale timestamp from a previous session.
-		const STORAGE_KEY = 'travianQoL.counterAttack.inputs';
-		const PERSIST_IDS = ['ca-target', 'ca-server-speed', 'ca-map'];
-		const PERSIST_DATA = [
-			['att', 'coords'], ['att', 'speed'], ['att', 'ts'], ['att', 'boots'], ['att', 'art'],
-			['int', 'coords'], ['int', 'speed'], ['int', 'ts'], ['int', 'boots'], ['int', 'art'], ['int', 'delay'],
-		];
-		function snapshotInputs() {
-			const data = {};
-			for (const id of PERSIST_IDS) {
-				const el = document.getElementById(id);
-				if (el) data[id] = el.value;
-			}
-			for (const [side, key] of PERSIST_DATA) {
-				const el = root.querySelector(`[data-${side}="${key}"]`);
-				if (el) data[`${side}.${key}`] = el.value;
-			}
-			return data;
-		}
-		function restoreInputs(data) {
-			if (!data) return;
-			for (const id of PERSIST_IDS) {
-				if (data[id] != null) {
-					const el = document.getElementById(id);
-					if (el) el.value = data[id];
-				}
-			}
-			for (const [side, key] of PERSIST_DATA) {
-				const v = data[`${side}.${key}`];
-				if (v == null) continue;
-				const el = root.querySelector(`[data-${side}="${key}"]`);
-				if (el) el.value = v;
-			}
-		}
-		let saveTimer = null;
-		function scheduleSave() {
-			clearTimeout(saveTimer);
-			saveTimer = setTimeout(() => {
-				chrome.storage.local.set({ [STORAGE_KEY]: snapshotInputs() });
-			}, 250);
-		}
-		chrome.storage.local.get([STORAGE_KEY], (res) => {
-			restoreInputs(res[STORAGE_KEY]);
-			recompute();
-		});
-
-		// --- math ---
-		function parseCoords(str) {
-			if (!str) return null;
-			// Pasted Travian coordinates use U+2212 and bidi marks; without this
-			// "(−5|3)" parses as (5|3) and the launch time is wrong.
-			const m = String(str)
-				.replace(/[‪-‮‎‏]/g, '')
-				.replace(/[−‒–]/g, '-')
-				.match(/-?\d+/g);
-			if (!m || m.length < 2) return null;
-			return { x: parseInt(m[0], 10), y: parseInt(m[1], 10) };
-		}
-		function torusDistance(a, b, mapSize) {
-			// Map is square with coords in [-S/2 .. +S/2]; wrap-around uses
-			// `mapSize` (200/400/800) as the perimeter.
-			const dx = Math.min(Math.abs(a.x - b.x), mapSize - Math.abs(a.x - b.x));
-			const dy = Math.min(Math.abs(a.y - b.y), mapSize - Math.abs(a.y - b.y));
-			return Math.sqrt(dx * dx + dy * dy);
-		}
-		// Travian help, "Troops Speed Increase & Tournament Square": artefacts
-		// multiply the whole trip; boots and the Tournament Square only count
-		// after the first 20 fields, and their bonuses ADD (+25% boots and
-		// TS 10 = x(1 + 0.25 + 2), not x1.25 x3).
-		// Travian help, "Game Versions and Speed": troops move x2 on x2, x3
-		// and x5 servers and x4 on x10, not at the server's game speed.
-		const TROOP_SPEED = { 1: 1, 2: 2, 3: 2, 5: 2, 10: 4 };
-		function troopSpeedFor(gameSpeed) {
-			return TROOP_SPEED[parseInt(gameSpeed, 10)] || 1;
-		}
-		const TS_FREE_FIELDS = 20;
-		const TS_BONUS_PER_LEVEL = 0.2;
-		function travelSeconds(dist, baseSpeed, serverSpeed, artefact, bootsMult, tsLevel) {
-			const speed = baseSpeed * serverSpeed * artefact; // fields/hour
-			if (!Number.isFinite(speed) || speed <= 0) return Infinity;
-			if (dist <= TS_FREE_FIELDS) return (dist / speed) * 3600;
-			const beyondBonus = 1 + (bootsMult - 1) + TS_BONUS_PER_LEVEL * tsLevel;
-			const beyond = dist - TS_FREE_FIELDS;
-			return (TS_FREE_FIELDS / speed + beyond / (speed * beyondBonus)) * 3600;
-		}
-		function fmtDuration(sec) {
-			if (!Number.isFinite(sec) || sec < 0) return '—';
-			sec = Math.round(sec);
-			const h = Math.floor(sec / 3600);
-			const m = Math.floor((sec % 3600) / 60);
-			const s = sec % 60;
-			const pad = (n) => String(n).padStart(2, '0');
-			return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
-		}
-		function fmtTime(d) {
-			if (!(d instanceof Date) || isNaN(d)) return '—';
-			const pad = (n) => String(n).padStart(2, '0');
-			const same = (a, b) =>
-				a.getFullYear() === b.getFullYear() &&
-				a.getMonth() === b.getMonth() &&
-				a.getDate() === b.getDate();
-			const today = new Date();
-			const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
-			const stamp = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-			if (same(d, today)) return stamp;
-			if (same(d, tomorrow)) return `tomorrow ${stamp}`;
-			return `${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${stamp}`;
-		}
-
-		const outEl = document.getElementById('ca-out');
-		function read(side, key) {
-			const el = root.querySelector(`[data-${side}="${key}"]`);
-			return el ? el.value : '';
-		}
-
-		// Last computed plan; consumed by the countdown tick so we can refresh
-		// the "launch in / too late" banner once per second without redoing
-		// the trig on every frame.
-		let plan = null;
-
-		function escapeHtml(s) {
-			return String(s).replace(/[&<>"']/g, (c) => ({
-				'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-			}[c]));
-		}
-
-		// Vertical sequence of the events that matter, in time order. A
-		// stacked rail can never overlap (unlike the old horizontal strip),
-		// so no collision/stagger logic is needed — just render rows.
-		// `events` arrive pre-sorted; the last row drops its connector line.
-		function buildSequence(events) {
-			const rows = events.map((e, i) => {
-				const isLast = i === events.length - 1;
-				return `
-					<div class="ca__seq-row" data-kind="${e.kind}">
-						<span class="ca__seq-time">${escapeHtml(fmtTime(e.t))}</span>
-						<span class="ca__seq-rail">
-							<span class="ca__seq-dot"></span>
-							${isLast ? '' : '<span class="ca__seq-line"></span>'}
-						</span>
-						<span class="ca__seq-body">
-							<span class="ca__seq-label">${escapeHtml(e.label)}</span>
-							${e.desc ? `<span class="ca__seq-desc">${escapeHtml(e.desc)}</span>` : ''}
-						</span>
-					</div>`;
-			}).join('');
-			return `
-				<div class="ca__seq">
-					<div class="ca__seq-head">Sequence</div>
-					${rows}
-				</div>`;
-		}
-
-		// Launch time from every village in the sidebar snapshot, soonest
-		// launch first. Rows already past their launch time sort last.
-		// `rows` carry {name, x, y, dist, t, depart}.
-		function buildVillageTable(rows, selected) {
-			if (rows.length < 2) return '';
-			const now = Date.now();
-			const sorted = [...rows].sort((a, b) => {
-				const late = (r) => r.depart.getTime() < now - 1000;
-				if (late(a) !== late(b)) return late(a) ? 1 : -1;
-				return late(a) ? b.depart - a.depart : a.depart - b.depart;
-			});
-			const body = sorted.map((r) => {
-				const coords = `(${r.x}|${r.y})`;
-				const isSel = selected && selected.x === r.x && selected.y === r.y;
-				const missed = r.depart.getTime() < now - 1000;
-				return `
-					<tr class="${missed ? 'ca__vt-missed' : ''}${isSel ? ' ca__vt-sel' : ''}" data-coords="${escapeHtml(coords)}" tabindex="0">
-						<td>${escapeHtml(r.name)} <span class="ca__vt-xy">${escapeHtml(coords)}</span></td>
-						<td>${r.dist.toFixed(1)}</td>
-						<td>${escapeHtml(fmtDuration(r.t))}</td>
-						<td>${missed ? 'Missed' : escapeHtml(fmtTime(r.depart))}</td>
-					</tr>`;
-			}).join('');
-			return `
-				<table class="ca__vt">
-					<thead><tr><th>Village</th><th>Fields</th><th>Travel</th><th>Launch</th></tr></thead>
-					<tbody>${body}</tbody>
-				</table>`;
-		}
-
-		function statusFor(launchAt) {
-			// No counter target → neutral banner.
-			if (!launchAt) {
-				return { cls: '', label: 'Waiting', value: '—', sub: 'Add interceptor coords to plan a counter.' };
-			}
-			const ms = launchAt.getTime() - Date.now();
-			if (ms <= -1000) {
-				return { cls: 'ca__answer--bad', label: 'Too late', value: 'MISSED', sub: `Should have launched ${fmtDuration(-ms / 1000)} ago.` };
-			}
-			if (ms <= 10_000) {
-				return { cls: 'ca__answer--bad', label: 'Launch now', value: 'NOW', sub: 'Send the counter immediately.' };
-			}
-			if (ms <= 10 * 60 * 1000) {
-				return { cls: 'ca__answer--warn', label: 'Launch in', value: fmtDuration(ms / 1000), sub: `at ${fmtTime(launchAt)}` };
-			}
-			return { cls: 'ca__answer--ok', label: 'Launch in', value: fmtDuration(ms / 1000), sub: `at ${fmtTime(launchAt)}` };
-		}
-
-		// Re-render just the answer block — cheap; runs once per second.
-		function renderStatus(launchAt) {
-			const s = statusFor(launchAt);
-			const node = outEl.querySelector('.ca__answer');
-			if (!node) return;
-			node.className = `ca__answer ${s.cls}`.trim();
-			node.querySelector('.ca__answer-label').textContent = s.label;
-			node.querySelector('.ca__countdown').textContent = s.value;
-			node.querySelector('.ca__answer-note').textContent = s.sub;
-		}
-
-		function recompute() {
-			const target = parseCoords(document.getElementById('ca-target').value);
-			const att = parseCoords(read('att', 'coords'));
-			const inter = parseCoords(read('int', 'coords'));
-			const arrival = arrivalEl.value ? new Date(arrivalEl.value) : null;
-			const serverSpeed = troopSpeedFor(document.getElementById('ca-server-speed').value);
-			const delaySec = Math.max(0, parseFloat(read('int', 'delay')) || 0);
-			const mapSize = parseInt(document.getElementById('ca-map').value, 10) || 400;
-
-			const aSpeed = parseFloat(read('att', 'speed')) || 0;
-			const aTs = parseInt(read('att', 'ts'), 10) || 0;
-			const aBoots = parseFloat(read('att', 'boots')) || 1;
-			const aArt = parseFloat(read('att', 'art')) || 1;
-
-			const iSpeed = parseFloat(read('int', 'speed')) || 0;
-			const iTs = parseInt(read('int', 'ts'), 10) || 0;
-			const iBoots = parseFloat(read('int', 'boots')) || 1;
-			const iArt = parseFloat(read('int', 'art')) || 1;
-
-			const errs = [];
-			if (!target) errs.push('target coords');
-			if (!att) errs.push('attacker coords');
-			if (!arrival || isNaN(arrival)) errs.push('arrival time');
-			if (errs.length) {
-				outEl.className = 'ca__out';
-				outEl.innerHTML = `<div class="ca__hint">Fill ${errs.join(', ')} to calculate.</div>`;
-				plan = null;
-				return;
-			}
-
-			// 1) Distance + travel times for the incoming attack.
-			const distAtt = torusDistance(target, att, mapSize);
-			const tAtt = travelSeconds(distAtt, aSpeed, serverSpeed, aArt, aBoots, aTs);
-			const depart = new Date(arrival.getTime() - tAtt * 1000);
-			const returns = new Date(arrival.getTime() + tAtt * 1000);
-
-			// 2) Counter — must land on the attacker's village the moment
-			//    their army gets back home.
-			//    `delaySec` lands it that many seconds after they are home.
-			const landAt = new Date(returns.getTime() + delaySec * 1000);
-			const counterFrom = (from) => {
-				const dist = torusDistance(att, from, mapSize);
-				const t = travelSeconds(dist, iSpeed, serverSpeed, iArt, iBoots, iTs);
-				return { dist, t, depart: new Date(landAt.getTime() - t * 1000) };
-			};
-			let distInt = 0, tInt = 0, counterDepart = null;
-			if (inter && iSpeed > 0) {
-				({ dist: distInt, t: tInt, depart: counterDepart } = counterFrom(inter));
-			}
-
-			plan = { counterDepart };
-
-			// Sequence events in time order. Arrival is user input; the
-			// calculated moments are `returns` (attacker army home) and the
-			// counter launch. Each carries a short desc for the sequence rail.
-			const events = [];
-			events.push({ t: arrival, kind: 'hit-us', label: 'Attack hits us', desc: 'their army turns for home' });
-			if (counterDepart) events.push({ t: counterDepart, kind: 'counter', label: 'Launch your counter \u2192', desc: `travel ${fmtDuration(tInt)} \u00b7 ${distInt.toFixed(1)} f` });
-			if (counterDepart && delaySec > 0) {
-				events.push({ t: returns, kind: 'return', label: 'Army home', desc: 'attacker army back home' });
-				events.push({ t: landAt, kind: 'return', label: 'Counter lands', desc: `${fmtDuration(delaySec)} after return` });
-			} else {
-				events.push({ t: returns, kind: 'return', label: 'Army home \u00b7 counter lands', desc: counterDepart ? 'snipe connects' : 'attacker army back home' });
-			}
-			events.sort((a, b) => a.t - b.t);
-
-			// Bottom raw strip — distances + counter travel only. Each side
-			// is a grid cell; CSS draws the divider between them so it aligns
-			// with the answer/sequence column boundary above.
-			const rawCounter = counterDepart
-				? `<span><b>Counter</b> ${distInt.toFixed(1)} f \u00b7 travel ${fmtDuration(tInt)}</span>`
-				: '';
-
-			outEl.className = 'ca__out ca__out--rich';
-			outEl.innerHTML = `
-				<div class="ca__plan">
-					<div class="ca__answer">
-						<span class="ca__answer-label"></span>
-						<span class="ca__countdown"></span>
-						<span class="ca__answer-note"></span>
-					</div>
-					${buildSequence(events)}
-				</div>
-				<div class="ca__raw">
-					<span><b>Att</b> ${distAtt.toFixed(1)} f</span>
-					${rawCounter}
-				</div>
-				${iSpeed > 0 ? buildVillageTable(villages.map((v) => ({ ...v, ...counterFrom(v) })), inter) : ''}`;
-
-			renderStatus(counterDepart);
-		}
-
-		// Picking a row in the village table makes it the interceptor.
-		function useVillageRow(row) {
-			if (!row) return;
-			intCoordsEl.value = row.dataset.coords;
-			intCoordsEl.dispatchEvent(new Event('input', { bubbles: true }));
-		}
-		outEl.addEventListener('click', (e) => useVillageRow(e.target.closest('tr[data-coords]')));
-		outEl.addEventListener('keydown', (e) => {
-			if (e.key !== 'Enter' && e.key !== ' ') return;
-			const row = e.target.closest('tr[data-coords]');
-			if (row) { e.preventDefault(); useVillageRow(row); }
-		});
-
-		// Wire up live recompute on any change/input within the panel.
-		root.addEventListener('input', () => { recompute(); scheduleSave(); });
-		root.addEventListener('change', () => { recompute(); scheduleSave(); });
-		// 1-Hz countdown refresh — cheap, only touches the answer block. Tracked
-		// so we can drop it on page unload (cleanliness, not necessity).
-		const tickId = setInterval(() => { if (plan) renderStatus(plan.counterDepart); }, 1000);
-		window.addEventListener('beforeunload', () => clearInterval(tickId), { once: true });
-		recompute();
-		// Note: chrome.storage.local.get above will call recompute() again
-		// once the persisted snapshot loads. The synchronous call here keeps
-		// the "fill X to calculate" hint visible during that brief window.
-	})();
 })();

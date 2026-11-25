@@ -84,7 +84,7 @@ TravAlarm refreshes game data only while its Travian tab is visible (a second mo
 
 <a href="images/qol-settings.png"><img src="images/qol-settings.png" alt="Travian QoL feature controls" width="520" /></a>
 
-Open the toolbar popup or **Options** page. Features are enabled by default and have separate toggles. **Hot-toggle** applies immediately; **On refresh** requires reloading the page.
+Open the toolbar popup or **Options** page. Features are enabled by default and grouped by area; each feature has its own switch, each group has a switch for all its features, and **All on** / **All off** switch everything. Features tagged **Refresh** take effect after reloading the page; the rest apply immediately.
 
 | Feature | Usage |
 | --- | --- |
