@@ -1,5 +1,10 @@
 # Changelog
 
+## TravAlarm 3.68 — 2026-11-25
+
+- FNPC adds returning raid bounties and incoming merchant deliveries at their arrival times, each capped by storage, instead of an hourly raid income average. TravAlarm reads them from the rally point overview and the marketplace when you open those pages; it sends no extra requests.
+- TravAlarm no longer receives raid income from Rank Tracker.
+
 ## Travian QoL 1.4.6 — 2026-11-25
 
 - Counter-attack calculator: troop speed now follows Travian's server rules (x2 on 2x, 3x and 5x servers, x4 on 10x). Before, a 3x server moved troops at x3, so launch times were off.

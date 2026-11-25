@@ -325,11 +325,18 @@ function readPageResources(doc = document) {
  * @param {number} costTotal summed cost
  */
 function npcEtaHours(stock, prod, caps, costTotal) {
-  const amt = stock.map((v, i) => Math.min(Math.max(v, 0), caps[i]));
-  const sum = () => amt.reduce((a, b) => a + b, 0);
+  return npcEtaWithEvents(stock, prod, caps, costTotal, []);
+}
+
+/**
+ * Grows `amt` in place for up to `horizon` hours, each resource stopping at
+ * its cap or at 0. Returns the hour the total reaches costTotal, or null if
+ * it does not within the horizon (with an Infinity horizon: never).
+ */
+function advanceNpcStock(amt, prod, caps, costTotal, horizon) {
   let t = 0;
-  for (let step = 0; step <= amt.length; step++) {
-    const total = sum();
+  for (let step = 0; step <= amt.length + 1; step++) {
+    const total = amt.reduce((a, b) => a + b, 0);
     if (total >= costTotal) return t;
     const active = prod.map(
       (p, i) => (p > 0 && amt[i] < caps[i]) || (p < 0 && amt[i] > 0),
@@ -339,18 +346,41 @@ function npcEtaHours(stock, prod, caps, costTotal) {
     prod.forEach((p, i) => {
       if (active[i]) dt = Math.min(dt, p > 0 ? (caps[i] - amt[i]) / p : amt[i] / -p);
     });
-    // A flat or falling total can still rise once draining crop hits 0.
-    if (rate <= 0 && !(isFinite(dt) && prod.some((p, i) => active[i] && p > 0))) {
-      return Infinity;
-    }
+    const seg = Math.min(dt, horizon - t);
     const need = rate > 0 ? (costTotal - total) / rate : Infinity;
-    if (need <= dt) return t + need;
-    t += dt;
+    if (need <= seg) return t + need;
+    if (!isFinite(seg)) return null;
     prod.forEach((p, i) => {
-      if (active[i]) amt[i] = Math.min(caps[i], Math.max(0, amt[i] + p * dt));
+      if (active[i]) amt[i] = Math.min(caps[i], Math.max(0, amt[i] + p * seg));
+    });
+    t += seg;
+    if (t >= horizon) return null;
+  }
+  return null;
+}
+
+/**
+ * Like npcEtaHours, plus resource deliveries (returning raids, incoming
+ * merchants) that land at known times. Each delivery is added to its
+ * resource and clamped to the storage cap; overflow is lost.
+ * @param {{inHours: number, res: number[]}[]} events deliveries; past ones are ignored
+ */
+function npcEtaWithEvents(stock, prod, caps, costTotal, events) {
+  const amt = stock.map((v, i) => Math.min(Math.max(v, 0), caps[i]));
+  const upcoming = events
+    .filter((e) => e.inHours > 0 && Array.isArray(e.res))
+    .sort((a, b) => a.inHours - b.inHours);
+  let t = 0;
+  for (const e of upcoming) {
+    const hit = advanceNpcStock(amt, prod, caps, costTotal, e.inHours - t);
+    if (hit !== null) return t + hit;
+    t = e.inHours;
+    e.res.forEach((r, i) => {
+      if (Number.isFinite(r) && r > 0) amt[i] = Math.min(caps[i], amt[i] + r);
     });
   }
-  return Infinity;
+  const hit = advanceNpcStock(amt, prod, caps, costTotal, Infinity);
+  return hit === null ? Infinity : t + hit;
 }
 
 /**
