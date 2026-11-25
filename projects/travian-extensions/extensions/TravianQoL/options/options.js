@@ -82,7 +82,7 @@
 		{ id: 'reports', name: 'Reports', col: 0, ids: ['report-opener', 'loot-calc'] },
 		{ id: 'hero', name: 'Hero', col: 0, ids: ['adventure-sort'] },
 		{ id: 'resources', name: 'Resources', col: 1, ids: ['village-resource-total', 'resource-full-time', 'trade-route-production', 'upgrade-values', 'build-order'] },
-		{ id: 'tools', name: 'Tools', col: 1, ids: ['todolist'] },
+		{ id: 'tools', name: 'Tools', col: 1, ids: ['todolist', 'smithy-efficiency'] },
 	];
 
 	const featuresRoot = document.getElementById('features');

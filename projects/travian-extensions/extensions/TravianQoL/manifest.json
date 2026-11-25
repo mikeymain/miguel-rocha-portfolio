@@ -6,7 +6,7 @@
 	},
 	"manifest_version": 3,
 	"name": "Travian QoL",
-	"version": "1.6.5",
+	"version": "1.6.6",
 	"description": "Collection of small quality-of-life tweaks for Travian. Each feature is independently toggleable.",
 	"permissions": ["storage", "contextMenus"],
 	"host_permissions": [
@@ -76,6 +76,8 @@
 				"features/upgrade-values/index.js",
 				"features/build-order/core.js",
 				"features/build-order/index.js",
+				"features/smithy-efficiency/core.js",
+				"features/smithy-efficiency/index.js",
 				"features/resource-full-time/index.js",
 				"features/trade-route-production/core.js",
 				"features/trade-route-production/index.js",

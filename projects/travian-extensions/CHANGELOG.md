@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.6.6 — 2026-11-25
+
+- Smithy efficiency: on the smithy page, each unit upgrade shows how many of that unit the next level needs to be worth its cost (break-even, as in Friso's Travian Tools), next to how many you have; green once you have enough. Spartan units are not covered yet.
+
 ## Travian QoL 1.6.5 — 2026-11-25
 
 - Build order tab: the production bonus is now set by picking up to three oases (25% of a resource, 50% crop, or a resource 25% + crop 25%) plus an editable building bonus % per resource. The totals per resource are shown under the pickers. A bonus entered before this version becomes the building bonus.
