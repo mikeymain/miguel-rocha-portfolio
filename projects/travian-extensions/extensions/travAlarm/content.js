@@ -216,7 +216,7 @@ function startTravAlarm() {
   const firstAlarms = api.runtime
     .sendMessage({ type: "GET_ACTIVE_ALARMS" })
     .catch(() => null);
-  Promise.all([loadProdCache(), restoreSectionState(), restoreVillageColors()]).then(() => {
+  Promise.all([loadProdCache(), deliveriesReady, restoreSectionState(), restoreVillageColors()]).then(() => {
     tryScan(scanNPCBuild, getActiveVillageName());
     startLoops(firstAlarms);
   });

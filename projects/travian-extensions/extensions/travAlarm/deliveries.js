@@ -16,10 +16,14 @@ const MARKET_RES_ICONS = ["lumber_small", "clay_small", "iron_small", "crop_smal
 // `${serverTag}_${did}` -> { raids: Delivery[], merchants: Delivery[] },
 // Delivery = { at: epoch ms, res: [w, c, i, cr] }.
 let _deliveries = {};
+// Writes rebuild the whole stored object, so none may happen before it loads.
+let _deliveriesLoaded = false;
+let deliveriesReady = Promise.resolve();
 try {
-  api.storage.local.get(DELIVERIES_KEY).then((r) => {
+  deliveriesReady = api.storage.local.get(DELIVERIES_KEY).then((r) => {
     _deliveries = r?.[DELIVERIES_KEY] || {};
-  });
+    _deliveriesLoaded = true;
+  }).catch(() => {});
   api.storage.onChanged.addListener((changes, area) => {
     if (area === "local" && changes[DELIVERIES_KEY]) {
       _deliveries = changes[DELIVERIES_KEY].newValue || {};
@@ -81,11 +85,13 @@ function parseIncomingMerchants(root, observedAt) {
   return { list: out, partial: !!group?.querySelector(".showAll") };
 }
 
+// The village view links the rally point as /slot?id=39 with no tab, so a
+// missing `tt` can still be the Overview the game remembered.
 function _isRallyOverview() {
-  const q = new URLSearchParams(window.location.search);
+  const tt = new URLSearchParams(window.location.search).get("tt");
   return (
-    /^\/(build\.php|building)$/.test(window.location.pathname) &&
-    q.get("tt") === "1" &&
+    /^\/(build\.php|building|slot)$/.test(window.location.pathname) &&
+    (tt === "1" || (tt === null && !!document.querySelector("table.troop_details"))) &&
     !!document.querySelector("#build.gid16")
   );
 }
@@ -116,6 +122,7 @@ function _storeDeliveries(key, kind, list) {
 
 /** Caches deliveries shown on the current page for the active village. */
 function scanDeliveries() {
+  if (!_deliveriesLoaded) return;
   const did = _readDidFromSidebar();
   if (!did) return;
   const key = `${serverTag}_${did}`;
