@@ -443,12 +443,37 @@ td.delta { text-align: right; white-space: nowrap; font-family: var(--font-num);
 .state-msg[data-kind="error"] { color: var(--down); }
 
 /* ── History toolbar ────────────────────────────────────────────────── */
-.hist-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
-.time-label { color: var(--muted); font-size: 11px; }
-.time-controls, .metric-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
-.metric-actions { flex: 1 0 100%; }
+.hist-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.metric-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; flex: 1 0 100%; }
 #seg-mode { margin-left: auto; }
-.time-label + .time-controls { margin-right: 8px; }
+.filters-btn { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.view-hist:has(.metric-picker:popover-open) .filters-btn { background: var(--accent); color: var(--accent-ink); }
+.metric-actions .group-bar { padding-left: 8px; border-left: 1px solid var(--line); }
+
+/* Each time control is one pill: a label cell followed by evenly sized options. */
+.time-group {
+	display: flex;
+	align-items: center;
+	flex: 1 1 auto;
+	padding: 2px;
+	border-radius: 8px;
+	background: var(--surface-2);
+	box-shadow: inset 0 0 0 1px var(--line);
+}
+.time-label {
+	flex: none;
+	padding: 0 10px 0 8px;
+	margin-right: 2px;
+	border-right: 1px solid var(--line);
+	color: var(--muted);
+	font-size: 10px;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+.time-group .seg { flex: 1; min-width: 0; padding: 0; background: none; box-shadow: none; }
+.time-group .seg-btn { flex: 1 1 auto; height: 24px; padding: 0 6px; }
 
 .seg {
 	display: inline-flex;
@@ -459,7 +484,7 @@ td.delta { text-align: right; white-space: nowrap; font-family: var(--font-num);
 }
 
 .seg-btn {
-	height: 26px;
+	height: 24px;
 	padding: 0 10px;
 	border: 0;
 	border-radius: 6px;
@@ -471,7 +496,6 @@ td.delta { text-align: right; white-space: nowrap; font-family: var(--font-num);
 
 .seg-btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4); }
 .group-bar { display: flex; align-items: center; gap: 6px; min-width: 0; flex: 0 1 auto; }
-#seg-range .seg-btn, #seg-filter .seg-btn { padding: 0 6px; }
 .metric-actions .group-list { min-width: 0; flex: 0 1 auto; }
 
 .group-list {
@@ -845,7 +869,7 @@ td.delta { text-align: right; white-space: nowrap; font-family: var(--font-num);
 	.metric-picker:popover-open { padding: 5px; gap: 4px; }
 	.metric-picker .picker-title { padding: 2px 4px; }
 	.metric-picker .chip-metric { height: 16px; padding-inline: 4px; gap: 4px; }
-	.time-controls .seg { flex-wrap: wrap; }
-	.time-controls .seg-btn { padding-inline: 4px; }
+	.time-group .seg-btn { padding-inline: 3px; }
+	.time-label { padding-inline: 6px; }
 	.group-list { max-width: 100px; }
 }

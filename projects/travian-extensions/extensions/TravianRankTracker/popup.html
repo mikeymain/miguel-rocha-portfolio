@@ -79,7 +79,7 @@
 			<section class="view view-hist" id="view-hist" role="tabpanel" aria-labelledby="tab-hist" tabindex="0" hidden>
 				<div class="hist-toolbar">
 					<div class="metric-actions">
-						<button class="primary-btn" type="button" popovertarget="metric-picker">Filters</button>
+						<button class="ghost-btn filters-btn" type="button" popovertarget="metric-picker">Filters</button>
 						<div class="group-bar">
 							<button class="ghost-btn" id="btn-group-none" type="button">Clear</button>
 							<div class="group-list" id="group-list"></div>
@@ -90,8 +90,8 @@
 							<button class="seg-btn" type="button" data-mode="rate" aria-pressed="false">Per hour</button>
 						</div>
 					</div>
-					<span class="time-label" id="range-label">Time Interval</span>
-					<div class="time-controls">
+					<div class="time-group">
+						<span class="time-label" id="range-label">Time Interval</span>
 						<div class="seg" id="seg-range" role="group" aria-labelledby="range-label" title="Choose how far back the graph goes. Select the same option again to show all history.">
 							<button class="seg-btn" type="button" data-h="3" aria-pressed="false">3h</button>
 							<button class="seg-btn" type="button" data-h="6" aria-pressed="false">6h</button>
@@ -102,8 +102,8 @@
 							<button class="seg-btn" type="button" data-h="168" aria-pressed="false">1w</button>
 						</div>
 					</div>
-					<span class="time-label" id="filter-label">Average Over</span>
-					<div class="time-controls">
+					<div class="time-group">
+						<span class="time-label" id="filter-label">Average Over</span>
 						<div class="seg" id="seg-filter" role="group" aria-labelledby="filter-label" title="Combine readings into one point per selected time period. Choose None/Raw to keep individual readings.">
 							<button class="seg-btn" type="button" data-f="all" aria-pressed="true">None/Raw</button>
 							<button class="seg-btn" type="button" data-f="1h" aria-pressed="false">1h</button>

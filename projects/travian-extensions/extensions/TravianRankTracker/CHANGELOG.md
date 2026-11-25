@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.1.22 — 2026-11-25
+
+- Graph toolbar restyled: all controls are 28px tall, Filters is an outline button, and Time Interval and Average Over are labelled pills that fill the row.
+
 ## Rank Tracker 5.1.21 — 2026-11-25
 
 - Graph toolbar uses two rows: Absolute / Per hour sits on the Filters row, and Time Interval and Average Over share one row.
