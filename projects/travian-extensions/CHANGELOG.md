@@ -1,5 +1,9 @@
 # Changelog
 
+## Next Settlement Calc 2.6.24 — 2026-11-25
+
+- The ETA history skips logged samples whose CP reads below an earlier sample. Those were CP misreads from before 2.6.23 and showed as a spike just before a target was reached.
+
 ## Next Settlement Calc 2.6.23 — 2026-11-25
 
 - The main forecast now follows the game's production growth trend instead of the lower of that trend and the planner's own few-day readings. Replayed against logged forecasts, the average error of forecasts made 3–7 days ahead falls from 27 h to 20 h, and from 42 h to 32 h for forecasts over a week ahead; short-range forecasts are unchanged. Without a history trend it falls back to the planner's readings. The growth overlay takes the faster of the two.

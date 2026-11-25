@@ -62,15 +62,32 @@ Object.assign(
 			const floor = previous ? previous.t : -Infinity;
 			return Math.round(Math.min(entry.t, Math.max(floor, at)));
 		}
+		/** CP may read up to this share below its earlier peak (rounding). */
+		const CP_DROP_TOLERANCE = 0.01;
+		/**
+		 * Timed samples, oldest first, without misread CP. CP never falls, so
+		 * a sample below the earlier peak is a bad reading, such as the CP
+		 * counted from the wrong threshold before 2.6.23.
+		 */
+		function validSamples(log) {
+			let peak = 0;
+			return (Array.isArray(log) ? log : [])
+				.filter((entry) => Number.isFinite(entry?.t))
+				.sort((a, b) => a.t - b.t)
+				.filter((entry) => {
+					if (!Number.isFinite(entry.cp)) return true;
+					if (entry.cp < peak * (1 - CP_DROP_TOLERANCE)) return false;
+					peak = Math.max(peak, entry.cp);
+					return true;
+				});
+		}
 		/**
 		 * First sample whose CP met `level` ({t, at, entry}) or null. Every
 		 * sample counts, whatever target it was logged for, so a threshold
 		 * ends at the same moment in every chart.
 		 */
 		function reachedAt(log, level) {
-			const entries = (Array.isArray(log) ? log : [])
-				.filter((entry) => Number.isFinite(entry?.t))
-				.sort((a, b) => a.t - b.t);
+			const entries = validSamples(log);
 			const index = entries.findIndex((entry) => isReached(entry, level));
 			if (index < 0) return null;
 			const entry = entries[index];
@@ -102,7 +119,7 @@ Object.assign(
 			const to = Math.min(view ? view[1] : Infinity, reached?.t ?? Infinity);
 			const inWindow = (entry) =>
 				Number.isFinite(entry?.t) && entry.t >= from && entry.t <= to;
-			const entries = (Array.isArray(log) ? log : []).filter(
+			const entries = validSamples(log).filter(
 				(entry) =>
 					inWindow(entry) &&
 					(mode === "cpd"
