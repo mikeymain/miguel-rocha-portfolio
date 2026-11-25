@@ -1,5 +1,13 @@
 # Changelog
 
+## Travian QoL 1.6.15 — 2026-11-25
+
+- Build order: the gold +25% toggle now applies to the whole account, the Hero's Mansion level selector is removed (game level is used), and the popup opens on the village of the active tab.
+
+## Travian QoL 1.6.14 — 2026-11-25
+
+- Open Build order by default and remember the last selected popup tab. Features is now last on the tab bar.
+
 ## Oasis Finder 70.14 — 2026-11-25
 
 - Show species icons and sort farm targets by observed defence against infantry or cavalry in either direction.

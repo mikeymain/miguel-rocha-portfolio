@@ -30,11 +30,11 @@
 				</div>
 
 				<nav class="tabs" aria-label="Settings sections" role="tablist">
-					<button id="tabbtn-features" class="tabs__item is-active" data-tab="features" role="tab" aria-selected="true" aria-controls="tab-features">
+					<button id="tabbtn-build-order" class="tabs__item is-active" data-tab="build-order" role="tab" aria-selected="true" aria-controls="tab-build-order">
 						<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-							<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>
+							<path d="M3 20h18M6 20V10M12 20V4M18 20v-7"/>
 						</svg>
-						<span>Features</span>
+						<span>Build order</span>
 					</button>
 					<button id="tabbtn-loot-calc" class="tabs__item" data-tab="loot-calc" role="tab" aria-selected="false" aria-controls="tab-loot-calc" tabindex="-1">
 						<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -51,11 +51,11 @@
 						</svg>
 						<span>Counter-attack</span>
 					</button>
-					<button id="tabbtn-build-order" class="tabs__item" data-tab="build-order" role="tab" aria-selected="false" aria-controls="tab-build-order" tabindex="-1">
+					<button id="tabbtn-features" class="tabs__item" data-tab="features" role="tab" aria-selected="false" tabindex="-1" aria-controls="tab-features">
 						<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-							<path d="M3 20h18M6 20V10M12 20V4M18 20v-7"/>
+							<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>
 						</svg>
-						<span>Build order</span>
+						<span>Features</span>
 					</button>
 				</nav>
 
@@ -66,7 +66,7 @@
 			</header>
 
 			<main class="stage">
-				<section id="tab-features" class="panel is-active" role="tabpanel" aria-labelledby="tabbtn-features" tabindex="0">
+				<section id="tab-features" class="panel" role="tabpanel" aria-labelledby="tabbtn-features" tabindex="0">
 					<header class="panel__head">
 						<h1 class="panel__title">Features</h1>
 						<div class="panel__meta">
@@ -89,7 +89,7 @@
 					<div id="lc-settings" class="lc-grid"></div>
 				</section>
 
-				<section id="tab-build-order" class="panel" role="tabpanel" aria-labelledby="tabbtn-build-order" tabindex="0">
+				<section id="tab-build-order" class="panel is-active" role="tabpanel" aria-labelledby="tabbtn-build-order" tabindex="0">
 					<header class="panel__head">
 						<h1 class="panel__title">Build order</h1>
 						<div class="server-pick">

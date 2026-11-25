@@ -8,7 +8,11 @@
 	const PICK_KEY = 'travianQoL.buildOrder.pick';
 	// Per-host { villageId: setup } (see setupFor).
 	const SETUP_PREFIX = 'travianQoL.buildOasis.';
+	// Per-host boolean: the +25% gold bonus applies to every village.
+	const GOLD_PREFIX = 'travianQoL.buildGold.';
 	const STEPS = 12;
+	// Plan depth for the boost-building timing (covers every field to 20).
+	const BOOST_DEPTH = 450;
 	const RES_NAMES = ['Lumber', 'Clay', 'Iron', 'Crop'];
 	const RES_FILES = ['lumber', 'clay', 'iron', 'crop'];
 	const OASIS_SLOTS = 3;
@@ -30,16 +34,15 @@
 	const select = document.getElementById('bo-village');
 	const planner = window.TravianQoLBuildOrder;
 	if (!root || !select || !planner) return;
-	// Editable buildings: the five boosts (max 5) and the Hero's Mansion (max 20).
-	const EDIT_BUILDINGS = [
-		...Object.entries(planner.BOOSTS).map(([gid, b]) => ({ gid: Number(gid), name: b.name, res: b.res, max: 5 })),
-		{ gid: planner.MANSION.gid, name: planner.MANSION.name, res: null, max: 20 },
-	];
-	const SHORT_NAMES = { 'Iron Foundry': 'Foundry', "Hero's Mansion": 'Mansion' };
+	// Editable buildings: the five boosts (max 5). The Hero's Mansion level is
+	// always the one read in game.
+	const EDIT_BUILDINGS = Object.entries(planner.BOOSTS).map(([gid, b]) => ({ gid: Number(gid), name: b.name, res: b.res, max: 5 }));
+	const SHORT_NAMES = { 'Iron Foundry': 'Foundry' };
 
 	let villages = []; // { value, host, id, name, fields, buildings, updatedAt }
 	let bonusStore = {}; // host -> { villageId: [4] }
 	let setupStore = {}; // host -> { villageId: setup }
+	let goldStore = {}; // host -> bool (Plus bonus is account wide)
 
 	function el(tag, className, text) {
 		const node = document.createElement(tag);
@@ -73,8 +76,11 @@
 		villages = [];
 		bonusStore = {};
 		setupStore = {};
+		goldStore = {};
 		for (const [key, value] of Object.entries(all)) {
-			if (key.startsWith(SETUP_PREFIX)) {
+			if (key.startsWith(GOLD_PREFIX)) {
+				goldStore[key.slice(GOLD_PREFIX.length)] = !!value;
+			} else if (key.startsWith(SETUP_PREFIX)) {
 				setupStore[key.slice(SETUP_PREFIX.length)] = value || {};
 			} else if (key.startsWith(FIELDS_PREFIX)) {
 				const host = key.slice(FIELDS_PREFIX.length);
@@ -88,6 +94,22 @@
 		}
 		villages.sort((a, b) => a.host.localeCompare(b.host) || a.name.localeCompare(b.name));
 		return all[PICK_KEY];
+	}
+
+	// Village shown in the Travian tab the popup was opened from, as a select
+	// value, or null. Asks that tab's content script; needs no extra permission
+	// because Travian hosts are already granted.
+	async function activeTabVillage() {
+		try {
+			const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+			if (!tab?.id || !tab.url || !/^https?:\/\/[^/]*\.travian\.[a-z.]+(\/|$)/i.test(tab.url)) return null;
+			const res = await chrome.tabs.sendMessage(tab.id, { type: 'TQOL_ACTIVE_VILLAGE' });
+			if (!res?.did) return null;
+			const value = `${new URL(tab.url).hostname}|${res.did}`;
+			return villages.some((v) => v.value === value) ? value : null;
+		} catch {
+			return null;
+		}
 	}
 
 	function fillSelect(pick) {
@@ -115,7 +137,8 @@
 			const type = typeof o === 'string' ? o : o?.type;
 			return { type: type in OASES ? type : '', owned: typeof o === 'string' ? true : o?.owned !== false };
 		});
-		return { oases, gold: !!s.gold, buildings: s.buildings && typeof s.buildings === 'object' ? s.buildings : null };
+		const gold = v.host in goldStore ? goldStore[v.host] : !!s.gold;
+		return { oases, gold, buildings: s.buildings && typeof s.buildings === 'object' ? s.buildings : null };
 	}
 
 	function buildingLevels(v, setup) {
@@ -136,13 +159,16 @@
 		return ownBonus(setup).map((b, r) => b + planner.boostPct(levels, r));
 	}
 
-	function planFor(v, setup) {
-		const planned = setup.oases.filter((o) => !o.owned && o.type).map((o) => OASES[o.type].bonus);
-		return planner.plan(v.fields, ownBonus(setup), STEPS, {
+	function planExtra(v, setup) {
+		return {
 			buildings: buildingLevels(v, setup),
-			plannedOases: planned,
+			plannedOases: setup.oases.filter((o) => !o.owned && o.type).map((o) => OASES[o.type].bonus),
 			ownedOases: setup.oases.filter((o) => o.owned && o.type).length,
-		});
+		};
+	}
+
+	function planFor(v, setup) {
+		return planner.plan(v.fields, ownBonus(setup), STEPS, planExtra(v, setup));
 	}
 
 	function saveSetup(v, setup) {
@@ -152,6 +178,16 @@
 			[SETUP_PREFIX + v.host]: setupStore[v.host],
 			[BONUS_PREFIX + v.host]: bonusStore[v.host],
 		}, flash);
+	}
+
+	// Gold applies to the whole account: store it per host and re-total every
+	// village on that host so the in-game highlight stays right everywhere.
+	function saveGold(host, on) {
+		goldStore = { ...goldStore, [host]: on };
+		const bonuses = { ...(bonusStore[host] || {}) };
+		for (const v of villages.filter((x) => x.host === host)) bonuses[v.id] = totalBonus(v, setupFor(v));
+		bonusStore[host] = bonuses;
+		chrome.storage.local.set({ [GOLD_PREFIX + host]: on, [BONUS_PREFIX + host]: bonuses }, flash);
 	}
 
 	// options.js owns the header save indicator; pulse it here too.
@@ -305,7 +341,10 @@
 		goldChk.type = 'checkbox';
 		goldChk.className = 'switch';
 		goldChk.checked = setup.gold;
-		goldChk.addEventListener('change', () => update((s) => ({ ...s, gold: goldChk.checked })));
+		goldChk.addEventListener('change', () => {
+			saveGold(v.host, goldChk.checked);
+			render();
+		});
 		gold.appendChild(goldChk);
 
 		const totals = el('div', 'bo__totals');
@@ -366,7 +405,28 @@
 		});
 		table.append(thead, tbody);
 		card.appendChild(table);
+		card.appendChild(buildBoostBlock(v, setup));
 		return card;
+	}
+
+	// When each boost building enters the plan (step number), or what it waits for.
+	function buildBoostBlock(v, setup) {
+		const box = el('div', 'bo__block bo-boosts');
+		box.appendChild(el('span', 'bo__block-title', 'Boost buildings'));
+		for (const b of planner.boostSchedule(v.fields, ownBonus(setup), planExtra(v, setup), BOOST_DEPTH)) {
+			const row = el('div', 'bo-boost');
+			const name = el('span', 'bo-boost__name');
+			name.append(resIcon(b.res), el('span', null, b.name));
+			const lvl = el('span', 'bo-boost__lvl', b.level >= b.max ? `${b.level}` : `${b.level} → ${b.level + 1}`);
+			let when;
+			if (b.level >= b.max) when = el('span', 'bo-boost__when', 'Max');
+			else if (b.step) when = el('span', `bo-boost__when${b.step <= STEPS ? ' is-soon' : ''}`, `Step ${b.step}`);
+			else when = el('span', 'bo-boost__when is-blocked', b.blocker ? `Needs ${b.blocker.name} ${b.blocker.level}` : '—');
+			if (b.step && b.blocker) when.title = `After ${b.blocker.name} ${b.blocker.level}`;
+			row.append(name, lvl, when);
+			box.appendChild(row);
+		}
+		return box;
 	}
 
 	function render() {
@@ -401,8 +461,8 @@
 		});
 	});
 
-	load().then((pick) => {
-		fillSelect(pick);
+	load().then(async (pick) => {
+		fillSelect((await activeTabVillage()) || pick);
 		render();
 	});
 })();

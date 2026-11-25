@@ -180,5 +180,31 @@
 		return out;
 	}
 
-	root.TravianQoLBuildOrder = { plan, costAt, popAt, gainOf, maxLevelFor, boostPct, FIELDS, BOOSTS, MANSION, MANSION_FOR_OASIS };
+	// Names of the prerequisite buildings in BOOSTS[].needs.
+	const NEED_NAMES = { 8: 'Grain Mill', 15: 'Main Building' };
+
+	/**
+	 * When each boost building is worth building.
+	 * Runs the plan `depth` steps ahead and returns, per boost gid, the
+	 * 1-based step of its next level (null if not reached) and the first
+	 * prerequisite still missing now ({ name, level } or null). The planner
+	 * never builds prerequisite buildings, so a missing one means no step.
+	 */
+	function boostSchedule(fields, bonuses, extra, depth) {
+		const bld = extra?.buildings || {};
+		const levels = new Map(fields.map((f) => [f.slot, f.level]));
+		const steps = plan(fields, bonuses, depth, extra);
+		return Object.entries(BOOSTS).map(([g, b]) => {
+			const gid = Number(g);
+			const level = bld[gid] || 0;
+			const index = steps.findIndex((s) => s.kind === 'building' && s.gid === gid);
+			const missingNeed = Object.entries(b.needs).find(([n, l]) => (bld[n] ?? l) < l);
+			let blocker = null;
+			if (missingNeed) blocker = { name: NEED_NAMES[missingNeed[0]], level: missingNeed[1] };
+			else if (maxFieldLevel(fields, levels, b.field[0]) < b.field[1]) blocker = { name: FIELDS[b.field[0]].name, level: b.field[1] };
+			return { gid, name: b.name, res: b.res, level, max: BOOST_MAX, step: index >= 0 ? index + 1 : null, blocker };
+		});
+	}
+
+	root.TravianQoLBuildOrder = { plan, boostSchedule, costAt, popAt, gainOf, maxLevelFor, boostPct, FIELDS, BOOSTS, MANSION, MANSION_FOR_OASIS };
 })(typeof window !== 'undefined' ? window : globalThis);

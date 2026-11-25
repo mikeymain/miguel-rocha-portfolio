@@ -15,6 +15,8 @@
 	const BONUS_PREFIX = 'travianQoL.buildOrder.';
 	// Per-host { villageId: { name, fields: [{slot, gid, level}], updatedAt } }.
 	const FIELDS_PREFIX = 'travianQoL.buildFields.';
+	// Per-host build queue size learned from the page (at least 1).
+	const CAPACITY_PREFIX = 'travianQoL.buildQueueSize.';
 	const STYLE_ID = 'tqol-bo-style';
 	const ORDER_ATTR = 'tqolBo';
 	const CSS = `
@@ -36,6 +38,7 @@
 	let debounceTimer = null;
 	let bonuses = [0, 0, 0, 0];
 	let lastSnapshot = '';
+	let queueCapacity = 1;
 
 	const isResourcesPage = () => /^\/(dorf1\.php|resources)$/.test(location.pathname);
 	const isVillagePage = () => /^\/(dorf2\.php|village)$/.test(location.pathname);
@@ -43,6 +46,7 @@
 	const TRACKED_GIDS = [5, 6, 7, 8, 9, 15, 37];
 	const bonusKey = () => BONUS_PREFIX + location.host;
 	const fieldsKey = () => FIELDS_PREFIX + location.host;
+	const capacityKey = () => CAPACITY_PREFIX + location.host;
 
 	function activeVillage() {
 		return document.querySelector('.villageList .listEntry.active, #sidebarBoxVillageList .listEntry.active');
@@ -113,16 +117,37 @@
 		saveSnapshot({ buildings: readBuildings() });
 	}
 
+	/** Builds in progress; master builder "waiting" rows do not occupy a slot. */
+	function queuedCount() {
+		let n = 0;
+		for (const row of document.querySelectorAll('.buildingList li')) {
+			if (row.classList.contains('masterBuilder') || row.querySelector('.buildStart')) continue;
+			if (row.querySelector('.timer')) n++;
+		}
+		return n;
+	}
+
+	// Queue size is not in the page, so learn it: the most builds ever seen
+	// running at once on this host (1 without Plus, 2 with).
+	function learnCapacity(queued) {
+		if (queued <= queueCapacity) return;
+		queueCapacity = queued;
+		chrome.storage.local.set({ [capacityKey()]: queued });
+	}
+
 	function render() {
 		if (!isResourcesPage()) return;
 		const fields = readFields();
 		if (!fields.length) return;
 		saveSnapshot({ fields: fields.map(({ slot, gid, level }) => ({ slot, gid, level })) });
+		const queued = queuedCount();
+		learnCapacity(queued);
+		const hasFreeSlot = queued < queueCapacity;
 		// Plan deep enough to skip fields that already have an upgrade queued:
 		// the glow goes to the first step on a field that is not being built.
 		const building = new Set(fields.filter((f) => f.el.classList.contains('underConstruction')).map((f) => f.slot));
 		const steps = window.TravianQoLBuildOrder.plan(fields, bonuses, PLAN_DEPTH);
-		const next = steps.find((s) => s.kind === 'field' && !building.has(s.slot));
+		const next = hasFreeSlot ? steps.find((s) => s.kind === 'field' && !building.has(s.slot)) : null;
 		injectStyle();
 		for (const f of fields) {
 			const mark = next && f.slot === next.slot;
@@ -143,6 +168,10 @@
 
 	function start() {
 		const key = bonusKey();
+		chrome.storage.local.get(capacityKey(), (cap) => {
+			queueCapacity = Math.max(1, Number(cap?.[capacityKey()]) || 1);
+			render();
+		});
 		chrome.storage.local.get(key, (res) => {
 			applyBonuses(res[key]);
 			render();
@@ -169,17 +198,28 @@
 		observer.observe(container, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'data-level'] });
 	}
 
+	// The settings popup asks the active tab which village it shows.
+	let messageListener = null;
+
 	window.TravianQoL.register({
 		id: 'build-order',
 		label: 'Build order',
 		description: 'Highlights the resource field with the best payback and numbers the next upgrades. Steps, oases and boost buildings are in the Build order tab.',
 		init() {
+			messageListener = (request, sender, sendResponse) => {
+				if (request?.type !== 'TQOL_ACTIVE_VILLAGE') return false;
+				sendResponse({ did: activeVillage()?.dataset?.did || null });
+				return false;
+			};
+			chrome.runtime?.onMessage?.addListener(messageListener);
 			const run = isResourcesPage() ? start : isVillagePage() ? startVillage : null;
 			if (!run) return;
 			if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run, { once: true });
 			else run();
 		},
 		destroy() {
+			if (messageListener) chrome.runtime?.onMessage?.removeListener(messageListener);
+			messageListener = null;
 			observer?.disconnect();
 			observer = null;
 			if (storageListener) chrome.storage.onChanged?.removeListener(storageListener);

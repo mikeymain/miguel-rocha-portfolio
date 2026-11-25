@@ -14,7 +14,9 @@
 	// readers and assistive tech announce the active tab correctly.
 	const tabs = document.querySelectorAll('.tabs__item[data-tab]');
 	const panels = document.querySelectorAll('.panel');
+	const lastTabKey = 'travianQoL.popup.lastTab';
 	function activateTab(tab) {
+		localStorage.setItem(lastTabKey, tab.dataset.tab);
 		tabs.forEach((t) => {
 			const active = t === tab;
 			t.classList.toggle('is-active', active);
@@ -23,6 +25,9 @@
 		});
 		panels.forEach((p) => p.classList.toggle('is-active', p.id === `tab-${tab.dataset.tab}`));
 	}
+	const lastTab = localStorage.getItem(lastTabKey);
+	const savedTab = [...tabs].find(tab => tab.dataset.tab === lastTab);
+	if (savedTab) activateTab(savedTab);
 	tabs.forEach((tab) => {
 		tab.addEventListener('click', () => activateTab(tab));
 		// Arrow-key navigation between tabs — standard WAI-ARIA tablist pattern.
