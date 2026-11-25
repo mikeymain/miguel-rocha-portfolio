@@ -17,6 +17,8 @@
 	const FIELDS_PREFIX = 'travianQoL.buildFields.';
 	// Per-host build queue size learned from the page (at least 1).
 	const CAPACITY_PREFIX = 'travianQoL.buildQueueSize.';
+	// Per-host { villageId: true } for villages simulated to level 20.
+	const MAX20_PREFIX = 'travianQoL.buildMax20.';
 	const STYLE_ID = 'tqol-bo-style';
 	const ORDER_ATTR = 'tqolBo';
 	const CSS = `
@@ -37,6 +39,7 @@
 	let storageListener = null;
 	let debounceTimer = null;
 	let bonuses = [0, 0, 0, 0];
+	let forceMax = false; // per-village "Simulate to level 20" toggle
 	let lastSnapshot = '';
 	let queueCapacity = 1;
 
@@ -147,7 +150,7 @@
 		// Plan deep enough to skip fields that already have an upgrade queued:
 		// the glow goes to the first step on a field that is not being built.
 		const building = new Set(fields.filter((f) => f.el.classList.contains('underConstruction')).map((f) => f.slot));
-		const steps = window.TravianQoLBuildOrder.plan(fields, bonuses, PLAN_DEPTH);
+		const steps = window.TravianQoLBuildOrder.plan(fields, bonuses, PLAN_DEPTH, undefined, forceMax);
 		const next = hasFreeSlot ? steps.find((s) => s.kind === 'field' && !building.has(s.slot)) : null;
 		injectStyle();
 		for (const f of fields) {
@@ -169,6 +172,11 @@
 
 	function start() {
 		const key = bonusKey();
+		const maxKey = MAX20_PREFIX + location.host;
+		chrome.storage.local.get(maxKey, (res) => {
+			forceMax = !!res?.[maxKey]?.[villageId()];
+			render();
+		});
 		chrome.storage.local.get(capacityKey(), (cap) => {
 			queueCapacity = Math.max(1, Number(cap?.[capacityKey()]) || 1);
 			render();
@@ -182,9 +190,10 @@
 		});
 		// Bonus edited in the settings tab: re-rank the highlighted fields.
 		storageListener = (changes, area) => {
-			if (area !== 'local' || !changes[key]) return;
-			applyBonuses(changes[key].newValue);
-			render();
+			if (area !== 'local') return;
+			if (changes[maxKey]) forceMax = !!changes[maxKey].newValue?.[villageId()];
+			if (changes[key]) applyBonuses(changes[key].newValue);
+			if (changes[key] || changes[maxKey]) render();
 		};
 		chrome.storage.onChanged?.addListener(storageListener);
 	}

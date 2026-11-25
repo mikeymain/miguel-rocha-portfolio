@@ -10,7 +10,7 @@
 
 ## Travian QoL 1.6.20 — 2026-11-25
 
-- Build order: a 15-cropper village is always simulated to level 20.
+- Build order: per-village **Simulate to level 20** toggle in the Build order tab; it also applies to the in-game field highlight.
 
 ## Travian QoL 1.6.19 — 2026-11-25
 

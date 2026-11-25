@@ -71,10 +71,9 @@
 	}
 
 	/** Max field level for this village: 10, or 20 once any field is past 10. */
-	function maxLevelFor(fields) {
-		// A 15c is always simulated to level 20.
-		const is15c = fields.length >= 15 && fields.every((f) => f.gid === 4);
-		return is15c || fields.some((f) => f.level > NON_CAPITAL_MAX) ? CAPITAL_MAX : NON_CAPITAL_MAX;
+	function maxLevelFor(fields, forceMax) {
+		// `forceMax`: the per-village "Simulate to level 20" toggle.
+		return forceMax || fields.some((f) => f.level > NON_CAPITAL_MAX) ? CAPITAL_MAX : NON_CAPITAL_MAX;
 	}
 
 	/** Base production per resource from field levels. */
@@ -154,10 +153,11 @@
 	 * @param {{buildings?:Object<number,number>, plannedOases?:number[][], ownedOases?:number}} [extra]
 	 *   building levels by gid (5-9 boosts, 15 main building, 37 Hero's
 	 *   Mansion) and oases still to take. Without it only fields are planned.
+	 * @param {boolean} [forceMax] plan fields to level 20 even if none is past 10
 	 */
-	function plan(fields, bonuses, steps, extra) {
+	function plan(fields, bonuses, steps, extra, forceMax) {
 		const levels = new Map(fields.map((f) => [f.slot, f.level]));
-		const max = maxLevelFor(fields);
+		const max = maxLevelFor(fields, forceMax);
 		const bld = { ...(extra?.buildings || {}) };
 		const planned = [...(extra?.plannedOases || [])];
 		const own = [...bonuses];
@@ -192,10 +192,10 @@
 	 * prerequisite still missing now ({ name, level } or null). The planner
 	 * never builds prerequisite buildings, so a missing one means no step.
 	 */
-	function boostSchedule(fields, bonuses, extra, depth) {
+	function boostSchedule(fields, bonuses, extra, depth, forceMax) {
 		const bld = extra?.buildings || {};
 		const levels = new Map(fields.map((f) => [f.slot, f.level]));
-		const steps = plan(fields, bonuses, depth, extra);
+		const steps = plan(fields, bonuses, depth, extra, forceMax);
 		return Object.entries(BOOSTS).map(([g, b]) => {
 			const gid = Number(g);
 			const level = bld[gid] || 0;

@@ -10,6 +10,8 @@
 	const SETUP_PREFIX = 'travianQoL.buildOasis.';
 	// Per-host boolean: the +25% gold bonus applies to every village.
 	const GOLD_PREFIX = 'travianQoL.buildGold.';
+	// Per-host { villageId: true }: plan fields to level 20 (read in game too).
+	const MAX20_PREFIX = 'travianQoL.buildMax20.';
 	const STEPS = 12;
 	// Plan depth for the boost-building timing (covers every field to 20).
 	const BOOST_DEPTH = 450;
@@ -43,6 +45,7 @@
 	let bonusStore = {}; // host -> { villageId: [4] }
 	let setupStore = {}; // host -> { villageId: setup }
 	let goldStore = {}; // host -> bool (Plus bonus is account wide)
+	let max20Store = {}; // host -> { villageId: bool }
 
 	function el(tag, className, text) {
 		const node = document.createElement(tag);
@@ -77,8 +80,11 @@
 		bonusStore = {};
 		setupStore = {};
 		goldStore = {};
+		max20Store = {};
 		for (const [key, value] of Object.entries(all)) {
-			if (key.startsWith(GOLD_PREFIX)) {
+			if (key.startsWith(MAX20_PREFIX)) {
+				max20Store[key.slice(MAX20_PREFIX.length)] = value || {};
+			} else if (key.startsWith(GOLD_PREFIX)) {
 				goldStore[key.slice(GOLD_PREFIX.length)] = !!value;
 			} else if (key.startsWith(SETUP_PREFIX)) {
 				setupStore[key.slice(SETUP_PREFIX.length)] = value || {};
@@ -167,8 +173,15 @@
 		};
 	}
 
+	const max20Of = (v) => !!max20Store[v.host]?.[v.id];
+
 	function planFor(v, setup) {
-		return planner.plan(v.fields, ownBonus(setup), STEPS, planExtra(v, setup));
+		return planner.plan(v.fields, ownBonus(setup), STEPS, planExtra(v, setup), max20Of(v));
+	}
+
+	function saveMax20(v, on) {
+		max20Store[v.host] = { ...(max20Store[v.host] || {}), [v.id]: on };
+		chrome.storage.local.set({ [MAX20_PREFIX + v.host]: max20Store[v.host] }, flash);
 	}
 
 	function saveSetup(v, setup) {
@@ -347,6 +360,18 @@
 		});
 		gold.appendChild(goldChk);
 
+		const max20 = el('label', 'lc-line bo-gold');
+		max20.appendChild(el('span', 'lc-line__label', 'Simulate to level 20'));
+		const max20Chk = document.createElement('input');
+		max20Chk.type = 'checkbox';
+		max20Chk.className = 'switch';
+		max20Chk.checked = max20Of(v);
+		max20Chk.addEventListener('change', () => {
+			saveMax20(v, max20Chk.checked);
+			render();
+		});
+		max20.appendChild(max20Chk);
+
 		const totals = el('div', 'bo__totals');
 		totalBonus(v, setup).forEach((pct, r) => {
 			const cell = el('span', pct > 0 ? 'is-set' : null);
@@ -354,7 +379,7 @@
 			totals.appendChild(cell);
 		});
 
-		card.append(oasisBox, bldBox, gold, totals);
+		card.append(oasisBox, bldBox, gold, max20, totals);
 		return card;
 	}
 
@@ -427,7 +452,7 @@
 	function buildBoostBlock(v, setup) {
 		const box = el('div', 'bo__block bo-boosts');
 		box.appendChild(el('span', 'bo__block-title', 'Boost buildings'));
-		for (const b of planner.boostSchedule(v.fields, ownBonus(setup), planExtra(v, setup), BOOST_DEPTH)) {
+		for (const b of planner.boostSchedule(v.fields, ownBonus(setup), planExtra(v, setup), BOOST_DEPTH, max20Of(v))) {
 			const row = el('div', 'bo-boost');
 			const name = el('span', 'bo-boost__name');
 			name.append(resIcon(b.res), el('span', null, b.name));
