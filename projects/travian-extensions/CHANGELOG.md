@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.6.1 — 2026-11-25
+
+- Farm lists: the arrow above the slot state column toggles "enabled first", which moves disabled targets below enabled ones in every list. Each group keeps its current order, including bounty sort. The setting is remembered.
+
 ## Travian QoL 1.6.0 — 2026-11-25
 
 - New **Build order** feature: on the resources page the resource field with the shortest payback glows, the next 5 upgrades are numbered, and a panel under the production table lists them. Per-village production bonus % inputs weight the ranking.
