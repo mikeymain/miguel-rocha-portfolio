@@ -85,6 +85,10 @@
 							<div class="group-list" id="group-list"></div>
 							<button class="ghost-btn" id="btn-group-save" type="button">Save group</button>
 						</div>
+						<div class="seg" id="seg-mode" role="group" aria-label="Scale">
+							<button class="seg-btn" type="button" data-mode="abs" aria-pressed="true">Absolute</button>
+							<button class="seg-btn" type="button" data-mode="rate" aria-pressed="false">Per hour</button>
+						</div>
 					</div>
 					<span class="time-label" id="range-label">Time Interval</span>
 					<div class="time-controls">
@@ -96,10 +100,6 @@
 							<button class="seg-btn" type="button" data-h="48" aria-pressed="false">48h</button>
 							<button class="seg-btn" type="button" data-h="72" aria-pressed="false">72h</button>
 							<button class="seg-btn" type="button" data-h="168" aria-pressed="false">1w</button>
-						</div>
-						<div class="seg" id="seg-mode" role="group" aria-label="Scale">
-							<button class="seg-btn" type="button" data-mode="abs" aria-pressed="true">Absolute</button>
-							<button class="seg-btn" type="button" data-mode="rate" aria-pressed="false">Per hour</button>
 						</div>
 					</div>
 					<span class="time-label" id="filter-label">Average Over</span>

@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.1.21 — 2026-11-25
+
+- Graph toolbar uses two rows: Absolute / Per hour sits on the Filters row, and Time Interval and Average Over share one row.
+
 ## Rank Tracker 5.1.20 — 2026-11-25
 
 - Saved group chips centre their name; the × delete button shows on hover or focus.
