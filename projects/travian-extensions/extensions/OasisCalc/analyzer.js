@@ -657,6 +657,18 @@ function calculateOptimalTroopCount(oasis, unit, smithyLvl, cx, cy, tsLvl, hero,
   return { count: fit?.scale ?? null, reserve: fit?.reserve ?? 0 };
 }
 
+// Unit chosen under Troops > Unit; "fastest" (or a disabled choice) falls back
+// to the fastest enabled unit that has attack. Null when none is enabled.
+function selectedTroopUnit(tribe) {
+  const enabled = tribe.units.filter((u) => u.atk > 0 && !disabledUnits.has(u.id));
+  if (!enabled.length) return null;
+  const choice = document.getElementById("_vppreview-unit")?.value || "fastest";
+  return (
+    enabled.find((u) => u.id === choice) ||
+    enabled.reduce((best, u) => (u.spd > best.spd ? u : best))
+  );
+}
+
 function renderTroopTabPreview(
   container,
   tribe,
@@ -682,15 +694,12 @@ function renderTroopTabPreview(
       '<div class="_vpresults-empty">All units disabled — click a unit icon to re-enable.</div>';
     return;
   }
-  const previewSel = document.getElementById("_vppreview-unit");
-  const previewVal = previewSel ? previewSel.value : "fastest";
-  const fastestEnabled = enabledUnits.reduce((best, u) =>
-    u.spd > best.spd ? u : best,
-  );
-  const previewUnit =
-    previewVal === "fastest"
-      ? fastestEnabled
-      : enabledUnits.find((u) => u.id === previewVal) || fastestEnabled;
+  const previewUnit = selectedTroopUnit(tribe);
+  if (!previewUnit) {
+    container.innerHTML =
+      '<div class="_vpresults-empty">All units disabled — click a unit icon to re-enable.</div>';
+    return;
+  }
 
   const smithyEl = document.getElementById(`_vpsmithy-${previewUnit.id}`);
   const previewSmithyLvl = smithyEl ? parseInt(smithyEl.value) || 0 : 0;

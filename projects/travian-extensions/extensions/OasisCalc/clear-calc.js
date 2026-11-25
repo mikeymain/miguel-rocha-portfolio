@@ -27,12 +27,6 @@
     return animals;
   }
 
-  function formatMinutes(minutes) {
-    const s = Math.round(minutes * 60);
-    const h = Math.floor(s / 3600);
-    const m = Math.floor((s % 3600) / 60);
-    return `${h}:${String(m).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
-  }
 
   function buildRows(oasis) {
     const tribe = TROOP_DATA[detectTribe()];
@@ -42,20 +36,24 @@
     const riskLevel = parseInt(document.getElementById("_vprisk")?.value) || 3;
     const hero = getHeroForTroops();
     const maxHp = hero ? (parseInt(document.getElementById("_vpmax-hp")?.value) || 100) - HERO_HP_BUFFER : null;
-    return tribe.units
-      .filter((unit) => unit.atk > 0 && !disabledUnits.has(unit.id))
-      .map((unit) => {
+    const unit = selectedTroopUnit(tribe);
+    if (!unit) return null;
+    return [unit].map((unit) => {
         const smithyLvl = parseInt(document.getElementById(`_vpsmithy-${unit.id}`)?.value) || 0;
         const { count, reserve } = calculateOptimalTroopCount(oasis, unit, smithyLvl, cx, cy, tsLvl, hero, riskLevel, maxHp);
         const m = count == null ? null : calculateTroopMetrics(oasis, [{ unit, count, smithyLvl }], cx, cy, tsLvl, hero, riskLevel);
-        return { unit, count, reserve, lost: m?.troopLossCount ?? 0, minutes: parseFloat(m?.time) || 0 };
+        return { unit, count, reserve, lost: m?.troopLossCount ?? 0 };
       });
   }
 
   function render(dialog, troopTable) {
     const coords = parseCoords(dialog.querySelector(".titleInHeader")?.textContent);
     const animals = readAnimals(troopTable);
-    const state = JSON.stringify([coords, animals]);
+    const settings = ["_vppreview-unit", "_vprisk", "_vptroop-hero", "_vpts-lvl"].map((id) => {
+      const el = document.getElementById(id);
+      return el?.type === "checkbox" ? el.checked : el?.value;
+    });
+    const state = JSON.stringify([coords, animals, settings, [...disabledUnits]]);
     const existing = dialog.querySelector("._vpclear");
     if (existing?.dataset.state === state) return;
     existing?.remove();
@@ -72,7 +70,7 @@
     const table = document.createElement("table");
     table.className = "transparent _vpclear-table";
     const headRow = table.createTHead().insertRow();
-    for (const label of ["", "Send", "Lost", "Time"]) {
+    for (const label of ["", "Send", "Lost"]) {
       const th = document.createElement("th");
       th.textContent = label;
       headRow.appendChild(th);
@@ -93,7 +91,6 @@
       const lost = tr.insertCell();
       lost.textContent = r.lost ? "−" + r.lost : "0";
       if (r.lost) lost.className = "_vpclear-lost";
-      tr.insertCell().textContent = formatMinutes(r.minutes);
     }
     box.append(head, table);
     troopTable.after(box);
@@ -116,5 +113,13 @@
     scheduled = true;
     requestAnimationFrame(check);
   }).observe(document.body, { childList: true, subtree: true });
+  // Re-size when the unit, risk, hero or smithy settings change in the panel.
+  const onSettings = () => {
+    if (scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(check);
+  };
+  document.addEventListener("change", onSettings, true);
+  document.addEventListener("input", onSettings, true);
   check();
 })();

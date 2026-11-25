@@ -1,5 +1,9 @@
 # Changelog
 
+## Oasis Finder 70.20 — 2026-11-25
+
+- Map oasis **Clear** table shows one unit: the one chosen under **Troops → Unit** (formerly **Preview**). The **Time** column is removed. The table updates when the unit, risk, hero or Tournament Square settings change.
+
 ## Oasis Finder 70.19 — 2026-11-25
 
 - Fix: the map oasis dialog's **Clear** table did not appear because animal icons are `<img>` elements, not `<i>`.

@@ -32,7 +32,7 @@ Replace the files in the same installed folder, click **Reload** in the extensio
 
 **Features:** Discovery/Update modes, scan coverage, local oasis database, observation ages, Hero/Troops views, hero-stat fetch, troop counts and smithy levels, optional hero inclusion, troop preview/cap, five risk levels, sort controls, density controls, draggable/collapsible panel, database and error viewers. Native farm-list name sorting groups oases by bonus type, then distance.
 
-Click an unoccupied oasis on the map to see the **Clear** table under its animals: the number of each unit to send so no animals survive, predicted losses and travel time from the panel's selected village. It uses the smithy levels, Tournament Square, hero and risk settings from the panel; hover a count to see the reserve animals it includes.
+Click an unoccupied oasis on the map to see the **Clear** table under its animals: how many of the unit chosen under **Troops → Unit** to send from the panel's selected village so no animals survive, and the predicted losses. It uses the smithy levels, Tournament Square, hero and risk settings from the panel; hover a count to see the reserve animals it includes.
 
 The farm list shows the last saved count beside each animal’s unit icon beneath the oasis name. Hover over the counts for the scan time when available. **No animal data** means Oasis Finder has no saved garrison for those coordinates. Run **Update** on the map to refresh known oases.
 
@@ -44,11 +44,11 @@ Select **Inf def** or **Cav def** in the Target header to see the defence score 
 
 1. Open the map, select the origin village, and set the radius.
 2. Select **Discovery** and pan the map to collect oasis data. Use **Update** to refresh known targets. The coverage meter shows observed areas.
-3. In **Hero**, click **Fetch** and check health, Tournament Square level, and map bonus under **Adjust**. In **Troops**, fetch or enter counts and smithy levels; set hero inclusion, preview unit, and troop cap.
+3. In **Hero**, click **Fetch** and check health, Tournament Square level, and map bonus under **Adjust**. In **Troops**, fetch or enter counts and smithy levels; set hero inclusion, **Unit**, and troop cap.
 4. Choose a risk level and sort: **Best score**, **Net resources**, **Res / minute**, **Distance**, or **Res / HP**. Net resources includes modeled troop losses.
 5. Check observation age and current garrison before raiding. Coordinates open the map; **Send** opens a prefilled rally-point page. Sending the raid requires confirmation in the game.
 
-**Troop sizing.** With no troop counts entered, **Troops** lists the fewest of the preview unit that clear each oasis. With counts entered, each row shows **Clears** or **×k**, the copies of that team needed. A raid clears when every animal stack rounds to zero survivors: the winner loses x/(1+x) of each unit type, x = (def/att)^1.5, oases add a base defence of 10, and losses round separately for each unit type. With the hero included, hero HP stays within the **Adjust** limit.
+**Troop sizing.** With no troop counts entered, **Troops** lists the fewest of the **Unit** choice that clear each oasis. With counts entered, each row shows **Clears** or **×k**, the copies of that team needed. A raid clears when every animal stack rounds to zero survivors: the winner loses x/(1+x) of each unit type, x = (def/att)^1.5, oases add a base defence of 10, and losses round separately for each unit type. With the hero included, hero HP stays within the **Adjust** limit.
 
 | Risk | Reserve animals | Most of each unit type lost |
 | --- | --- | --- |

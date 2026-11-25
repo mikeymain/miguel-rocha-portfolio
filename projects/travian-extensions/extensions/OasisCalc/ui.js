@@ -620,7 +620,7 @@ function createUI() {
                     <button id="_vpclear-troops" class="_vpbtn-mini _vpbtn-mini-dim" style="display:none">None</button>
                 </div>
                 <div class="_vptroop-extra" id="_vppreview-unit-row" style="display:none">
-                    <label>Preview</label>
+                    <label for="_vppreview-unit">Unit</label>
                     <select id="_vppreview-unit" class="_vpselect-sm">
                         <option value="fastest">Fastest unit</option>
                     </select>
