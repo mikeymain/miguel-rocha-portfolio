@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.6.2 — 2026-11-25
+
+- Combat simulator: the Net resources row now also shows when the simulation gains nothing (for example a village attack). It is then the attacker's resources lost, shown as a negative number.
+
 ## Travian QoL 1.6.1 — 2026-11-25
 
 - Farm lists: the arrow above the slot state column toggles "enabled first", which moves disabled targets below enabled ones in every list. Each group keeps its current order, including bounty sort. The setting is remembered.

@@ -429,8 +429,11 @@
 		if (statsTable.dataset.tlwSimSig === signature) return;
 		statsTable.querySelectorAll('.tlw-sim-total-row, .tlw-net-row').forEach((r) => r.remove());
 		statsTable.dataset.tlwSimSig = signature;
-		if (gained <= 0) return;
-		statsTable.append(createSimTotalRow(gained), createNetResourcesRow(gained - attackerLost, defenderLost));
+		// Net shows even with nothing gained (e.g. a village attack): then it is
+		// just the attacker's losses.
+		if (gained <= 0 && attackerLost <= 0 && defenderLost <= 0) return;
+		if (gained > 0) statsTable.append(createSimTotalRow(gained));
+		statsTable.append(createNetResourcesRow(gained - attackerLost, defenderLost));
 	}
 
 	// ===== REPORT BADGE INJECTION =====
