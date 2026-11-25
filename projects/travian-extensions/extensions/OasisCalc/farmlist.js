@@ -85,6 +85,7 @@
       label.dataset.state = state;
       label.replaceChildren();
       if (valid) {
+        delete label.dataset.noData;
         for (const { id, count } of animals) {
           const item = document.createElement("span");
           const icon = document.createElement("i");
@@ -101,9 +102,11 @@
         if (defenceMode) label.append("Def " + label.dataset[defenceMode]);
         if (scan.observationIncomplete) label.append(" (last known)");
       } else {
-        delete label.dataset.infantry;
-        delete label.dataset.cavalry;
+        label.dataset.noData = "1";
+        label.dataset.infantry = OASIS_BASE_DEF;
+        label.dataset.cavalry = OASIS_BASE_DEF;
         label.textContent = "No animal data";
+        if (defenceMode) label.append(" · Def " + OASIS_BASE_DEF);
       }
     }
     if (label.title !== title) label.title = title;
@@ -121,6 +124,11 @@
       // Population 0 marks an oasis in any game language; villages never have 0.
       const isOasis = !!bonus || scans.has(key) || knownOases.has(key) ||
         parseNum(row.querySelector("td.population")?.textContent) === 0;
+      const pop = row.querySelector("td.population");
+      if (pop && cell.nextElementSibling === pop) {
+        cell.colSpan = isOasis ? 2 : 1;
+        pop.hidden = isOasis;
+      }
       const state = isOasis ? `${key}=${bonus}` : "";
       const existing = cell.querySelector("._vpfl-bonus");
       showAnimals(cell, scans.get(key), isOasis);
@@ -210,12 +218,15 @@
     const rows = [...tbody.querySelectorAll(":scope > tr.slot")];
     const strength = row => Number(row.querySelector("._vpfl-animals")?.dataset[defenceMode]);
     const enabledFirst = table.querySelector("th.state .sortingArrow:not(.inactive)");
+    // Oases with no animal data (base defence only) stay on top in either direction.
+    const empty = row => Number(!!row.querySelector("._vpfl-animals")?.dataset.noData);
     const sorted = rows.map(row => ({row, value: strength(row)})).sort((a, b) => {
       if (enabledFirst) {
         const disabled = Number(a.row.classList.contains("disabled")) - Number(b.row.classList.contains("disabled"));
         if (disabled) return disabled;
       }
-      return Number.isNaN(a.value) - Number.isNaN(b.value) || direction * (a.value - b.value) || 0;
+      return empty(b.row) - empty(a.row) || Number.isNaN(a.value) - Number.isNaN(b.value) ||
+        direction * (a.value - b.value) || 0;
     });
     if (sorted.every((item, i) => item.row === rows[i])) return;
     const after = rows[rows.length - 1].nextSibling;

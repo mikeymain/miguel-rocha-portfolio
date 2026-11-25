@@ -172,6 +172,15 @@ const _serverSpeed = (() => {
   return rawSpeed;
 })();
 
+function troopAttack(unit, level) {
+  const upkeep = { u5: 3, u6: 4, u16: 3, u26: 3, u56: 3, u66: 3, u76: 3 }[unit.id] || (unit.cav ? 2 : 1);
+  return unit.atk + (unit.atk + 300 * upkeep / 7) * (1.007 ** Math.min(20, Math.max(0, level || 0)) - 1);
+}
+
+function marchHours(dist, speed, tsLvl) {
+  return (Math.min(20, dist) + Math.max(0, dist - 20) / (1 + 0.1 * tsLvl)) / speed;
+}
+
 function calculateTroopMetrics(
   oasis,
   troopUnits,
@@ -190,7 +199,7 @@ function calculateTroopMetrics(
   let infAtk = 0,
     cavAtk = 0;
   troopUnits.forEach(({ unit, count, smithyLvl }) => {
-    const effectiveAtk = unit.atk * (1 + 0.015 * (smithyLvl || 0));
+    const effectiveAtk = troopAttack(unit, smithyLvl);
     if (unit.cav) cavAtk += effectiveAtk * count;
     else infAtk += effectiveAtk * count;
   });
@@ -213,8 +222,10 @@ function calculateTroopMetrics(
 
   let oasisRes = 0;
   let oasisXP = 0;
+  let remaining = 0;
   oasis.animals.forEach((u) => {
     const killed = Math.round(u.count * NKP);
+    remaining += u.count - killed;
     oasisRes += ANIMAL_STATS[u.id].res * killed;
     oasisXP += ANIMAL_STATS[u.id].xp * killed;
   });
@@ -243,9 +254,7 @@ function calculateTroopMetrics(
   if (hero) speeds.push(hero.speed);
   const marchSpd = speeds.length > 0 ? Math.min(...speeds) : 1;
 
-  let timeHours = 0;
-  if (dist <= 20) timeHours = dist / marchSpd;
-  else timeHours = 20 / marchSpd + (dist - 20) / (marchSpd * (1 + 0.1 * tsLvl));
+  const timeHours = marchHours(dist, marchSpd, tsLvl);
 
   const oneWayMinutes = Math.max(1, Math.round(timeHours * 60));
   const roundTripMinutes = Math.max(1, oneWayMinutes * 2);
@@ -276,6 +285,7 @@ function calculateTroopMetrics(
     oasisXP,
     troopLossRes,
     troopLossCount,
+    remaining,
     heroHpLoss,
     netRes,
     rpm,
@@ -319,7 +329,7 @@ function _resultRowHTML(p) {
                         <div class="_vpresult-meta">${p.meta}</div>
                     </div>
                     <span class="_vpscore-badge" title="Hero XP" aria-label="${p.score} hero XP">${p.score}</span>
-                    <a href="${p.rallyHref}" class="_vpresult-link _vprally-go" target="_blank"${p.rallyAttrs || ""}>${p.rallyLabel}</a>
+                    ${p.rallyHref ? `<a href="${p.rallyHref}" class="_vpresult-link _vprally-go" target="_blank"${p.rallyAttrs || ""}>${p.rallyLabel}</a>` : `<span class="_vphp-mid">${p.rallyLabel}</span>`}
                 </div>
                 <div class="_vpresult-drawer">
                     <div class="_vpdrawer-chips">${p.chips}</div>
@@ -454,7 +464,6 @@ function renderHeroTab() {
 
   const sortMode = document.getElementById("_vpsort-order").value || "score";
   const scanMode = document.getElementById("_vpmode")?.value || "GRID";
-  skippedOases = [];
 
   const source = getSourceMap(scanMode);
   const list = [];
@@ -464,11 +473,6 @@ function renderHeroTab() {
     const validHp = parseInt(m.hp) <= settings.maxHp;
     if (inRadius && validHp) {
       list.push({ ...o, ...m });
-    } else {
-      const reason = !inRadius
-        ? `Dist ${m.dist} > ${settings.radius}`
-        : `HP -${m.hp}% > ${settings.maxHp}%`;
-      skippedOases.push({ x: o.x, y: o.y, reason });
     }
   });
 
@@ -554,78 +558,39 @@ function renderHeroTab() {
   });
 }
 
-const SMITHY_ATTACK_BONUS = 0.015; // Attack bonus per smithy level (1.5%)
-
-function calculateOptimalTroopCount(
-  oasis,
-  unit,
-  smithyLvl,
-  _cx,
-  _cy,
-  _tsLvl,
-  hero,
-  riskLevel,
-  maxTroopsCap,
-) {
-  const effectiveAtk = unit.atk * (1 + SMITHY_ATTACK_BONUS * smithyLvl);
-  if (effectiveAtk <= 0) return 1;
-
-  const heroOff = hero ? hero.off : 0;
-  // The optimizer searches over the troop count, so the stack dominates the
-  // offense split — weigh defense by the unit's type alone. The displayed
-  // metrics recompute with the exact hero+troops split afterwards.
-  const oasisDef = oasisDefense(oasis.animals, unit.cav ? 1 : 0);
-
-  const unitCost = unit.cost.reduce((s, v) => s + v, 0);
-
-  // netResAt(c): net resources at count c.
-  const netResAt = (c) => {
-    const L = Math.pow(oasisDef / (c * effectiveAtk + heroOff), 1.5);
-    const NKP = 1 / (1 + L);
-    let oR = 0;
-    oasis.animals.forEach(
-      (a) => (oR += ANIMAL_STATS[a.id].res * Math.round(a.count * NKP)),
-    );
-    return oR - Math.round((c * L) / (1 + L)) * unitCost;
-  };
-
-  // countForLossFrac(t): troops needed so troopLossFrac < t.
-  // troopLossFrac < t  →  L < t/(1-t)  →  atk > def × ((1-t)/t)^(2/3)
-  const countForLossFrac = (t) =>
-    Math.max(
-      1,
-      Math.ceil(
-        (oasisDef * Math.pow((1 - t) / t, 2 / 3) - heroOff) / effectiveAtk,
-      ),
-    );
-
-  // Loss-frac targets per risk level — produce consistent proportional behaviour
-  // across all oases regardless of integer rounding.
-  // Safe=0.0003 (~1 lost), Cautious=0.005 (~3 lost), Balanced=0.012 (~4 lost),
-  // Aggressive=0.023 (~5 lost), Reckless=min troops for net≥0.
-  const LOSS_FRAC_BY_RISK = [0, 0.0007, 0.008, 0.017, 0.026, null];
-  let count;
-
-  if (riskLevel === 5) {
-    // Reckless: fewest troops for net ≥ 0.
-    const hi = Math.ceil((oasisDef * 20) / effectiveAtk);
-    if (netResAt(hi) < 0) {
-      count = hi;
-    } else {
-      let lo = 1;
-      let rhi = hi;
-      while (lo < rhi) {
-        const mid = Math.floor((lo + rhi) / 2);
-        if (netResAt(mid) >= 0) rhi = mid;
-        else lo = mid + 1;
-      }
-      count = lo;
-    }
-  } else {
-    count = countForLossFrac(LOSS_FRAC_BY_RISK[riskLevel]);
+// Size a raid against the observed stacks plus a selectable arrival reserve.
+// Reserve animals all use the strongest observed defence for this attack mix.
+function calculateOptimalTroopCount(oasis, unit, smithyLvl, cx, cy, tsLvl, hero, riskLevel) {
+  const attack = troopAttack(unit, smithyLvl);
+  const heroOff = hero?.off || 0;
+  const dist = Math.hypot(torusDelta(oasis.x, cx), torusDelta(oasis.y, cy));
+  const speed = Math.min(unit.spd * _serverSpeed, hero?.speed || Infinity);
+  const tripMinutes = marchHours(dist, speed, tsLvl) * 60;
+  const ageMinutes = oasis.scannedAt ? Math.max(0, Date.now() - oasis.scannedAt) / 60000 : 0;
+  // A planning allowance, not a measured spawn rate. Limit stale scans to one hour of reserve.
+  const window = Math.min(60, tripMinutes + ageMinutes);
+  const interval = [0, 5, 10, 20, 40, Infinity][riskLevel];
+  const reserve = Math.ceil(window / interval);
+  const largest = Math.max(...oasis.animals.map(a => a.count)) + reserve;
+  // Every stack must round to zero survivors and at least one attacker must return.
+  const clearRatio = Math.pow(2 * largest - 1, 2 / 3);
+  function clears(count) {
+    const total = count * attack + heroOff;
+    const cavShare = ((unit.cav ? count * attack : 0) + (hero?.mounted ? heroOff : 0)) / total;
+    const extraDef = Math.max(...oasis.animals.map(({ id }) => {
+      const stats = ANIMAL_STATS[id];
+      return stats.defI * (1 - cavShare) + stats.defC * cavShare;
+    }));
+    return total > (oasisDefense(oasis.animals, cavShare) + reserve * extraDef) * clearRatio;
   }
-
-  return maxTroopsCap > 0 ? Math.min(count, maxTroopsCap) : count;
+  let lo = 1, hi = 1;
+  while (!clears(hi)) hi *= 2;
+  while (lo < hi) {
+    const mid = Math.floor((lo + hi) / 2);
+    if (clears(mid)) hi = mid;
+    else lo = mid + 1;
+  }
+  return { count: lo, reserve };
 }
 
 function renderTroopTabPreview(
@@ -681,7 +646,7 @@ function renderTroopTabPreview(
   const source = getSourceMap(scanMode);
   const list = [];
   source.forEach((oasis) => {
-    const targetCount = calculateOptimalTroopCount(
+    const { count: targetCount, reserve } = calculateOptimalTroopCount(
       oasis,
       previewUnit,
       previewSmithyLvl,
@@ -690,7 +655,6 @@ function renderTroopTabPreview(
       tsLvl,
       hero,
       riskLevel,
-      maxTroopsCap,
     );
 
     const metrics = calculateTroopMetrics(
@@ -708,7 +672,7 @@ function renderTroopTabPreview(
     if (parseFloat(metrics.dist) > radius) return;
     if (hero && metrics.heroHpLoss > maxHp) return;
 
-    list.push({ ...oasis, ...metrics, minCount: targetCount });
+    list.push({ ...oasis, ...metrics, minCount: targetCount, reserve });
   });
 
   list.sort((a, b) => {
@@ -760,7 +724,7 @@ function renderTroopTabPreview(
         ? `<span class="${hpClass(o.heroHpLoss)}">−${escapeHTML(String(o.heroHpLoss))}% hp</span>` +
           lossHTML
         : lossHTML;
-    const meta = _metaHTML(o, safety);
+    const meta = _metaHTML(o, safety + `<span title="Extra animals allowed for before arrival">Reserve +${o.reserve}</span>`);
     const stats =
       `<span>score <b class="_vpresult-xp">${escapeHTML(String(o.rawScore.toFixed(0)))}</b></span>` +
       `<span>xp <b class="_vpresult-xp">${escapeHTML(String(o.oasisXP))}</b></span>` +
@@ -772,9 +736,9 @@ function renderTroopTabPreview(
       unit: "net",
       meta,
       score: escapeHTML(String(o.oasisXP)),
-      rallyHref: rallyUrl,
+      rallyHref: maxTroopsCap > 0 && o.minCount > maxTroopsCap ? null : rallyUrl,
       rallyAttrs: ` data-slot="${troopSlot}" data-count="${o.minCount}"`,
-      rallyLabel: `Send ${escapeHTML(String(o.minCount))}`,
+      rallyLabel: maxTroopsCap > 0 && o.minCount > maxTroopsCap ? `Need ${o.minCount} � over cap` : `Send ${escapeHTML(String(o.minCount))}`,
       chips: _garrisonChips(o.animals),
       stats,
     });
@@ -788,6 +752,7 @@ function renderTroopTabPreview(
         rk,
         JSON.stringify({
           troops: { [a.dataset.slot]: a.dataset.count },
+          hero: !!hero,
           ts: Date.now(),
         }),
       );
@@ -920,7 +885,7 @@ function renderTroopTab() {
         ? `<span class="${hpClass(o.heroHpLoss)}">−${escapeHTML(String(o.heroHpLoss))}% hp</span>` +
           lossHTML
         : lossHTML;
-    const meta = _metaHTML(o, safety);
+    const meta = _metaHTML(o, safety + `<span>${o.remaining ? o.remaining + " animals left" : "Predicted clear"}</span>`);
     const stats =
       `<span>score <b class="_vpresult-xp">${escapeHTML(String(o.rawScore.toFixed(0)))}</b></span>` +
       `<span>xp <b class="_vpresult-xp">${escapeHTML(String(o.oasisXP))}</b></span>` +

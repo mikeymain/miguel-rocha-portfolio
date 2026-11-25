@@ -28,3 +28,5 @@ th.target button[data-vpfl-def] {
 }
 th.target button[data-vpfl-def]:hover,
 th.target button[data-vpfl-def][aria-pressed="true"] { text-decoration: underline; }
+
+table.slots td.population[hidden] { display: none !important; }

@@ -170,7 +170,7 @@ const TROOP_DATA_ORIGINAL = {
 				id: "u24",
 				name: "TT",
 				cav: true,
-				atk: 90,
+				atk: 100,
 				spd: 19,
 				carry: 75,
 				cost: [350, 450, 230, 60],
@@ -519,7 +519,6 @@ let scannedKeys = new Set();
 let sessionScannedOases = new Set();
 // Tombstones prevent async storage restoration from resurrecting cleared targets.
 let resolvedOases = new Set();
-let skippedOases = [];
 // Unit ids the user has toggled off in the Troops tab — excluded from all
 // troop calculations and the preview unit pool. Persisted in settings.
 let disabledUnits = new Set();
