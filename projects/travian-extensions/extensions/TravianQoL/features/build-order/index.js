@@ -1,15 +1,15 @@
 // Build order.
 // On the resources view (dorf1), marks the resource field with the best
-// payback as the next upgrade: it glows, and the next steps get numbered
-// badges. The step list and the per-village production bonus live in the
-// QoL settings "Build order" tab; this script saves each village's field
-// levels there and re-ranks when the bonus changes.
+// payback as the next upgrade: only that one field glows. The step list and
+// the per-village production bonus live in the QoL settings "Build order"
+// tab; this script saves each village's field levels there and re-ranks when
+// the bonus changes.
 // Ranking: features/build-order/core.js.
 //
 // Compliance note: read-only DOM change plus extension storage. No clicks,
 // no network calls.
 (function () {
-	const STEPS = 5;
+	const STEPS = 1;
 	const DEBOUNCE_MS = 150;
 	// Per-host { villageId: [wood, clay, iron, crop] bonus % }.
 	const BONUS_PREFIX = 'travianQoL.buildOrder.';
@@ -18,18 +18,10 @@
 	const STYLE_ID = 'tqol-bo-style';
 	const ORDER_ATTR = 'tqolBo';
 	const CSS = `
-#resourceFieldContainer a.resourceField[data-tqol-bo]::after {
-	content: attr(data-tqol-bo);
-	position: absolute; right: -4px; top: -4px; z-index: 3;
-	min-width: 16px; height: 16px; padding: 0 3px; box-sizing: border-box;
-	border-radius: 8px; background: #2b2b2b; color: #ffd75e;
-	font: bold 11px/16px sans-serif; text-align: center; pointer-events: none;
-}
 #resourceFieldContainer a.resourceField[data-tqol-bo="1"] .labelLayer {
 	box-shadow: 0 0 0 2px #ffd75e, 0 0 10px 4px rgba(255, 200, 40, .85);
 	animation: tqol-bo-glow 1.4s ease-in-out infinite alternate;
 }
-#resourceFieldContainer a.resourceField[data-tqol-bo="1"]::after { background: #ffd75e; color: #2b2b2b; }
 @keyframes tqol-bo-glow {
 	from { box-shadow: 0 0 0 2px #ffd75e, 0 0 6px 2px rgba(255, 200, 40, .6); }
 	to   { box-shadow: 0 0 0 2px #ffd75e, 0 0 16px 7px rgba(255, 200, 40, 1); }

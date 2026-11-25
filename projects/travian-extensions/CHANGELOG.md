@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.6.9 — 2026-11-25
+
+- Build order: on the resources page only the next field glows; the numbered badges on the following fields are gone.
+
 ## Travian QoL 1.6.8 — 2026-11-25
 
 - Build order plans more than fields: Sawmill, Brickyard, Iron Foundry, Grain Mill and Bakery (+5% per level, with their requirements) and the Hero's Mansion levels needed to take an oasis (10 / 15 / 20). Mark each oasis as owned or planned; planned ones are scheduled when their payback beats the next field.
