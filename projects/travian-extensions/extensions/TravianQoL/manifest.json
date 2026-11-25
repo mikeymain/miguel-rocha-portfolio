@@ -6,7 +6,7 @@
 	},
 	"manifest_version": 3,
 	"name": "Travian QoL",
-	"version": "1.4.8",
+	"version": "1.4.9",
 	"description": "Collection of small quality-of-life tweaks for Travian. Each feature is independently toggleable.",
 	"permissions": ["storage", "contextMenus"],
 	"host_permissions": [
@@ -79,6 +79,24 @@
 			],
 			"css": ["features/loot-calc/styles.css"],
 			"run_at": "document_idle"
+		},
+		{
+			"matches": [
+				"*://*.travian.com/*",
+				"*://*.travian.de/*",
+				"*://*.travian.co.uk/*",
+				"*://*.travian.us/*",
+				"*://*.travian.net/*",
+				"*://*.travian.fr/*",
+				"*://*.travian.it/*",
+				"*://*.travian.cz/*",
+				"*://*.travian.pl/*",
+				"*://*.travian.ru/*",
+				"*://*.travian.tr/*",
+				"*://*.travian.ae/*"
+			],
+			"js": ["features/trade-route-production/early.js"],
+			"run_at": "document_start"
 		}
 	]
 }

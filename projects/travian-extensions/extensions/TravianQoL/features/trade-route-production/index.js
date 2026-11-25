@@ -151,6 +151,11 @@
 		originals.clear();
 	}
 
+	/** Remove early.js's style that hides the production values. */
+	function reveal() {
+		document.getElementById('tqol-tr-hide')?.remove();
+	}
+
 	/** Show net production in each row; hover shows production and route change. */
 	function applyToTable(balance) {
 		const rows = [...document.querySelectorAll('#production tbody tr')].slice(0, RESOURCE_COUNT);
@@ -174,11 +179,21 @@
 
 	function renderProduction() {
 		const did = activeVillageId();
-		if (!did || !document.getElementById('production')) return;
+		if (!did || !document.getElementById('production')) {
+			reveal();
+			return;
+		}
 		const key = storageKey();
 		chrome.storage.local.get(key, (res) => {
-			if (chrome.runtime?.lastError) return;
-			applyToTable(balancePerHour(res?.[key], did));
+			if (chrome.runtime?.lastError) {
+				reveal();
+				return;
+			}
+			try {
+				applyToTable(balancePerHour(res?.[key], did));
+			} finally {
+				reveal();
+			}
 		});
 	}
 
@@ -210,6 +225,7 @@
 			clearTimeout(debounceTimer);
 			debounceTimer = null;
 			removeCells();
+			reveal();
 			document.getElementById(STYLE_ID)?.remove();
 		},
 	});

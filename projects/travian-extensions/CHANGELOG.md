@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.4.9 — 2026-11-25
+
+- Trade routes: the **Production per hour** values no longer flicker from the game's numbers to the net numbers on page load.
+
 ## Travian QoL 1.4.8 — 2026-11-25
 
 - Trade routes: the **Production per hour** table no longer adds two columns. Each value shows net production after trade routes; hover it for the game's production and the trade-route change.
