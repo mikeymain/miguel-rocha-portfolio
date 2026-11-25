@@ -1,10 +1,10 @@
 // Trade routes in the production table.
 // On the marketplace "Trade routes" tab, reads each expanded route group
 // (resources per departure, one row per daily departure) and stores the daily
-// totals per source -> target village. On the resources page, the
-// "Production per hour" table gets two extra columns: the trade-route balance
-// per hour for the active village (incoming minus outgoing) and the net
-// production after routes.
+// totals per source -> target village. On the resources page, each
+// "Production per hour" value becomes the net production after routes
+// (incoming minus outgoing for the active village); hovering it shows the
+// game's production and the trade-route change.
 //
 // Collapsed route groups have no rows in the page, so their last stored
 // totals are kept. Open a group once to capture or refresh it.
@@ -16,20 +16,15 @@
 	const HOURS_PER_DAY = 24;
 	const RESOURCE_COUNT = 4;
 	const RESOURCE_CLASSES = ['lumber', 'clay', 'iron', 'crop'];
-	const CELL_CLASS = 'tqol-tr';
+	const NET_CLASS = 'tqol-tr-net';
 	const STYLE_ID = 'tqol-tr-style';
 	const DEBOUNCE_MS = 300;
-	const CSS = `
-		#production td.${CELL_CLASS} { padding-left: 8px; text-align: right; white-space: nowrap; }
-		#production td.${CELL_CLASS}.tqol-tr-pos { color: #3c8a1e; }
-		#production td.${CELL_CLASS}.tqol-tr-neg { color: #c0392b; }
-		#production td.${CELL_CLASS}.tqol-tr-net { font-weight: bold; }
-	`;
+	const CSS = `#production .${NET_CLASS} { cursor: help; }`;
 
 	let observer = null;
 	let debounceTimer = null;
-	// Original colspan of the table title, restored on destroy.
-	let originalSpan = null;
+	// Production cell -> its original child nodes, restored on destroy.
+	const originals = new Map();
 
 	const storageKey = () => STORAGE_PREFIX + location.host;
 
@@ -151,25 +146,12 @@
 		(document.head || document.documentElement).appendChild(style);
 	}
 
-	function makeCell(text, extraClass, title) {
-		const td = document.createElement('td');
-		td.className = `${CELL_CLASS} ${extraClass}`.trim();
-		td.textContent = text;
-		td.title = title;
-		return td;
-	}
-
 	function removeCells() {
-		document.querySelectorAll(`#production td.${CELL_CLASS}`).forEach((el) => el.remove());
-		const head = document.querySelector('#production thead th');
-		if (head && originalSpan !== null) {
-			if (originalSpan) head.setAttribute('colspan', originalSpan);
-			else head.removeAttribute('colspan');
-		}
-		originalSpan = null;
+		for (const [cell, nodes] of originals) cell.replaceChildren(...nodes);
+		originals.clear();
 	}
 
-	/** Add the routes and net columns to the production table. */
+	/** Show net production in each row; hover shows production and route change. */
 	function applyToTable(balance) {
 		const rows = [...document.querySelectorAll('#production tbody tr')].slice(0, RESOURCE_COUNT);
 		if (rows.length < RESOURCE_COUNT) return;
@@ -177,18 +159,17 @@
 		if (balance.every((v) => v === 0)) return;
 		injectStyle();
 		rows.forEach((row, i) => {
-			const prod = parseNum(row.querySelector('td.num')?.textContent);
+			const cell = row.querySelector('td.num');
+			const prod = parseNum(cell?.textContent);
 			if (prod === null) return;
 			const delta = balance[i];
-			const tone = delta > 0 ? 'tqol-tr-pos' : delta < 0 ? 'tqol-tr-neg' : '';
-			row.appendChild(makeCell(formatSigned(delta), tone, 'Trade routes'));
-			row.appendChild(makeCell(String(prod + delta), 'tqol-tr-net', 'Net'));
+			originals.set(cell, [...cell.childNodes]);
+			const span = document.createElement('span');
+			span.className = NET_CLASS;
+			span.textContent = String(prod + delta);
+			span.title = `Production ${prod}, trade routes ${formatSigned(delta)}`;
+			cell.replaceChildren(span);
 		});
-		const head = document.querySelector('#production thead th');
-		if (head) {
-			originalSpan = head.getAttribute('colspan') || '';
-			head.setAttribute('colspan', String((parseInt(originalSpan, 10) || 4) + 2));
-		}
 	}
 
 	function renderProduction() {
@@ -206,7 +187,7 @@
 	window.TravianQoL.register({
 		id: 'trade-route-production',
 		label: 'Trade routes in production table',
-		description: 'Adds trade-route balance and net production per hour to the resources page production table. Open each trade route group on the marketplace once to record it.',
+		description: 'Production per hour shows net production after trade routes; hover a value for the breakdown. Open each trade route group on the marketplace once to record it.',
 		// Exposed for tests.
 		_internals: { parseNum, groupDailyTotals, readRouteGroups, mergeSource, balancePerHour, formatSigned },
 		init() {

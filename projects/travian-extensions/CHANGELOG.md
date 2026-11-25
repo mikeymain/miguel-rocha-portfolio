@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.4.8 — 2026-11-25
+
+- Trade routes: the **Production per hour** table no longer adds two columns. Each value shows net production after trade routes; hover it for the game's production and the trade-route change.
+
 ## Travian QoL 1.4.7 — 2026-11-25
 
 - The resources page **Production per hour** table adds two columns: trade-route balance per hour (incoming minus outgoing) and net production after routes. Routes are read from **Marketplace → Trade routes** when you open it; expand each route group once to record it.
