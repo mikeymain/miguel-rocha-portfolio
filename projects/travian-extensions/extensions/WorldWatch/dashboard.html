@@ -28,6 +28,7 @@
 			<button type="button" role="tab" data-view="growth" aria-selected="true">Growth</button>
 			<button type="button" role="tab" data-view="spawn" aria-selected="false">Spawn ring</button>
 			<button type="button" role="tab" data-view="gold" aria-selected="false">Gold suspects</button>
+			<button type="button" role="tab" data-view="nearby" aria-selected="false">Nearby</button>
 			<button type="button" role="tab" data-view="alliances" aria-selected="false">Alliances</button>
 			<button type="button" role="tab" data-view="map" aria-selected="false">Map</button>
 			<button type="button" role="tab" data-view="croppers" aria-selected="false">15c Finder</button>
@@ -70,6 +71,16 @@
 		<section id="controls-spawn" class="row" hidden>
 			<label for="spawn-count">Newest accounts</label>
 			<input id="spawn-count" type="number" min="5" max="500" value="40" />
+		</section>
+		<section id="controls-nearby" class="row" hidden>
+			<label for="near-point">Centre (x|y)</label>
+			<input id="near-point" type="text" placeholder="0|0" autocomplete="off" />
+			<label for="near-radius">Radius</label>
+			<input id="near-radius" type="number" min="1" max="200" value="15" />
+			<label><input id="near-inactive" type="checkbox" /> Inactive only</label>
+			<button id="near-open" type="button">Open all</button>
+			<button id="near-stop" type="button" hidden>Stop</button>
+			<span id="near-progress" class="summary"></span>
 		</section>
 		<section id="controls-gold" class="row" hidden>
 			<label for="point">Point (x|y)</label>

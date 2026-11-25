@@ -194,6 +194,47 @@
 		return { hours: round1(hours), p99, compared: all.length, rows: opts.limit ? rows.slice(0, opts.limit) : rows };
 	}
 
+	// Villages within `radius` of `point`, nearest first. Accounts whose total
+	// pop did not grow between `prev` and `cur` are "inactive"; accounts absent
+	// from `prev` are "new". `excludeUid` (your account) is left out.
+	// prev may be null: status is then unknown ("").
+	function nearby(prev, cur, { point, radius, excludeUid = null } = {}) {
+		const before = prev ? accounts(prev) : null;
+		const after = accounts(cur);
+		const oldPop = new Map();
+		if (prev) for (let i = 0; i < prev.vid.length; i++) oldPop.set(prev.vid[i], prev.pop[i]);
+		const rows = [];
+		for (let i = 0; i < cur.uid.length; i++) {
+			const uid = cur.uid[i];
+			if (uid === excludeUid) continue;
+			const dist = distance(cur.x[i], cur.y[i], point.x, point.y);
+			if (dist > radius) continue;
+			const acc = after.get(uid);
+			const old = before && before.get(uid);
+			const accountGain = old ? acc.pop - old.pop : null;
+			const status = !before ? "" : !old ? "new" : accountGain <= 0 ? "inactive" : "active";
+			const vPrev = oldPop.get(cur.vid[i]);
+			rows.push({
+				x: cur.x[i],
+				y: cur.y[i],
+				vid: cur.vid[i],
+				uid,
+				player: cur.players[uid] || "",
+				alliance: cur.alliances[cur.aid[i]] || "",
+				tribe: cur.tribe ? cur.tribe[i] : null,
+				pop: cur.pop[i],
+				popDelta: vPrev == null ? null : cur.pop[i] - vPrev,
+				accountPop: acc.pop,
+				accountGain,
+				villages: acc.villages,
+				distance: round1(dist),
+				status,
+			});
+		}
+		rows.sort((a, b) => a.distance - b.distance || a.vid - b.vid);
+		return rows;
+	}
+
 	// Alliances ranked by population, with a pop-weighted centre.
 	function topAlliances(snap, limit = 30) {
 		const map = new Map();
@@ -269,6 +310,7 @@
 		topAccounts,
 		parsePoint,
 		ownerUid,
+		nearby,
 		goldSuspects,
 		topAlliances,
 		growth,

@@ -38,6 +38,19 @@
 			{ key: "distance", label: "Distance" },
 			{ key: "flagText", label: "p99" },
 		],
+		nearby: [
+			{ key: "point", label: "Coordinates" },
+			{ key: "distance", label: "Distance" },
+			{ key: "player", label: "Player" },
+			{ key: "alliance", label: "Alliance" },
+			{ key: "tribeName", label: "Tribe" },
+			{ key: "pop", label: "Pop" },
+			{ key: "popDelta", label: "Δ pop" },
+			{ key: "accountPop", label: "Account pop" },
+			{ key: "accountGain", label: "Δ account" },
+			{ key: "villages", label: "Villages" },
+			{ key: "status", label: "Status" },
+		],
 		alliances: [
 			{ key: "tag", label: "Alliance" },
 			{ key: "aid", label: "aid" },
@@ -134,7 +147,7 @@
 		const v = state.own && state.own.villages[Number($("own").value)];
 		if (!v) return;
 		const text = `${v.x}|${v.y}`;
-		for (const id of ["point", "map-goto"]) {
+		for (const id of ["point", "map-goto", "near-point"]) {
 			const input = $(id);
 			if (force || !input.value.trim() || input.value === input.dataset.auto) {
 				input.value = text;
@@ -185,6 +198,7 @@
 			return { rows: A.spawnRing(snap, count), summary: `Sign-ups ${cur.maxUid} · accounts ${cur.accounts}` };
 		}
 		if (view === "alliances") return { rows: A.topAlliances(snap, 50), summary: "" };
+		if (view === "nearby") return computeNearby(cur, snap);
 		const prev = metaById($("prev").value);
 		if (!prev || prev.id === cur.id) return { rows: [], summary: "Pick two different snapshots." };
 		const [older, newer] = prev.t < cur.t ? [prev, cur] : [cur, prev];
@@ -202,6 +216,79 @@
 		let rows = result.rows.map((r) => ({ ...r, flagText: r.flag ? "▲" : "" }));
 		if ($("flagged").checked) rows = rows.filter((r) => r.flag || r.own);
 		return { rows, summary: `${result.hours} h · compared ${result.compared} · p99 gain ${result.p99 ?? "–"}` };
+	}
+
+	const TRIBES = { 1: "Romans", 2: "Teutons", 3: "Gauls", 6: "Egyptians", 7: "Huns", 8: "Spartans", 9: "Vikings" };
+	const DAY_MS = 86_400_000;
+
+	async function computeNearby(cur, snap) {
+		const point = A.parsePoint($("near-point").value);
+		if (!point) return { rows: [], summary: "Centre must be x|y within ±200." };
+		const radius = Math.max(1, Math.min(200, Number($("near-radius").value) || 15));
+		const prev = metaById($("prev").value);
+		const older = prev && prev.t < cur.t ? prev : null;
+		const prevSnap = older ? await loadSnap(older.id) : null;
+		const excludeUid = state.own?.villages?.length ? A.ownerUid(snap, state.own.villages) : null;
+		const host = $("host").value;
+		let rows = A.nearby(prevSnap, snap, { point, radius, excludeUid }).map((r) => ({
+			...r,
+			point: `${r.x}|${r.y}`,
+			tribeName: TRIBES[r.tribe] || "",
+			href: `https://${host}/position_details.php?x=${r.x}&y=${r.y}`,
+		}));
+		const inactive = rows.filter((r) => r.status === "inactive").length;
+		if ($("near-inactive").checked) rows = rows.filter((r) => r.status === "inactive");
+		const hours = older ? Math.round((cur.t - older.t) / 3_600_000) : 0;
+		const windowText = !older ? "Pick an older Compare with snapshot for inactives" :
+			hours < 24 ? `${hours} h window: pick a snapshot ≥ 24 h older` : `${hours} h window`;
+		return { rows, summary: `${rows.length} villages · ${inactive} inactive · ${windowText}` };
+	}
+
+	// For Nearby: default Compare with to the newest snapshot at least 24 h older.
+	function preferDayOld() {
+		const cur = metaById($("cur").value);
+		const prev = metaById($("prev").value);
+		if (!cur || (prev && cur.t - prev.t >= DAY_MS)) return;
+		const pick = [...state.metas].reverse().find((m) => cur.t - m.t >= DAY_MS);
+		if (pick) $("prev").value = String(pick.id);
+	}
+
+	// Opens tabs one at a time with 1.5–4 s gaps, the same pace as Inactive Opener.
+	const OPEN_GAP_MS = [1500, 4000];
+	const OPEN_MAX = 100;
+	const OPEN_CONFIRM = 25;
+	let openRun = 0;
+
+	function stopOpening(text) {
+		openRun++;
+		$("near-open").hidden = false;
+		$("near-stop").hidden = true;
+		$("near-progress").textContent = text || "";
+	}
+
+	async function openAll() {
+		const urls = state.rows.map((r) => r.href).filter(Boolean).slice(0, OPEN_MAX);
+		if (!urls.length) return;
+		const extra = state.rows.length > OPEN_MAX ? ` (first ${OPEN_MAX} of ${state.rows.length})` : "";
+		if (urls.length > OPEN_CONFIRM && !confirm(`Open ${urls.length} tabs${extra}?`)) return;
+		const run = ++openRun;
+		$("near-open").hidden = true;
+		$("near-stop").hidden = false;
+		for (let i = 0; i < urls.length; i++) {
+			if (run !== openRun) return;
+			$("near-progress").textContent = `Opening ${i + 1}/${urls.length}`;
+			try {
+				await api.tabs.create({ url: urls[i], active: false });
+			} catch (err) {
+				stopOpening(`Stopped: ${err.message}`);
+				return;
+			}
+			if (i < urls.length - 1) {
+				const gap = OPEN_GAP_MS[0] + Math.random() * (OPEN_GAP_MS[1] - OPEN_GAP_MS[0]);
+				await new Promise((resolve) => setTimeout(resolve, gap));
+			}
+		}
+		if (run === openRun) stopOpening(`Opened ${urls.length}`);
 	}
 
 	let map = null;
@@ -269,7 +356,7 @@
 		for (const r of rows.slice(0, 1000)) {
 			const tr = document.createElement("tr");
 			if (r.own) tr.className = "own";
-			else if (r.flag) tr.className = "flag";
+			else if (r.flag || r.status === "inactive") tr.className = "flag";
 			for (const c of columns) {
 				const td = document.createElement("td");
 				if (c.key === "point" && r.href) {
@@ -319,6 +406,8 @@
 		for (const b of document.querySelectorAll("[data-view]")) b.setAttribute("aria-selected", String(b.dataset.view === view));
 		$("controls-spawn").hidden = view !== "spawn";
 		$("controls-gold").hidden = view !== "gold";
+		$("controls-nearby").hidden = view !== "nearby";
+		if (view === "nearby") preferDayOld();
 		$("controls-map").hidden = view !== "map";
 		$("controls-croppers").hidden = view !== "croppers";
 		setMsg(!$("host").value ? "No worlds watched. Add one in the popup." :
@@ -353,6 +442,17 @@
 	});
 	for (const id of ["cur", "prev", "spawn-count", "radius", "flagged"]) $(id).addEventListener("change", render);
 	$("point").addEventListener("change", render);
+	$("near-point").addEventListener("change", render);
+	$("near-inactive").addEventListener("change", render);
+	$("near-radius").addEventListener("change", () => {
+		api.storage.local.set({ wwNearRadius: Number($("near-radius").value) || 15 });
+		render();
+	});
+	$("near-open").addEventListener("click", openAll);
+	$("near-stop").addEventListener("click", () => stopOpening("Stopped"));
+	api.storage.local.get("wwNearRadius").then((d) => {
+		if (d.wwNearRadius) $("near-radius").value = d.wwNearRadius;
+	});
 	$("map-count").addEventListener("change", render);
 	$("map-spawns").addEventListener("change", () => mapInstance().setShow({ spawns: $("map-spawns").checked }));
 	$("map-alliances").addEventListener("change", () => mapInstance().setShow({ alliances: $("map-alliances").checked }));
