@@ -480,6 +480,7 @@ td.delta { text-align: right; white-space: nowrap; font-family: var(--font-num);
 }
 
 .group-chip {
+	position: relative;
 	display: inline-flex;
 	align-items: center;
 	height: 28px;
@@ -500,13 +501,26 @@ td.delta { text-align: right; white-space: nowrap; font-family: var(--font-num);
 
 .group-chip-name {
 	max-width: 120px;
-	padding: 0 4px 0 10px;
+	padding: 0 10px;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
-.group-chip-x { width: 24px; padding: 0; font-size: 14px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+/* Delete button overlays the chip's right edge so the name stays centred. */
+.group-chip-x {
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 22px;
+	padding: 0;
+	font-size: 14px;
+	border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+	background: var(--surface-2);
+	opacity: 0;
+}
+.group-chip:hover .group-chip-x,
+.group-chip:focus-within .group-chip-x { opacity: 1; }
 .view-hist { position: relative; anchor-name: --graph-view; }
 
 .primary-btn {

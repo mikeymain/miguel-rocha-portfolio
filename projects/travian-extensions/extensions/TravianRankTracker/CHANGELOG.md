@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.1.20 — 2026-11-25
+
+- Saved group chips centre their name; the × delete button shows on hover or focus.
+
 ## Rank Tracker 5.1.19 — 2026-11-25
 
 - Rank Tracker no longer sends raid income to TravAlarm. TravAlarm 3.68 and later work out FNPC from returning raids and incoming merchants instead. The cached raid income summaries are deleted on update.
