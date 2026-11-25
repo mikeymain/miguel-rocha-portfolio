@@ -74,7 +74,16 @@
 		12870, 16475, 21080, 26985, 34545, 44210, 56595, 72445, 92730, 118690];
 	const GROWTH = 1.007;
 	const COST_K = [100, 100, 200, 160];
-	const LAST_OFFENSIVE_INDEX = 6; // index > 6 (catapults) always uses attack
+	// Units rated on attack even when their defence total is higher (e.g. Haeduan
+	// 140 att vs 225 def). Indexes into each tribe's row list; rams and siege included.
+	// Hybrids not listed (Legionnaire, Resheph, Mercenary, Marksman) use the larger stat.
+	const OFFENSIVE = {
+		romans: [2, 4, 5, 6, 7],
+		teutons: [0, 2, 5, 6, 7],
+		gauls: [1, 3, 5, 6, 7],
+		egyptians: [2, 6, 7],
+		huns: [1, 3, 5, 6, 7],
+	};
 
 	const roundTo5 = (v) => Math.round(v / 5) * 5;
 
@@ -92,11 +101,12 @@
 		return base + (base + (300 * upkeep) / 7) * (GROWTH ** level - 1);
 	}
 
-	/** Attack for offensive units, else infantry + cavalry defence. */
+	/** Attack for offensive units, else infantry + cavalry defence (hybrids: larger). */
 	function mainStat(unit, level) {
 		const attack = statAt(unit.attack, unit.upkeep, level);
+		if (OFFENSIVE[unit.tribe].includes(unit.index)) return attack;
 		const def = statAt(unit.defInf, unit.upkeep, level) + statAt(unit.defCav, unit.upkeep, level);
-		return attack > def || unit.index > LAST_OFFENSIVE_INDEX ? attack : def;
+		return attack > def ? attack : def;
 	}
 
 	/** Resources for the smithy upgrade to `level`: [wood, clay, iron, crop]. */
