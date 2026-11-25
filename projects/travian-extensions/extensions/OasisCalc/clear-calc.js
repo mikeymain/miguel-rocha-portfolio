@@ -19,7 +19,7 @@
   function readAnimals(table) {
     const animals = [];
     for (const row of table.querySelectorAll("tr")) {
-      const icon = row.querySelector("td.ico i.unit");
+      const icon = row.querySelector("td.ico .unit");
       const id = parseInt(icon?.className.match(/\bu(\d+)\b/)?.[1], 10);
       const count = parseInt(row.querySelector("td.val")?.textContent.replace(BIDI, "").replace(/\D/g, ""), 10);
       if (ANIMAL_STATS[id] && Number.isSafeInteger(count) && count > 0) animals.push({ id, count });

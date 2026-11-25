@@ -1,5 +1,9 @@
 # Changelog
 
+## Oasis Finder 70.19 — 2026-11-25
+
+- Fix: the map oasis dialog's **Clear** table did not appear because animal icons are `<img>` elements, not `<i>`.
+
 ## Oasis Finder 70.18 — 2026-11-25
 
 - Troops: troop counts now use one raid model with per-unit-type rounding; the smithy bonus uses the game formula (TT 127.8 attack at level 20).
