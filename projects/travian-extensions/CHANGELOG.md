@@ -1,5 +1,9 @@
 # Changelog
 
+## Next Settlement Calc 2.6.25 — 2026-11-25
+
+- ETA history ranges are now 24h, 48h, 72h, 7d and All.
+
 ## Next Settlement Calc 2.6.24 — 2026-11-25
 
 - The ETA history skips logged samples whose CP reads below an earlier sample. Those were CP misreads from before 2.6.23 and showed as a spike just before a target was reached.
