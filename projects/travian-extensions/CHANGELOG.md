@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.6.18 — 2026-11-25
+
+- Report opener: the Open Unread button appears on the next frame after the reports list renders, not after a 100 ms debounce.
+
 ## Travian QoL 1.6.17 — 2026-11-25
 
 - Build order: fields with an upgrade already queued in game are listed above Next upgrades in green, marked Upgrading.

@@ -7,7 +7,7 @@
 // our injected button. No timers, no automated openers, no fetches.
 (function () {
 	let observer = null;
-	let debounceTimer = null;
+	let frameId = null;
 
 	function openAllUnread() {
 		const links = [];
@@ -62,11 +62,14 @@
 
 	function start() {
 		// Travian re-renders the report list when the player changes pages or
-		// filters, which drops our injected button. A debounced MutationObserver
-		// re-injects it after each render burst settles.
+		// filters, which drops our injected button. A MutationObserver re-injects
+		// it on the next frame (no trailing delay) so it appears with the list.
 		observer = new MutationObserver(() => {
-			clearTimeout(debounceTimer);
-			debounceTimer = setTimeout(injectButton, 100);
+			if (frameId) return;
+			frameId = requestAnimationFrame(() => {
+				frameId = null;
+				injectButton();
+			});
 		});
 		observer.observe(document.body, { childList: true, subtree: true });
 		injectButton();
@@ -91,8 +94,8 @@
 				observer.disconnect();
 				observer = null;
 			}
-			clearTimeout(debounceTimer);
-			debounceTimer = null;
+			if (frameId) cancelAnimationFrame(frameId);
+			frameId = null;
 			const btn = document.getElementById('_ro-btn');
 			if (btn) btn.remove();
 		},
