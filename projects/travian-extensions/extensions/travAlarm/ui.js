@@ -321,6 +321,7 @@ api.storage.onChanged.addListener((changes) => {
 
 /** @param {Promise} [prefetched] an already-sent GET_ACTIVE_ALARMS request */
 async function syncState(prefetched) {
+  if (!isContextAlive()) return;
   const res = await (prefetched instanceof Promise
     ? prefetched
     : api.runtime.sendMessage({ type: "GET_ACTIVE_ALARMS" }));

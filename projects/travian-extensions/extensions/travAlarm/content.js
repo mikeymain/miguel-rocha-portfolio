@@ -121,6 +121,7 @@ function checkFiredStorageAlarms() {
  */
 function every(fn, initialMs, repeatMs) {
   const run = () => {
+    if (!isContextAlive()) return;
     fn();
     setTimeout(run, jitterMs(repeatMs));
   };
@@ -141,7 +142,10 @@ function startLoops(firstAlarms) {
     }, 50);
   });
   syncState(firstAlarms);
-  setInterval(syncState, jitterMs(TIMING_INTERVALS.STATE_SYNC));
+  const syncInterval = setInterval(() => {
+    if (!isContextAlive()) return clearInterval(syncInterval);
+    syncState();
+  }, jitterMs(TIMING_INTERVALS.STATE_SYNC));
 
   every(fetchTrainingData, TIMING_INTERVALS.TRAINING_INITIAL, TIMING_INTERVALS.TRAINING_REPEAT);
   every(fetchWarehouseData, TIMING_INTERVALS.WAREHOUSE_INITIAL, TIMING_INTERVALS.WAREHOUSE_REPEAT);

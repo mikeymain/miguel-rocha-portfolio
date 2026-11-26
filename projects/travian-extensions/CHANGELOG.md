@@ -1,5 +1,9 @@
 # Changelog
 
+## TravAlarm 3.72 — 2026-11-26
+
+- Game tabs left open across an extension reload or update stop polling and no longer log `Extension context invalidated` errors.
+
 ## Oasis Finder 70.25 — 2026-11-26
 
 - Map oasis **Clear** table redraws when the selected unit's smithy level, the hero health limit or hero stats change.

@@ -7,6 +7,22 @@
 // Universal API shim (browser for Firefox, chrome for Chrome/MV3)
 const api = typeof browser !== "undefined" ? browser : chrome;
 
+// After the extension reloads or updates, this tab's old content script loses
+// its connection. Every extension call then rejects with "Extension context
+// invalidated". Stop work and drop those rejections instead of logging them.
+function isContextAlive() {
+  try {
+    return !!api.runtime?.id;
+  } catch {
+    return false;
+  }
+}
+
+window.addEventListener("unhandledrejection", (e) => {
+  const msg = String(e.reason?.message || e.reason || "");
+  if (msg.includes("Extension context invalidated")) e.preventDefault();
+});
+
 // ==========================================
 // CONFIGURATION & STATE
 // ==========================================
