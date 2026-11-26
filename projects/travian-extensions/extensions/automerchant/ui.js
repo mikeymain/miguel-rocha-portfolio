@@ -342,7 +342,7 @@ NPC.UIManager = {
             <div class="_r-preview-header">
                 <span>${NPC.Utils.formatNumber(count)}\u00d7 ${NPC.Utils.unitIcon(troop.unit)} ${troop.name}</span>
                 <span class="_r-preview-total ${canAfford ? "_r-ok" : "_r-warn"}">
-                    ${NPC.Utils.formatNumber(totalCost)} / ${NPC.Utils.formatNumber(totalPool)}
+                    ${NPC.Utils.formatNumber(totalPool)} / ${NPC.Utils.formatNumber(totalCost)}
                 </span>
             </div>
             <div class="_r-preview-grid">
