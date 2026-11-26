@@ -49,7 +49,11 @@
   function render(dialog, troopTable) {
     const coords = parseCoords(dialog.querySelector(".titleInHeader")?.textContent);
     const animals = readAnimals(troopTable);
-    const settings = ["_vppreview-unit", "_vprisk", "_vptroop-hero", "_vpts-lvl"].map((id) => {
+    // Every panel input buildRows reads, so a change to any of them redraws.
+    const tribe = TROOP_DATA[detectTribe()];
+    const unitId = tribe ? selectedTroopUnit(tribe)?.id : null;
+    const settings = ["_vppreview-unit", "_vprisk", "_vptroop-hero", "_vpts-lvl", "_vpmax-hp",
+      "_vphero-off", "_vpdmg-red", "_vpspeed", `_vpsmithy-${unitId}`].map((id) => {
       const el = document.getElementById(id);
       return el?.type === "checkbox" ? el.checked : el?.value;
     });

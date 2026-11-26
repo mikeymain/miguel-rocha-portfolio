@@ -1,5 +1,9 @@
 # Changelog
 
+## Oasis Finder 70.25 — 2026-11-26
+
+- Map oasis **Clear** table redraws when the selected unit's smithy level, the hero health limit or hero stats change.
+
 ## Oasis Finder 70.24 — 2026-11-26
 
 - **Troops** with no counts entered hides targets that need more than the troop cap.
