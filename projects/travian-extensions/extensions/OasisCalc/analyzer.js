@@ -657,6 +657,46 @@ function calculateOptimalTroopCount(oasis, unit, smithyLvl, cx, cy, tsLvl, hero,
   return { count: fit?.scale ?? null, reserve: fit?.reserve ?? 0 };
 }
 
+const PROFIT_SEARCH_STEP = 1.05;
+const PROFIT_SEARCH_SPAN = 2;
+
+// Count of one unit type with the most net resources per troop-minute, never
+// below minCount (the fewest that clear the oasis within the risk level's
+// loss cap). Every count marches at the same speed, so trip time is fixed and
+// net per troop-minute ranks counts the same as net per troop. Stays within
+// maxCount (0 = no cap) and keeps minCount when no count makes a profit.
+function profitTroopCount(oasis, unit, smithyLvl, hero, risk, dist, tsLvl, minCount, maxCount) {
+  const team = (count) => [{ unit, count, smithyLvl }];
+  const tripMinutes = teamMarchHours(team(1), hero, dist, tsLvl) * 60;
+  const { animals } = arrivalAnimals(oasis, risk, tripMinutes);
+  const perTroop = (count) => {
+    const o = raidOutcome(animals, team(count), hero);
+    return o ? (o.res - o.lostRes) / count : -Infinity;
+  };
+  const first = raidOutcome(animals, team(minCount), hero);
+  // Losses fall as c^-0.5, so net/c only rises while losses exceed 2/3 of the haul.
+  if (!first || 1.5 * first.lostRes <= first.res) return minCount;
+  const peakGuess = minCount * Math.pow((1.5 * first.lostRes) / Math.max(1, first.res), 2);
+  const cap = maxCount > 0 ? Math.max(minCount, maxCount) : Infinity;
+  const limit = Math.min(cap, Math.ceil(Math.max(minCount, peakGuess) * PROFIT_SEARCH_SPAN));
+  let best = minCount;
+  let bestValue = perTroop(minCount);
+  const consider = (c) => {
+    const value = perTroop(c);
+    if (value > bestValue) {
+      best = c;
+      bestValue = value;
+    }
+  };
+  for (let c = minCount; c <= limit; c = Math.max(c + 1, Math.ceil(c * PROFIT_SEARCH_STEP)))
+    consider(c);
+  // Refine between the neighbouring samples of the coarse best.
+  const hi = Math.min(limit, Math.ceil(best * PROFIT_SEARCH_STEP));
+  for (let c = Math.max(minCount, Math.floor(best / PROFIT_SEARCH_STEP)); c <= hi; c++)
+    consider(c);
+  return bestValue > 0 ? best : minCount;
+}
+
 // Unit chosen under Troops > Unit; "fastest" (or a disabled choice) falls back
 // to the fastest enabled unit that has attack. Null when none is enabled.
 function selectedTroopUnit(tribe) {
@@ -719,7 +759,7 @@ function renderTroopTabPreview(
   const source = getSourceMap(scanMode);
   const list = [];
   source.forEach((oasis) => {
-    const { count: targetCount, reserve } = calculateOptimalTroopCount(
+    const { count: minCount, reserve } = calculateOptimalTroopCount(
       oasis,
       previewUnit,
       previewSmithyLvl,
@@ -730,7 +770,18 @@ function renderTroopTabPreview(
       riskLevel,
       maxHp,
     );
-    if (targetCount == null) return;
+    if (minCount == null) return;
+    const targetCount = profitTroopCount(
+      oasis,
+      previewUnit,
+      previewSmithyLvl,
+      hero,
+      getRiskThresholds(riskLevel),
+      Math.hypot(torusDelta(oasis.x, cx), torusDelta(oasis.y, cy)),
+      tsLvl,
+      minCount,
+      maxTroopsCap,
+    );
 
     const metrics = calculateTroopMetrics(
       oasis,

@@ -1,5 +1,9 @@
 # Changelog
 
+## Oasis Finder 70.23 — 2026-11-26
+
+- **Troops** with no counts entered sends the count with the best net resources per troop, starting from the fewest that clear the oasis within the risk level's loss limit and staying within the troop cap.
+
 ## Oasis Finder 70.22 — 2026-11-25
 
 - Strongest-first farm-list sorting now places observed defences above the base score of 10. Saved animal counts also show their scan age.
