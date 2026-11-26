@@ -771,6 +771,7 @@ function renderTroopTabPreview(
       maxHp,
     );
     if (minCount == null) return;
+    if (maxTroopsCap > 0 && minCount > maxTroopsCap) return;
     const targetCount = profitTroopCount(
       oasis,
       previewUnit,
@@ -862,9 +863,9 @@ function renderTroopTabPreview(
       unit: "net",
       meta,
       score: escapeHTML(String(o.oasisXP)),
-      rallyHref: maxTroopsCap > 0 && o.minCount > maxTroopsCap ? null : rallyUrl,
+      rallyHref: rallyUrl,
       rallyAttrs: ` data-slot="${troopSlot}" data-count="${o.minCount}"`,
-      rallyLabel: maxTroopsCap > 0 && o.minCount > maxTroopsCap ? `Need ${o.minCount} · over cap` : `Send ${escapeHTML(String(o.minCount))}`,
+      rallyLabel: `Send ${escapeHTML(String(o.minCount))}`,
       chips: _garrisonChips(o.animals),
       stats,
     });
