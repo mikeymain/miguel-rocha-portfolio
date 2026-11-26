@@ -50,25 +50,6 @@ input[name^="desired"][readonly] {
   outline: none;
 }
 
-/* Scrollbar styling for troop calculator */
-._r-troop-calc {
-  max-height: 400px;
-  overflow-y: auto;
-}
-._r-troop-calc::-webkit-scrollbar {
-  width: 4px;
-}
-._r-troop-calc::-webkit-scrollbar-track {
-  background: transparent;
-}
-._r-troop-calc::-webkit-scrollbar-thumb {
-  background: #c5b88a;
-  border-radius: 2px;
-}
-._r-troop-calc::-webkit-scrollbar-thumb:hover {
-  background: #a89860;
-}
-
 /* ---- Main container ---- */
 #_rh-ui {
   margin: 10px 0;
