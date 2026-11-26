@@ -1,9 +1,9 @@
 # Changelog
 
-
 ## TravAlarm 3.73 — 2026-11-26
 
 - FNPC time no longer appears under raid bounty in the rally point troop movements.
+
 ## TravAlarm 3.72 — 2026-11-26
 
 - Game tabs left open across an extension reload or update stop polling and no longer log `Extension context invalidated` errors.
