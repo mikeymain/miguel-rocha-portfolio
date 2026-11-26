@@ -263,7 +263,10 @@ function calculateTroopMetrics(
   const timeHours = teamMarchHours(troopUnits, hero, dist, tsLvl);
 
   const oneWayMinutes = Math.max(1, Math.round(timeHours * 60));
-  const roundTripMinutes = Math.max(1, oneWayMinutes * 2);
+  const mapTier = hero ? parseInt(document.getElementById("_vphero-map")?.value) || 0 : 0;
+  const mapReturnBonus = [0, 0.3, 0.4, 0.5][mapTier] ?? 0;
+  const returnMinutes = Math.round(timeHours * 60 * (1 - mapReturnBonus));
+  const roundTripMinutes = Math.max(1, oneWayMinutes + returnMinutes);
   const rpm = netRes / roundTripMinutes;
 
   // Net profit per resource lost in troops
@@ -556,12 +559,28 @@ function renderHeroTab() {
   const rk = rallyKey();
   container.querySelectorAll("._vprally-go").forEach((a) => {
     a.addEventListener("click", () => {
+      const payload = { hero: true, ts: Date.now() };
+      const troops = getEscortTroops();
+      if (Object.keys(troops).length) payload.troops = troops;
       sessionStorage.setItem(
         rk,
-        JSON.stringify({ hero: true, ts: Date.now() }),
+        JSON.stringify(payload),
       );
     });
   });
+}
+
+function getEscortTroops(troops = {}) {
+  if (!document.getElementById("_vpescort-enabled")?.checked) return troops;
+  const tribe = TROOP_DATA[detectTribe()];
+  const choice = document.getElementById("_vpescort-unit")?.value;
+  const defaultIds = { 1: "u5", 2: "u11", 3: "u24", 6: "u55", 7: "u64", 8: "u75" };
+  const unit = tribe?.units.find((u) => u.id === (choice && choice !== "default" ? choice : defaultIds[detectTribe()]));
+  if (unit) {
+    const slot = ((parseInt(unit.id.substring(1)) - 1) % 10) + 1;
+    troops[slot] = (parseInt(troops[slot]) || 0) + 1;
+  }
+  return troops;
 }
 
 // Animals expected on arrival: the observed garrison plus the risk level's
@@ -657,43 +676,43 @@ function calculateOptimalTroopCount(oasis, unit, smithyLvl, cx, cy, tsLvl, hero,
   return { count: fit?.scale ?? null, reserve: fit?.reserve ?? 0 };
 }
 
-const PROFIT_SEARCH_STEP = 1.05;
-const PROFIT_SEARCH_SPAN = 2;
+const PROFIT_SEARCH_STEP = 0.02;
+const PROFIT_SEARCH_SPAN = 20;
 
-// Count of one unit type with the most net resources per troop-minute, never
-// below minCount (the fewest that clear the oasis within the risk level's
-// loss cap). Every count marches at the same speed, so trip time is fixed and
-// net per troop-minute ranks counts the same as net per troop. Stays within
-// maxCount (0 = no cap) and keeps minCount when no count makes a profit.
+// Count of one unit type that maximizes profit, never below minCount (the
+// fewest that clear the oasis within the risk level's loss cap). With a troop
+// cap (maxCount > 0) the troops are a fixed budget, so it maximizes absolute
+// net resources within the cap. Without a cap it maximizes net per troop.
+// Every count marches at the same speed, so net per minute ranks like net.
+// Keeps minCount when no count makes a profit.
 function profitTroopCount(oasis, unit, smithyLvl, hero, risk, dist, tsLvl, minCount, maxCount) {
   const team = (count) => [{ unit, count, smithyLvl }];
   const tripMinutes = teamMarchHours(team(1), hero, dist, tsLvl) * 60;
   const { animals } = arrivalAnimals(oasis, risk, tripMinutes);
-  const perTroop = (count) => {
+  const capped = maxCount > 0;
+  const value = (count) => {
     const o = raidOutcome(animals, team(count), hero);
-    return o ? (o.res - o.lostRes) / count : -Infinity;
+    if (!o) return -Infinity;
+    const net = o.res - o.lostRes;
+    return capped ? net : net / count;
   };
-  const first = raidOutcome(animals, team(minCount), hero);
-  // Losses fall as c^-0.5, so net/c only rises while losses exceed 2/3 of the haul.
-  if (!first || 1.5 * first.lostRes <= first.res) return minCount;
-  const peakGuess = minCount * Math.pow((1.5 * first.lostRes) / Math.max(1, first.res), 2);
-  const cap = maxCount > 0 ? Math.max(minCount, maxCount) : Infinity;
-  const limit = Math.min(cap, Math.ceil(Math.max(minCount, peakGuess) * PROFIT_SEARCH_SPAN));
+  const limit = capped ? Math.max(minCount, maxCount) : minCount * PROFIT_SEARCH_SPAN;
+  const stepOf = (c) => Math.max(1, Math.floor(c * PROFIT_SEARCH_STEP));
   let best = minCount;
-  let bestValue = perTroop(minCount);
+  let bestValue = value(minCount);
   const consider = (c) => {
-    const value = perTroop(c);
-    if (value > bestValue) {
+    const v = value(c);
+    if (v > bestValue) {
       best = c;
-      bestValue = value;
+      bestValue = v;
     }
   };
-  for (let c = minCount; c <= limit; c = Math.max(c + 1, Math.ceil(c * PROFIT_SEARCH_STEP)))
-    consider(c);
-  // Refine between the neighbouring samples of the coarse best.
-  const hi = Math.min(limit, Math.ceil(best * PROFIT_SEARCH_STEP));
-  for (let c = Math.max(minCount, Math.floor(best / PROFIT_SEARCH_STEP)); c <= hi; c++)
-    consider(c);
+  for (let c = minCount; c <= limit; c += stepOf(c)) consider(c);
+  consider(limit);
+  // Refine around the coarse best.
+  const reach = stepOf(best);
+  const hi = Math.min(limit, best + reach);
+  for (let c = Math.max(minCount, best - reach); c <= hi; c++) consider(c);
   return bestValue > 0 ? best : minCount;
 }
 
@@ -803,6 +822,10 @@ function renderTroopTabPreview(
   });
 
   list.sort((a, b) => {
+    if (sortMode !== "dist") {
+      if (a.netRes < 0 && b.netRes >= 0) return 1;
+      if (b.netRes < 0 && a.netRes >= 0) return -1;
+    }
     switch (sortMode) {
       case "dist":
         return parseFloat(a.dist) - parseFloat(b.dist);
@@ -878,7 +901,7 @@ function renderTroopTabPreview(
       sessionStorage.setItem(
         rk,
         JSON.stringify({
-          troops: { [a.dataset.slot]: a.dataset.count },
+          troops: getEscortTroops({ [a.dataset.slot]: a.dataset.count }),
           hero: !!hero,
           ts: Date.now(),
         }),
@@ -1054,7 +1077,7 @@ function renderTroopTab() {
   container.querySelectorAll("._vprally-go").forEach((a) => {
     a.addEventListener("click", () => {
       const payload = {
-        troops,
+        troops: getEscortTroops(troops),
         ts: Date.now(),
       };
       if (isHeroEnabled) {

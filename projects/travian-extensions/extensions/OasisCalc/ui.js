@@ -250,11 +250,21 @@ function buildUnitGrid() {
     if (fetchBtn) fetchBtn.style.display = "none";
     if (clearBtn) clearBtn.style.display = "none";
     grid.innerHTML = "";
+    document.getElementById("_vpescort-unit").innerHTML = '<option value="">Tribe not detected</option>';
+    document.getElementById("_vpescort-unit").disabled = true;
     return;
   }
 
   warn.style.display = "none";
   const tribe = TROOP_DATA[tribeId];
+  const escortSelect = document.getElementById("_vpescort-unit");
+  const selectedEscort = escortSelect.value;
+  const defaultEscort = ({ 1: "u5", 2: "u11", 3: "u24", 6: "u55", 7: "u64", 8: "u75" })[tribeId];
+  const defaultUnit = tribe.units.find((u) => u.id === defaultEscort) || tribe.units[0];
+  escortSelect.disabled = false;
+  escortSelect.innerHTML = `<option value="default">Tribe default · ${escapeHTML(defaultUnit.name)}</option>` +
+    tribe.units.map((u) => `<option value="${escapeHTML(u.id)}">${escapeHTML(u.name)}</option>`).join("");
+  if (selectedEscort && [...escortSelect.options].some((o) => o.value === selectedEscort)) escortSelect.value = selectedEscort;
   badge.textContent = tribe.name;
   badge.style.display = "";
   updateServerTypeBadge();
@@ -574,6 +584,14 @@ function createUI() {
                     <button type="button" id="_vphero-adjust" class="_vpbtn-adjust">Adjust</button>
                     <button id="_vpsync-hero" class="_vpbtn-fetch">Fetch</button>
                 </div>
+                <div class="_vpescort-row">
+                    <label class="_vphero-switch">
+                        <input type="checkbox" id="_vpescort-enabled">
+                        <span class="_vpswitch"><span class="_vpswitch-knob"></span></span>
+                        add 1 unit
+                    </label>
+                    <select id="_vpescort-unit" class="_vpselect-sm" aria-label="Unit to send with hero"></select>
+                </div>
                 <div class="_vphero-cards" id="_vphero-cards" style="display:none">
                     <div class="_vphero-card">
                         <div class="_vphero-card-label">HEALTH</div>
@@ -643,7 +661,6 @@ function createUI() {
 
             <div class="_vpfooter _vpactions">
                 <button id="_vpclear-db" class="_vpbtn _vpbtn-sm">Clear DB</button>
-                <button id="_vperrors-btn" class="_vpbtn _vpbtn-warn">Errors</button>
                 <button id="_vpview-db" class="_vpbtn _vpbtn-sm">View DB</button>
                 <span id="_vpdb-count" class="_vpdb-count">0 stored</span>
             </div>
@@ -750,6 +767,8 @@ function createUI() {
     cards.style.display = open ? "none" : "";
     btn.textContent = open ? "Adjust" : "Done";
   });
+
+  document.getElementById("_vpescort-unit").addEventListener("change", saveSettings);
 
   // Stepper buttons for panel inputs (Radius, Health, TS Level, Map Tier)
   div.addEventListener("click", (e) => {
@@ -867,9 +886,11 @@ function createUI() {
     saveSettings();
     renderResults();
   });
+  document.getElementById("_vpescort-enabled").addEventListener("change", (e) => {
+    saveSettings();
+  });
 
   document.getElementById("_vpclear-db").onclick = clearDatabase;
-  document.getElementById("_vperrors-btn").onclick = showErrors;
   document.getElementById("_vpview-db").onclick = viewDatabase;
   document.getElementById("_vpdb-close").onclick = closeDatabaseView;
   document.getElementById("_vpmodal-clear").onclick = () => {

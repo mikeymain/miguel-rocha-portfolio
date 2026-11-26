@@ -297,7 +297,6 @@ function viewDatabase() {
   const modal = document.getElementById("_vpdb-modal");
   const dialog = modal?.querySelector("._vpmodal-dialog");
   if (!modal || !dialog) return;
-  dialog.classList.remove("_vpmodal-errors");
   document.getElementById("_vpmodal-title").innerText = "OASIS DATABASE";
   updateDBCount();
   const radius = document.getElementById("_vpdb-radius");

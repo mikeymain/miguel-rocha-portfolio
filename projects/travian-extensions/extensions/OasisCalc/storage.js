@@ -13,16 +13,45 @@ let _dbLoaded = false;
 let _scanLoaded = false;
 
 let _scanSaveTimer = 0;
+let _scanSavePending = false;
+// Another map tab may have saved fresher scans; merge by newest scannedAt
+// instead of overwriting storage with this tab's whole list. Oases resolved
+// here as occupied/empty are dropped. merge=false is the unload fallback,
+// where an async read-then-write may not finish.
+function writeScanData(merge = true) {
+  clearTimeout(_scanSaveTimer);
+  _scanSavePending = false;
+  const snapshot = Array.from(resultsMap.entries());
+  const resolved = new Set(resolvedOases);
+  const save = (entries) => browser.storage.local.set({ [SCAN_DATA_KEY]: entries });
+  if (!merge) return save(snapshot);
+  return browser.storage.local.get(SCAN_DATA_KEY).then((data) => {
+    const merged = new Map();
+    for (const entry of Array.isArray(data?.[SCAN_DATA_KEY]) ? data[SCAN_DATA_KEY] : []) {
+      if (Array.isArray(entry) && entry[1]) merged.set(entry[0], entry[1]);
+    }
+    for (const key of resolved) if (!resultsMap.has(key)) merged.delete(key);
+    for (const [key, scan] of snapshot) {
+      if (!(merged.get(key)?.scannedAt > scan.scannedAt)) merged.set(key, scan);
+    }
+    return save(Array.from(merged.entries()));
+  }).catch(() => save(snapshot));
+}
 function saveScanData() {
   // INVARIANT: never remove this guard — see learnings.md storage-corruption entries
   if (!_scanLoaded) return;
   clearTimeout(_scanSaveTimer);
-  _scanSaveTimer = setTimeout(() => {
-    const obj = {};
-    obj[SCAN_DATA_KEY] = Array.from(resultsMap.entries());
-    browser.storage.local.set(obj);
-  }, 2000);
+  _scanSavePending = true;
+  _scanSaveTimer = setTimeout(() => writeScanData(), 2000);
 }
+// Leaving the map within the debounce window must not drop the latest scan.
+function flushScanData(merge = true) {
+  if (_scanLoaded && _scanSavePending) writeScanData(merge);
+}
+window.addEventListener?.("pagehide", () => flushScanData(false));
+document.addEventListener?.("visibilitychange", () => {
+  if (document.visibilityState === "hidden") flushScanData();
+});
 
 function loadScanData() {
   _scanLoaded = false;
@@ -105,37 +134,6 @@ function updateDBCount() {
   if (el) el.innerText = `${knownOases.size} stored`;
   const modalCount = document.getElementById("_vpmodal-count");
   if (modalCount) modalCount.innerText = `${knownOases.size} stored`;
-}
-
-function showErrors() {
-  const modal = document.getElementById("_vpdb-modal");
-  const list = document.getElementById("_vpdb-list");
-  document.getElementById("_vpmodal-title").innerText = "SKIPPED & ERRORS";
-  const modalCount = document.getElementById("_vpmodal-count");
-  if (modalCount) modalCount.innerText = `${skippedOases.length} skipped`;
-  // DB filters, sortable header and the open action do not apply here.
-  modal.querySelector("._vpmodal-dialog")?.classList.add("_vpmodal-errors");
-
-  list.innerHTML = "";
-  let html = "";
-
-  if (skippedOases.length > 0) {
-    skippedOases.forEach((o) => {
-      html += `
-                <div class="_vpmodal-item">
-                    <a href="/position_details.php?x=${escapeHTML(o.x)}&y=${escapeHTML(o.y)}" target="_blank" class="_vpmodal-coords">${escapeHTML(o.x)}|${escapeHTML(o.y)}</a>
-                    <span class="_vpmodal-gar _vpresult-xp">${escapeHTML(o.reason)}</span>
-                </div>
-            `;
-    });
-  }
-
-  if (html === "") {
-    html = '<div class="_vpresults-empty">No errors or skipped items yet.</div>';
-  }
-
-  list.innerHTML = html;
-  modal.style.display = "flex";
 }
 
 // Routes Travian serves the rally point on (legacy and current).
@@ -320,6 +318,8 @@ function saveSettings() {
 
   const heroCheck = document.getElementById("_vptroop-hero");
   if (heroCheck) settings["_vptroop-hero"] = heroCheck.checked;
+  settings["_vpescort-enabled"] = document.getElementById("_vpescort-enabled")?.checked || false;
+  settings["_vpescort-unit"] = document.getElementById("_vpescort-unit")?.value || "default";
 
   const activeTab =
     document.querySelector("._vptab.active")?.dataset.tab || "hero";
@@ -392,6 +392,8 @@ function loadSettings() {
     const heroCheck = document.getElementById("_vptroop-hero");
     if (heroCheck && settings["_vptroop-hero"] !== undefined)
       heroCheck.checked = settings["_vptroop-hero"];
+    const escortCheck = document.getElementById("_vpescort-enabled");
+    if (escortCheck) escortCheck.checked = !!settings["_vpescort-enabled"];
 
     const savedTab = settings["_vpactive-tab"] || "hero";
     document.querySelectorAll("._vptab").forEach((t) => {
@@ -407,6 +409,8 @@ function loadSettings() {
     const previewUnit = document.getElementById("_vppreview-unit");
     if (previewUnit && settings["_vppreview-unit"])
       previewUnit.value = settings["_vppreview-unit"];
+    const escortUnit = document.getElementById("_vpescort-unit");
+    if (escortUnit && settings["_vpescort-unit"]) escortUnit.value = settings["_vpescort-unit"];
 
     // Restore disabled units and reflect them on the (already built) unit grid
     if (Array.isArray(settings["_vpdisabled-units"])) {
