@@ -6,7 +6,8 @@
 	align-items: stretch;
 }
 .bo > .bo__empty { grid-column: 1 / -1; }
-.bo__bonus { overflow: visible; }
+.bo__bonus { overflow: visible; display: flex; flex-direction: column; }
+.bo__bonus .bo__totals { margin-top: auto; }
 .bo__age { margin-left: auto; font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); }
 .bo__empty { padding: 16px 14px; font-size: 12.5px; color: var(--text-secondary); }
 
