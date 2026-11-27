@@ -4,7 +4,7 @@
   align-items: center;
   gap: 2px;
   margin-left: 6px;
-  padding: 0 4px;
+  padding: 3px 4px 4px;
   border-radius: 3px;
   background: rgba(127, 127, 127, 0.15);
   font-size: 11px;
@@ -20,6 +20,7 @@
 
 ._vpfl-animals { display: flex; flex-wrap: wrap; align-items: center; gap: 0 4px; padding: 3px 0 4px; font-size: 0.9em; font-weight: normal; }
 
+td.target > a { padding: 3px 0 4px; }
 ._vpfl-animals > span { white-space: nowrap; }
 ._vpfl-animals .unit { vertical-align: middle; }
 th.target button[data-vpfl-def] {
