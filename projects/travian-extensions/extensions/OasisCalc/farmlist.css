@@ -22,9 +22,13 @@
 
 td.target > a { padding: 3px 0 4px; }
 table.slots td.target, table.slots td.lastRaid { padding-top: 7px; }
-table.slots td.lastRaid .lastRaidWrapper { display: flex; flex-wrap: wrap; align-items: center; column-gap: 8px; }
+table.slots td.lastRaid .lastRaidWrapper { display: flex; flex-wrap: wrap; align-items: center; }
 table.slots td.lastRaid .lastRaidReport { flex: 0 0 100%; order: -1; }
 table.slots td.lastRaid .tqol-raid-fill { order: 3; }
+table.slots tr.slot td.target, table.slots tr.slot td.distance, table.slots tr.slot td.troops, table.slots tr.slot td.lastRaid { vertical-align: top; }
+table.slots td.lastRaid .lastRaidWrapper { column-gap: 6px; }
+table.slots td.lastRaid .lastRaidWrapper > * { margin-left: 0 !important; margin-right: 0 !important; }
+
 ._vpfl-animals > span { white-space: nowrap; }
 ._vpfl-animals .unit { vertical-align: middle; }
 th.target button[data-vpfl-def] {
