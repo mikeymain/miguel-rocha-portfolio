@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.6.26 — 2026-11-27
+
+- Oasis kills no longer miss raids: every oasis raided in the last 2 hours has its map tile report list checked every 15–20 minutes on any game page, and unread raids from the last hour are read with their own times.
+
 ## Travian QoL 1.6.25 — 2026-11-27
 
 - Farm list shows animals killed at each oasis in the past hour, before the bounty sum. New oasis raid reports are read in the background while the farm list is open, one at a time with random gaps.
