@@ -52,5 +52,34 @@
 	const averageFill = (list) =>
 		list.length ? list.reduce((s, r) => s + r.fill, 0) / list.length : null;
 
-	window.TravianQoLRaidFill = { UNIT_CARRY, MAX_RAIDS, slotCapacity, lastRaid, addRaid, averageFill };
+	// Travian wraps numbers in bidi marks and uses U+2212 for minus.
+	const clean = (text) =>
+		String(text ?? '').replace(/[‪-‮‎‏]/g, '').replace(/−/g, '-').trim();
+
+	/** Target details shown on a farm list row, for the Farm targets tab. */
+	function rowMeta(row) {
+		const link = row.querySelector('td.target a');
+		const href = link?.getAttribute('href') || '';
+		const label = clean(link?.textContent || row.querySelector('td.target')?.textContent);
+		const q = href.match(/[?&]x=(-?\d+)&(?:amp;)?y=(-?\d+)/);
+		const t = label.match(/\(?(-?\d+)\|(-?\d+)\)?/);
+		const coords = q || t;
+		const pop = num(row.querySelector('td.population')?.textContent);
+		const dist = parseFloat(clean(row.querySelector('td.distance')?.textContent).replace(',', '.'));
+		return {
+			name: label.replace(/\s*\(?-?\d+\|-?\d+\)?\s*$/, '').trim() || label,
+			x: coords ? Number(coords[1]) : null,
+			y: coords ? Number(coords[2]) : null,
+			list: clean(row.closest('.farmListWrapper')?.querySelector('.farmListName .name')?.textContent) || null,
+			oasis: pop === 0,
+			pop: Number.isFinite(pop) ? pop : null,
+			dist: Number.isFinite(dist) ? dist : null,
+			cap: slotCapacity(row) || null,
+			lastBounty: num(row.querySelector('.lastRaidBounty .value')?.textContent) || 0,
+			sumBounty: num(row.querySelector('.averageRaidBounty .value')?.textContent) || 0,
+			disabled: row.classList.contains('disabled'),
+		};
+	}
+
+	window.TravianQoLRaidFill = { UNIT_CARRY, MAX_RAIDS, slotCapacity, lastRaid, addRaid, averageFill, rowMeta };
 })();

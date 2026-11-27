@@ -15,6 +15,7 @@
 		<link rel="stylesheet" href="options.css" />
 		<link rel="stylesheet" href="counter.css" />
 		<link rel="stylesheet" href="build-order.css" />
+		<link rel="stylesheet" href="farm-targets.css" />
 	</head>
 	<body>
 		<div class="app">
@@ -50,6 +51,12 @@
 							<path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
 						</svg>
 						<span>Counter-attack</span>
+					</button>
+					<button id="tabbtn-farm-targets" class="tabs__item" data-tab="farm-targets" role="tab" aria-selected="false" aria-controls="tab-farm-targets" tabindex="-1">
+						<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+						</svg>
+						<span>Farm targets</span>
 					</button>
 					<button id="tabbtn-features" class="tabs__item" data-tab="features" role="tab" aria-selected="false" tabindex="-1" aria-controls="tab-features">
 						<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -87,6 +94,20 @@
 						</div>
 					</header>
 					<div id="lc-settings" class="lc-grid"></div>
+				</section>
+
+				<section id="tab-farm-targets" class="panel" role="tabpanel" aria-labelledby="tabbtn-farm-targets" tabindex="0">
+					<header class="panel__head">
+						<h1 class="panel__title">Farm targets</h1>
+						<div class="panel__meta">
+							<span class="count" id="ft-count"></span>
+							<div class="server-pick">
+								<label for="ft-server">Server</label>
+								<select id="ft-server" class="select"></select>
+							</div>
+						</div>
+					</header>
+					<div id="ft-root" class="ft"></div>
 				</section>
 
 				<section id="tab-build-order" class="panel is-active" role="tabpanel" aria-labelledby="tabbtn-build-order" tabindex="0">
@@ -286,5 +307,6 @@
 		<script src="options.js"></script>
 		<script src="counter.js"></script>
 		<script src="build-order.js"></script>
+		<script src="farm-targets.js"></script>
 	</body>
 </html>

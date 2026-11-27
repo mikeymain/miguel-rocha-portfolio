@@ -11,7 +11,12 @@
 	const SCAN_DELAY_MS = 300;
 	const BADGE_CLASS = 'tqol-raid-fill';
 
+	// Farm list target details, read by the Farm targets settings tab:
+	// `${host}|${slotId}` -> rowMeta() + seenAt.
+	const TARGETS_KEY = 'travianQoL.farmTargets';
+
 	let history = {};
+	let targets = {};
 	let loaded = false;
 	let observer = null;
 	let scanTimer = null;
@@ -70,10 +75,17 @@
 		);
 	}
 
+	// Target details change rarely; a target already saved is refreshed at most
+	// this often when nothing else about it changed.
+	const TARGET_REFRESH_MS = 60 * 60 * 1000;
+	const sameMeta = (a, b) => !!a && Object.keys(b).every((key) => a[key] === b[key]);
+
 	function scan() {
 		if (!loaded || !core()) return;
 		const host = location.hostname;
+		const now = Date.now();
 		let next = history;
+		let nextTargets = targets;
 		for (const row of document.querySelectorAll('table.slots tr.slot')) {
 			const slotId = row.querySelector('input[data-slot-id]')?.dataset.slotId;
 			if (!slotId) continue;
@@ -82,11 +94,20 @@
 			const raid = core().lastRaid(row);
 			const list = raid ? core().addRaid(prev, raid) : prev;
 			if (list !== prev) next = { ...next, [id]: list };
+			const meta = core().rowMeta(row);
+			const old = nextTargets[id];
+			if (!sameMeta(old, meta) || now - (old.seenAt || 0) > TARGET_REFRESH_MS) {
+				nextTargets = { ...nextTargets, [id]: { ...meta, seenAt: now } };
+			}
 			render(row, list);
 		}
 		if (next !== history) {
-			history = prune(next, Date.now());
+			history = prune(next, now);
 			chrome.storage.local.set({ [STORE_KEY]: history });
+		}
+		if (nextTargets !== targets) {
+			targets = Object.fromEntries(Object.entries(nextTargets).filter(([, t]) => now - t.seenAt < STALE_MS));
+			chrome.storage.local.set({ [TARGETS_KEY]: targets });
 		}
 	}
 
@@ -105,13 +126,16 @@
 		description: 'Average bag fill of each target\'s last 5 raids, before the bounty sum. Red below 30%.',
 		init() {
 			if (!isFarmListPage()) return;
-			chrome.storage.local.get(STORE_KEY, (res) => {
+			chrome.storage.local.get([STORE_KEY, TARGETS_KEY], (res) => {
 				history = res?.[STORE_KEY] || {};
+				targets = res?.[TARGETS_KEY] || {};
 				loaded = true;
 				scan();
 			});
 			storageListener = (changes, area) => {
-				if (area === 'local' && changes[STORE_KEY]) history = changes[STORE_KEY].newValue || {};
+				if (area !== 'local') return;
+				if (changes[STORE_KEY]) history = changes[STORE_KEY].newValue || {};
+				if (changes[TARGETS_KEY]) targets = changes[TARGETS_KEY].newValue || {};
 			};
 			chrome.storage.onChanged.addListener(storageListener);
 			observer = new MutationObserver(scheduleScan);

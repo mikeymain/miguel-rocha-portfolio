@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.6.28 — 2026-11-27
+
+- New **Farm targets** settings tab: every farm list target with its list, distance, carry, bounty, bag fill and, for oases, animals killed in the past hour. Sortable, per server.
+
 ## Travian QoL 1.6.27 — 2026-11-27
 
 - Oasis kills check tile report lists only while the oasis is being raided: checks start on a new raid and stop 30 minutes after the last one (was 2 hours). Opening the farm list no longer starts checks on its own.
