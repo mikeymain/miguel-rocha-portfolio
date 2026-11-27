@@ -18,7 +18,7 @@
 ._vpfl-bonus span + i { margin-left: 3px; }
 ._vpfl-unknown { opacity: 0.6; cursor: help; }
 
-._vpfl-animals { display: flex; flex-wrap: wrap; align-items: center; gap: 0 4px; padding: 2px 0 3px; font-size: 0.9em; font-weight: normal; }
+._vpfl-animals { display: flex; flex-wrap: wrap; align-items: center; gap: 0 4px; padding: 3px 0 4px; font-size: 0.9em; font-weight: normal; }
 
 ._vpfl-animals > span { white-space: nowrap; }
 ._vpfl-animals .unit { vertical-align: middle; }
