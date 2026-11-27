@@ -7,6 +7,7 @@
 	const KILLS_KEY = 'travianQoL.oasisKills';
 	const HOST_KEY = 'travianQoL.farmTargets.host';
 	const SORT_KEY = 'travianQoL.farmTargets.sort';
+	const COLLAPSED_KEY = 'travianQoL.farmTargets.collapsed';
 	const LOW_FILL = 0.3;
 
 	// Remembered sort and server; storage can be unavailable, so never required.
@@ -27,7 +28,6 @@
 
 	const COLUMNS = [
 		{ key: 'name', label: 'Target' },
-		{ key: 'list', label: 'List' },
 		{ key: 'type', label: 'Type' },
 		{ key: 'dist', label: 'Dist', num: true },
 		{ key: 'cap', label: 'Carry', num: true },
@@ -58,6 +58,20 @@
 					kills: killed ? killed.reduce((a, b) => a + b, 0) : null,
 				};
 			});
+	}
+
+	/** Rows grouped by farm list, lists in game order; each group keeps the row order. */
+	function groupByList(rows) {
+		const groups = new Map();
+		for (const row of rows) {
+			const name = row.list || 'No list';
+			if (!groups.has(name)) groups.set(name, { name, index: row.listIndex ?? Infinity, rows: [], fills: [] });
+			const g = groups.get(name);
+			g.index = Math.min(g.index, row.listIndex ?? Infinity);
+			g.rows.push(row);
+			if (row.fill != null) g.fills.push(row.fill);
+		}
+		return [...groups.values()].sort((a, b) => a.index - b.index || a.name.localeCompare(b.name));
 	}
 
 	function sortRows(rows, { key, dir }) {
@@ -121,6 +135,12 @@
 		} catch {
 			/* keep the default sort */
 		}
+		let collapsed = new Set();
+		try {
+			collapsed = new Set(JSON.parse(readPref(COLLAPSED_KEY)) || []);
+		} catch {
+			/* all lists open */
+		}
 		let data = await chrome.storage.local.get([TARGETS_KEY, FILL_KEY, KILLS_KEY]);
 
 		function render() {
@@ -160,11 +180,41 @@
 				th.append(btn);
 				head.append(th);
 			}
-			const body = table.createTBody();
-			for (const row of rows) {
-				const tr = body.insertRow();
-				if (row.disabled) tr.className = 'is-disabled';
-				for (const col of COLUMNS) tr.append(cell(row, col.key, host, now));
+			for (const group of groupByList(rows)) {
+				const collapsedKey = `${host}|${group.name}`;
+				const isCollapsed = collapsed.has(collapsedKey);
+				const body = table.createTBody();
+				body.className = 'ft__group';
+				const headRow = body.insertRow();
+				headRow.className = 'ft__group-head';
+				const th = document.createElement('th');
+				th.colSpan = COLUMNS.length;
+				const toggle = document.createElement('button');
+				toggle.type = 'button';
+				toggle.setAttribute('aria-expanded', String(!isCollapsed));
+				const avg = group.fills.length ? group.fills.reduce((a, b) => a + b, 0) / group.fills.length : null;
+				const name = document.createElement('span');
+				name.className = 'ft__group-name';
+				name.textContent = group.name;
+				const meta = document.createElement('span');
+				meta.className = 'ft__group-meta';
+				meta.textContent = `${group.rows.length} targets` + (avg == null ? '' : ` · ${Math.round(avg * 100)}% bag fill`);
+				if (avg != null && avg < LOW_FILL) meta.classList.add('is-low');
+				toggle.append(name, meta);
+				toggle.addEventListener('click', () => {
+					if (collapsed.has(collapsedKey)) collapsed.delete(collapsedKey);
+					else collapsed.add(collapsedKey);
+					writePref(COLLAPSED_KEY, JSON.stringify([...collapsed]));
+					render();
+				});
+				th.append(toggle);
+				headRow.append(th);
+				if (isCollapsed) continue;
+				for (const row of group.rows) {
+					const tr = body.insertRow();
+					if (row.disabled) tr.className = 'is-disabled';
+					for (const col of COLUMNS) tr.append(cell(row, col.key, host, now));
+				}
 			}
 			root.replaceChildren(table);
 		}
@@ -185,6 +235,6 @@
 		render();
 	}
 
-	window.TravianQoLFarmTargets = { buildRows, sortRows };
+	window.TravianQoLFarmTargets = { buildRows, sortRows, groupByList };
 	if (document.getElementById('ft-root')) init();
 })();

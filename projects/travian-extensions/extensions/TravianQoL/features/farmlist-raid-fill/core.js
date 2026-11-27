@@ -66,8 +66,12 @@
 		const coords = q || t;
 		const pop = num(row.querySelector('td.population')?.textContent);
 		const dist = parseFloat(clean(row.querySelector('td.distance')?.textContent).replace(',', '.'));
+		const wrapper = row.closest('.farmListWrapper');
+		const listIndex = wrapper ? [...row.ownerDocument.querySelectorAll('.farmListWrapper')].indexOf(wrapper) : -1;
 		return {
 			name: label.replace(/\s*\(?-?\d+\|-?\d+\)?\s*$/, '').trim() || label,
+			listIndex: listIndex >= 0 ? listIndex : null,
+			listId: row.querySelector('input[data-farm-list-id]')?.dataset.farmListId || null,
 			x: coords ? Number(coords[1]) : null,
 			y: coords ? Number(coords[2]) : null,
 			list: clean(row.closest('.farmListWrapper')?.querySelector('.farmListName .name')?.textContent) || null,

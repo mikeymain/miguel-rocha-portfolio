@@ -86,6 +86,7 @@
 		const now = Date.now();
 		let next = history;
 		let nextTargets = targets;
+		const shown = new Map(); // listId -> slot ids rendered in this scan
 		for (const row of document.querySelectorAll('table.slots tr.slot')) {
 			const slotId = row.querySelector('input[data-slot-id]')?.dataset.slotId;
 			if (!slotId) continue;
@@ -95,6 +96,10 @@
 			const list = raid ? core().addRaid(prev, raid) : prev;
 			if (list !== prev) next = { ...next, [id]: list };
 			const meta = core().rowMeta(row);
+			if (meta.listId) {
+				if (!shown.has(meta.listId)) shown.set(meta.listId, new Set());
+				shown.get(meta.listId).add(id);
+			}
 			const old = nextTargets[id];
 			if (!sameMeta(old, meta) || now - (old.seenAt || 0) > TARGET_REFRESH_MS) {
 				nextTargets = { ...nextTargets, [id]: { ...meta, seenAt: now } };
@@ -104,6 +109,13 @@
 		if (next !== history) {
 			history = prune(next, now);
 			chrome.storage.local.set({ [STORE_KEY]: history });
+		}
+		// A list shown on the page lists all its slots: drop its targets that are gone.
+		const removed = Object.entries(nextTargets).filter(
+			([id, t]) => id.startsWith(`${host}|`) && shown.has(t.listId) && !shown.get(t.listId).has(id),
+		);
+		if (removed.length) {
+			nextTargets = Object.fromEntries(Object.entries(nextTargets).filter(([id]) => !removed.some(([r]) => r === id)));
 		}
 		if (nextTargets !== targets) {
 			targets = Object.fromEntries(Object.entries(nextTargets).filter(([, t]) => now - t.seenAt < STALE_MS));

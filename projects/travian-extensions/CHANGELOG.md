@@ -1,5 +1,10 @@
 # Changelog
 
+## Travian QoL 1.6.30 — 2026-11-27
+
+- Farm targets tab is grouped by farm list in the game's order, with collapsible list headers showing target count and average bag fill.
+- Targets removed from a farm list are dropped from the tab once that list is expanded on the Farm List page.
+
 ## Travian QoL 1.6.29 — 2026-11-27
 
 - Settings header: tab labels stay on one line; the version number and the Saved indicator are removed.
