@@ -105,51 +105,6 @@ function parseCellDelay(cell) {
 }
 
 // ==========================================
-// BACKGROUND PRODUCTION FETCHER
-// ==========================================
-async function fetchProductionData() {
-	if (!canFetch("prod", 10000)) return;
-
-	try {
-		const res = await fetch("/village/statistics/resources/production");
-		if (!res.ok) return;
-		const text = await res.text();
-		const parser = new DOMParser();
-		const doc = parser.parseFromString(text, "text/html");
-
-		const rows = doc.querySelectorAll("tbody tr");
-		rows.forEach((row) => {
-			if (row.classList.contains("sum") || row.querySelector(".empty")) return;
-			const vilNode = row.querySelector(".vil a");
-			if (!vilNode) return;
-
-			const vName = cleanText(vilNode.innerText);
-
-			const getVal = (selector) => {
-				const el = row.querySelector(selector);
-				if (!el) return 0;
-				return parseInt(el.innerText.replace(/[^\d-]/g, ""), 10) || 0;
-			};
-
-			const pW = getVal(".lum");
-			const pC = getVal(".clay");
-			const pI = getVal(".iron");
-			const pCr = getVal(".crop");
-			const total = pW + pC + pI + pCr;
-
-			const prodMap = { w: pW, c: pC, i: pI, cr: pCr };
-			writeProdCache(`${serverTag}_${vName}`, total, prodMap);
-		});
-
-		scan(); // Re-trigger scan to update NPC text
-	} catch {
-		// Fetch errors are non-critical, silently ignore
-	} finally {
-		fetchState.prod.isFetching = false;
-	}
-}
-
-// ==========================================
 // TRAINING QUEUE FETCHER
 // ==========================================
 async function fetchTrainingData() {

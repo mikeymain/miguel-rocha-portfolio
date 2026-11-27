@@ -1,25 +1,95 @@
 /**
- * TRAVALARM - RESOURCE DELIVERIES FOR FNPC
+ * FNPC - RESOURCE DELIVERIES
  *
  * Reads returning raids (rally point overview) and incoming merchants
  * (marketplace delivery overview) for the active village: from pages the
  * user opens, and from a background fetch while an FNPC time is shown (at
  * most once per cooldown). Each read replaces that village's cached list,
  * and FNPC adds the deliveries at their arrival times.
+ *
+ * Moved from TravAlarm 3.75.
  */
 
-const DELIVERIES_KEY = "_w4deliv";
+const fnpcServer = window.location.hostname;
+
+/** Randomises a delay to 70–150% so requests don't follow a fixed rhythm. */
+const jitterMs = (ms) => Math.round(ms * (0.7 + Math.random() * 0.8));
+
+/** Network work only runs while the game tab is visible. */
+function isPlayerActive() {
+  return !document.hidden;
+}
+
+/**
+ * Active village id from a sidebar. `root` may be a parsed DOM (a fetched page).
+ * Fetches here only read the village the user is already on and never send
+ * `newdid=`: that would switch the user's active village on the server.
+ */
+function _readDidFromSidebar(root = document) {
+  const activeEntry = root.querySelector(
+    ".villageList .listEntry.active[data-did], #sidebarBoxVillageList .listEntry.active[data-did]",
+  );
+  const entryDid = activeEntry?.getAttribute("data-did");
+  if (entryDid && /^\d+$/.test(entryDid)) return entryDid;
+  const el = root.querySelector(".villageList .listEntry.active a[href*='newdid=']");
+  return el?.getAttribute("href")?.match(/newdid=(\d+)/)?.[1] || null;
+}
+
+// Fetch throttle per key: in-page state plus the last fetch time per
+// `${host}|${key}` in extension storage, so a reload or a second tab does
+// not start the cooldown over.
+const fetchState = {};
+const FETCH_COOLDOWNS_KEY = "_t4fc";
+let _fetchCooldowns = {};
+const _cooldownId = (key) => `${fnpcServer}|${key}`;
+try {
+  chrome.storage.local.get(FETCH_COOLDOWNS_KEY).then((r) => {
+    const stored = r?.[FETCH_COOLDOWNS_KEY] || {};
+    const merged = { ..._fetchCooldowns };
+    for (const [k, t] of Object.entries(stored)) {
+      if (Number.isFinite(t) && !(merged[k] > t)) merged[k] = t;
+    }
+    _fetchCooldowns = merged;
+  }).catch(() => {});
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === "local" && changes[FETCH_COOLDOWNS_KEY]) {
+      _fetchCooldowns = { ...(changes[FETCH_COOLDOWNS_KEY].newValue || {}) };
+    }
+  });
+} catch {
+  /* storage unavailable: cooldowns are per page */
+}
+
+/** True if the fetcher may run now; marks it running and records the time. */
+function canFetch(key, cooldownMs) {
+  if (!isPlayerActive()) return false;
+  const f = (fetchState[key] ??= { isFetching: false, lastTime: 0 });
+  const now = Date.now();
+  const last = Math.max(f.lastTime, _fetchCooldowns[_cooldownId(key)] || 0);
+  if (f.isFetching || now - last < cooldownMs) return false;
+  f.isFetching = true;
+  f.lastTime = now;
+  _fetchCooldowns = { ..._fetchCooldowns, [_cooldownId(key)]: now };
+  try {
+    chrome.storage.local.set({ [FETCH_COOLDOWNS_KEY]: _fetchCooldowns }).catch(() => {});
+  } catch {
+    /* storage unavailable */
+  }
+  return true;
+}
+
+const DELIVERIES_KEY = "_t4dl";
 /** Drop cached deliveries whose arrival is further away than this. */
 const DELIVERY_MAX_AHEAD_MS = 48 * 60 * 60 * 1000;
 const RALLY_RES_ICONS = ["r1", "r2", "r3", "r4"];
 const MARKET_RES_ICONS = ["lumber_small", "clay_small", "iron_small", "crop_small"];
 
-// `${serverTag}_${did}` -> { raids: Delivery[], merchants: Delivery[] },
+// `${fnpcServer}_${did}` -> { raids: Delivery[], merchants: Delivery[] },
 // Delivery = { at: epoch ms, res: [w, c, i, cr] }.
 let _deliveries = {};
 // Returning raids seen per village, kept for RAID_RATE_WINDOW_MS after they
-// arrive: `${serverTag}_${did}` -> Delivery[]. Feeds the raid income rate.
-const RAID_LOG_KEY = "_w4raidlog";
+// arrive: `${fnpcServer}_${did}` -> Delivery[]. Feeds the raid income rate.
+const RAID_LOG_KEY = "_t4rl";
 const RAID_RATE_WINDOW_MS = 60 * 60 * 1000;
 let _raidLog = {};
 // Writes rebuild the whole stored object, so none may happen before it loads.
@@ -27,14 +97,14 @@ let _deliveriesLoaded = false;
 let deliveriesReady = Promise.resolve();
 try {
   deliveriesReady = Promise.all([
-    api.storage.local.get(DELIVERIES_KEY),
-    api.storage.local.get(RAID_LOG_KEY),
+    chrome.storage.local.get(DELIVERIES_KEY),
+    chrome.storage.local.get(RAID_LOG_KEY),
   ]).then(([d, l]) => {
     _deliveries = d?.[DELIVERIES_KEY] || {};
     _raidLog = l?.[RAID_LOG_KEY] || {};
     _deliveriesLoaded = true;
   }).catch(() => {});
-  api.storage.onChanged.addListener((changes, area) => {
+  chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== "local") return;
     if (changes[DELIVERIES_KEY]) _deliveries = changes[DELIVERIES_KEY].newValue || {};
     if (changes[RAID_LOG_KEY]) _raidLog = changes[RAID_LOG_KEY].newValue || {};
@@ -128,7 +198,7 @@ function _logRaids(key, raids) {
   }
   pruned[key] = recent([...prev, ...added]).sort((a, b) => a.at - b.at);
   _raidLog = pruned;
-  api.storage.local.set({ [RAID_LOG_KEY]: pruned }).catch(() => {});
+  chrome.storage.local.set({ [RAID_LOG_KEY]: pruned }).catch(() => {});
 }
 
 /**
@@ -152,7 +222,7 @@ function raidIncomePerHour(key, now = Date.now()) {
 function raidIncomeEvent() {
   const did = _readDidFromSidebar();
   if (!did) return null;
-  const key = `${serverTag}_${did}`;
+  const key = `${fnpcServer}_${did}`;
   const now = Date.now();
   const rate = raidIncomePerHour(key, now);
   if (!rate) return null;
@@ -178,7 +248,7 @@ function _storeDeliveries(key, kind, list) {
   if (entry.raids.length || entry.merchants.length) pruned[key] = entry;
   else delete pruned[key];
   _deliveries = pruned;
-  api.storage.local.set({ [DELIVERIES_KEY]: pruned }).catch(() => {});
+  chrome.storage.local.set({ [DELIVERIES_KEY]: pruned }).catch(() => {});
 }
 
 /** Caches deliveries shown on the current page for the active village. */
@@ -186,7 +256,7 @@ function scanDeliveries() {
   if (!_deliveriesLoaded) return;
   const did = _readDidFromSidebar();
   if (!did) return;
-  const key = `${serverTag}_${did}`;
+  const key = `${fnpcServer}_${did}`;
   const now = Date.now();
 
   if (_isRallyOverview()) {
@@ -245,7 +315,7 @@ async function fetchDeliveries() {
   if (!did) return;
   const fetchKey = `deliveries_${did}`;
   if (!canFetch(fetchKey, jitterMs(DELIVERY_FETCH_COOLDOWN_MS))) return;
-  const key = `${serverTag}_${did}`;
+  const key = `${fnpcServer}_${did}`;
   // Stop if the tab was hidden or the user switched village during a wait.
   const stillWanted = () => isPlayerActive() && _readDidFromSidebar() === did;
   try {
@@ -267,14 +337,14 @@ async function fetchDeliveries() {
   } finally {
     fetchState[fetchKey].isFetching = false;
   }
-  if (typeof scan === "function") scan();
+  if (typeof scanFnpc === "function") scanFnpc();
 }
 
 /** Upcoming deliveries for the active village as FNPC events. */
 function upcomingDeliveries() {
   const did = _readDidFromSidebar();
   if (!did) return [];
-  const entry = _deliveries[`${serverTag}_${did}`];
+  const entry = _deliveries[`${fnpcServer}_${did}`];
   if (!entry) return [];
   const now = Date.now();
   return [...(entry.raids || []), ...(entry.merchants || [])]

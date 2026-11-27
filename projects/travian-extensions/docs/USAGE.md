@@ -88,7 +88,6 @@ Unknown-age or incomplete readings are excluded. **Errors** shows scan problems,
 5. Drag the widget by its title bar to move it. The position is saved.
 6. Click the TravAlarm icon in the browser toolbar for display settings: panel width, opacity, accent color, start minimized, a color for each category and training building, and reset buttons. Changes apply to open Travian tabs immediately.
 7. To pause TravAlarm on one server (for example a test world), click the power button in the widget title bar. The server then shows only **TravAlarm · Ignored**; click **Resume** to turn it back on.
-8. **FNPC** next to a build or training cost shows when the village can afford it with an NPC trade. It uses the village production and storage caps, plus returning raid bounties and incoming merchant deliveries. While an FNPC time is shown, TravAlarm re-reads the active village's rally point and marketplace in the background, at most once every 5 minutes. Raids still on their way out are estimated from the village's raid bounty over the last hour.
 
 Categories keep their fixed order. Within a category, pinned timers come first, then finished ones, then the rest from soonest to latest.
 
@@ -189,6 +188,7 @@ Refreshes when you open the popup or click **Refresh**; there are no background 
 3. Enter **Build amount** or click **Max**. Max assumes an optimal NPC split of the total resource pool; actual recruitment also depends on stock distribution and queue conditions.
 4. **Pull from Hero** normally opens the game's transfer dialog with target amounts. When a target is available, each required amount appears in amber parentheses. In night mode, projected stock turns muted green when it meets or exceeds that resource's target. In the light theme, projected stock uses the dialog’s neutral text color. Check amounts and destination before confirming.
 5. If the native dialog is unavailable, **Pull from Hero** can navigate to hero inventory, fill the amounts, and submit the transfer automatically. A pull that doesn't reach the inventory within 30 seconds is dropped.
+6. **FNPC** next to a build or training cost shows when the village can afford it with an NPC trade. It uses the village production and storage caps, plus returning raid bounties and incoming merchant deliveries. While an FNPC time is shown, the extension re-reads the active village's rally point and marketplace in the background, at most once every 5 minutes. Raids still on their way out are estimated from the village's raid bounty over the last hour.
 
 <a id="night-mode"></a>
 

@@ -159,7 +159,6 @@ function startLoops(firstAlarms) {
   const loop = () => {
     if (!document.hidden) {
       tick();
-      refreshNpcCountdowns();
     }
     setTimeout(loop, 1005 - (Date.now() % 1000));
   };
@@ -212,6 +211,11 @@ function startTravAlarm() {
     stale.forEach((k) => localStorage.removeItem(k));
   } catch {}
 
+  // FNPC moved to the NPC Calculator extension (3.76): drop its cached data.
+  try {
+    api.storage.local.remove(["_w4deliv", "_w4raidlog"]).catch(() => {});
+  } catch {}
+
   ({ timerWidget, listContainer, toggleBtn, audioBtn } = createWidget());
   loadShortcuts();
   loadWorldTimers().catch((err) =>
@@ -220,8 +224,7 @@ function startTravAlarm() {
   const firstAlarms = api.runtime
     .sendMessage({ type: "GET_ACTIVE_ALARMS" })
     .catch(() => null);
-  Promise.all([loadProdCache(), deliveriesReady, restoreSectionState(), restoreVillageColors()]).then(() => {
-    tryScan(scanNPCBuild, getActiveVillageName());
+  Promise.all([loadProdCache(), restoreSectionState(), restoreVillageColors()]).then(() => {
     startLoops(firstAlarms);
   });
 }

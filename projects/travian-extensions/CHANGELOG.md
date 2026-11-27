@@ -1,5 +1,11 @@
 # Changelog
 
+## TravAlarm 3.76 and NPC Calculator 3.3.0 — 2026-11-27
+
+- FNPC moved from TravAlarm to the NPC Calculator, with the same features: affordability time and countdown, returning raids and incoming merchants, background refresh, and 1h raid income for raids still on their way out.
+- FNPC now uses only the page's own production data, so TravAlarm no longer fetches the production statistics page for it.
+- TravAlarm deletes its old FNPC data on update. The NPC Calculator rebuilds it as the rally point and marketplace are read.
+
 ## Travian QoL 1.6.24 — 2026-11-27
 
 - Farm list shows each target's average bag fill over its last 5 raids, before the bounty sum, in red below 30%.

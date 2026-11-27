@@ -536,3 +536,19 @@ button._npc-lock-btn:focus-visible {
     transform: none;
   }
 }
+
+/* FNPC label (fnpc.js) inside game tooltips and building contract boxes. */
+.tippy-box[data-theme~="travian"] .tippy-content .text div._npc-fnpc {
+  font-family: Arial, Helvetica, Verdana, sans-serif;
+  font-size: 11px;
+  color: rgb(197, 197, 197);
+  font-weight: normal;
+  margin-top: -2px;
+  margin-bottom: -13px;
+}
+
+div#build div.action div.details ._npc-fnpc {
+  margin-bottom: -23px;
+  color: rgb(153, 153, 153);
+  font-size: 12px;
+}
