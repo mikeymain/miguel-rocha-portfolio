@@ -6,7 +6,7 @@
 	},
 	"manifest_version": 3,
 	"name": "Travian QoL",
-	"version": "1.6.24",
+	"version": "1.6.25",
 	"description": "Collection of small quality-of-life tweaks for Travian. Each feature is independently toggleable.",
 	"permissions": ["storage", "contextMenus"],
 	"host_permissions": [
@@ -69,6 +69,8 @@
 				"features/farmlist-bounty-sort/index.js",
 				"features/farmlist-raid-fill/core.js",
 				"features/farmlist-raid-fill/index.js",
+				"features/farmlist-oasis-kills/core.js",
+				"features/farmlist-oasis-kills/index.js",
 				"features/farmlist-edit-chooser/index.js",
 				"features/adventure-sort/index.js",
 				"features/village-resource-total/index.js",

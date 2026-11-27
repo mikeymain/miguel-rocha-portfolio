@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.6.25 — 2026-11-27
+
+- Farm list shows animals killed at each oasis in the past hour, before the bounty sum. New oasis raid reports are read in the background while the farm list is open, one at a time with random gaps.
+
 ## TravAlarm 3.76 and NPC Calculator 3.3.0 — 2026-11-27
 
 - FNPC moved from TravAlarm to the NPC Calculator, with the same features: affordability time and countdown, returning raids and incoming merchants, background refresh, and 1h raid income for raids still on their way out.

@@ -83,7 +83,7 @@
 		tools: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
 	};
 	const GROUPS = [
-		{ id: 'farm', name: 'Farm lists', col: 0, ids: ['farmlist-multi-select', 'farmlist-bounty-sort', 'farmlist-raid-fill', 'farmlist-edit-chooser'] },
+		{ id: 'farm', name: 'Farm lists', col: 0, ids: ['farmlist-multi-select', 'farmlist-bounty-sort', 'farmlist-raid-fill', 'farmlist-oasis-kills', 'farmlist-edit-chooser'] },
 		{ id: 'reports', name: 'Reports', col: 0, ids: ['report-opener', 'loot-calc'] },
 		{ id: 'hero', name: 'Hero', col: 0, ids: ['adventure-sort'] },
 		{ id: 'resources', name: 'Resources', col: 1, ids: ['village-resource-total', 'resource-full-time', 'trade-route-production', 'upgrade-values', 'build-order'] },
