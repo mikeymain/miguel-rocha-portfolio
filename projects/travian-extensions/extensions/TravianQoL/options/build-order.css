@@ -151,3 +151,13 @@
 /* Fields with an upgrade queued in game */
 .bo__table tr.is-queued td { color: var(--emerald); background: rgba(52, 211, 153, 0.08); }
 .bo__table tr.is-queued td:first-child { box-shadow: inset 2px 0 0 var(--emerald); }
+
+/* Starting guide */
+.bo__guide { grid-column: 1 / -1; }
+.bo__guide-scroll { max-height: 420px; overflow-y: auto; }
+.bo__guide-hint { padding: 6px 14px; }
+.bo__guide .bo__n input { margin: 0; accent-color: var(--amber); }
+.bo__guide tr.is-done td { color: var(--text-tertiary); }
+.bo__guide tr.is-done .bo__field > span:first-child { text-decoration: line-through; }
+.bo__guide th:first-child { width: 24px; }
+.bo-tag { padding: 1px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 9.5px; color: var(--text-tertiary); border: 1px solid var(--border-subtle); }

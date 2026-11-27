@@ -129,9 +129,27 @@
 		return out;
 	}
 
+	// Buildings the starting guide checks: main building, warehouse, granary, smithy, rally
+	// point, marketplace, embassy, barracks, stable, workshop, academy, cranny,
+	// town hall, residence and the tribe walls.
+	const GUIDE_GIDS = new Set([10, 11, 13, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 31, 32, 33, 42, 43]);
+
+	/** Levels of every guide building by gid (one entry per slot), queued upgrades counted. */
+	function readSlots() {
+		const out = {};
+		for (const slot of document.querySelectorAll('#villageContent .buildingSlot[data-gid]')) {
+			const gid = Number(slot.dataset.gid);
+			if (!GUIDE_GIDS.has(gid)) continue;
+			const a = slot.querySelector('a[data-level]');
+			const level = Number(a?.dataset.level) + (a?.classList.contains('underConstruction') ? 1 : 0);
+			if (Number.isFinite(level)) (out[gid] ||= []).push(level);
+		}
+		return out;
+	}
+
 	function scanVillage() {
 		if (!document.querySelector('#villageContent .buildingSlot[data-gid]')) return;
-		saveSnapshot({ buildings: readBuildings() });
+		saveSnapshot({ buildings: readBuildings(), slots: readSlots() });
 	}
 
 	/** Builds in progress; master builder "waiting" rows do not occupy a slot. */

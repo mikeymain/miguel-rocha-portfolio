@@ -12,6 +12,8 @@
 	const GOLD_PREFIX = 'travianQoL.buildGold.';
 	// Per-host { villageId: true }: plan fields to level 20 (read in game too).
 	const MAX20_PREFIX = 'travianQoL.buildMax20.';
+	// Per-host { villageId: [guide step ids ticked by hand] }.
+	const GUIDE_PREFIX = 'travianQoL.buildGuide.';
 	const STEPS = 12;
 	// Plan depth for the boost-building timing (covers every field to 20).
 	const BOOST_DEPTH = 450;
@@ -35,7 +37,7 @@
 	const root = document.getElementById('bo-root');
 	const select = document.getElementById('bo-village');
 	const planner = window.TravianQoLBuildOrder;
-	if (!root || !select || !planner) return;
+	if (!root || !select || !planner || !window.TravianQoLGuide4P) return;
 	// Editable buildings: the five boosts (max 5). The Hero's Mansion level is
 	// always the one read in game.
 	const EDIT_BUILDINGS = Object.entries(planner.BOOSTS).map(([gid, b]) => ({ gid: Number(gid), name: b.name, res: b.res, max: 5 }));
@@ -49,6 +51,7 @@
 	// Per-host map tiles seen in game (features/build-order, map pages).
 	const TILES_PREFIX = 'travianQoL.mapTiles.';
 	let tilesStore = {}; // host -> { "x|y": 0 | { b, o } }
+	let guideStore = {}; // host -> { villageId: [step ids] }
 	const NEARBY_SHOWN = 5;
 
 	function el(tag, className, text) {
@@ -86,8 +89,11 @@
 		goldStore = {};
 		max20Store = {};
 		tilesStore = {};
+		guideStore = {};
 		for (const [key, value] of Object.entries(all)) {
-			if (key.startsWith(TILES_PREFIX)) {
+			if (key.startsWith(GUIDE_PREFIX)) {
+				guideStore[key.slice(GUIDE_PREFIX.length)] = value || {};
+			} else if (key.startsWith(TILES_PREFIX)) {
 				tilesStore[key.slice(TILES_PREFIX.length)] = value || {};
 			} else if (key.startsWith(MAX20_PREFIX)) {
 				max20Store[key.slice(MAX20_PREFIX.length)] = value || {};
@@ -99,7 +105,7 @@
 				const host = key.slice(FIELDS_PREFIX.length);
 				for (const [id, v] of Object.entries(value || {})) {
 					if (!Array.isArray(v?.fields) || !v.fields.length) continue;
-					villages.push({ value: `${host}|${id}`, host, id, name: v.name || id, fields: v.fields, buildings: v.buildings || null, updatedAt: v.updatedAt || 0, x: v.x, y: v.y });
+					villages.push({ value: `${host}|${id}`, host, id, name: v.name || id, fields: v.fields, buildings: v.buildings || null, slots: v.slots || null, updatedAt: v.updatedAt || 0, x: v.x, y: v.y });
 				}
 			} else if (key.startsWith(BONUS_PREFIX) && key !== PICK_KEY) {
 				bonusStore[key.slice(BONUS_PREFIX.length)] = value || {};
@@ -530,6 +536,89 @@
 		return box;
 	}
 
+	// --- Starting guide (4-party farming) -------------------------------------
+
+	const guide = window.TravianQoLGuide4P;
+	let hideDone = false;
+	let guideScroll = 0;
+
+	const guideManual = (v) => new Set(guideStore[v.host]?.[v.id] || []);
+
+	function saveGuideManual(v, set) {
+		guideStore[v.host] = { ...(guideStore[v.host] || {}), [v.id]: [...set] };
+		chrome.storage.local.set({ [GUIDE_PREFIX + v.host]: guideStore[v.host] }, flash);
+	}
+
+	/** Done state per step: detected from the game, or ticked by hand. */
+	function guideState(v) {
+		const manual = guideManual(v);
+		return guide.STEPS.map((s) => {
+			const auto = guide.isDone(s, v.fields, v.slots || {});
+			return { step: s, auto: auto === true, done: auto === true || manual.has(s.id) };
+		});
+	}
+
+	function guideRow(v, { step, auto, done }, isNext) {
+		const tr = el('tr', [done ? 'is-done' : '', isNext ? 'is-next' : ''].join(' ').trim() || null);
+		const box = document.createElement('input');
+		box.type = 'checkbox';
+		box.checked = done;
+		box.disabled = auto;
+		box.setAttribute('aria-label', step.label);
+		box.addEventListener('change', () => {
+			const set = guideManual(v);
+			if (box.checked) set.add(step.id); else set.delete(step.id);
+			saveGuideManual(v, set);
+			render();
+		});
+		const check = el('td', 'bo__n');
+		check.appendChild(box);
+		const name = el('td', 'bo__field');
+		name.appendChild(el('span', null, step.label));
+		if (step.optional) name.appendChild(el('span', 'bo-tag', 'Optional'));
+		const perCp = step.cost ? guide.costPerCp(step) : null;
+		tr.append(
+			check,
+			name,
+			el('td', 'bo__num', step.cost ? step.cost.toLocaleString() : ''),
+			el('td', 'bo__num', perCp == null ? '' : perCp.toLocaleString()),
+		);
+		return tr;
+	}
+
+	function buildGuideCard(v) {
+		const card = el('section', 'card lc-card bo__guide');
+		const state = guideState(v);
+		const next = state.findIndex((s) => !s.done && !s.step.optional);
+		const core = state.filter((s) => !s.step.optional);
+		const head = el('div', 'lc-card__head');
+		head.appendChild(el('span', 'lc-card__title', 'Starting guide · 4 party farming'));
+		head.appendChild(el('span', 'bo__age', `${core.filter((s) => s.done).length}/${core.length}`));
+		const toggle = el('button', 'bo-link', hideDone ? 'Show done' : 'Hide done');
+		toggle.type = 'button';
+		toggle.addEventListener('click', () => { hideDone = !hideDone; render(); });
+		head.appendChild(toggle);
+		card.appendChild(head);
+		if (!v.slots) card.appendChild(el('div', 'bo__hint bo__guide-hint', 'Open the village centre to read buildings'));
+		const table = el('table', 'bo__table');
+		const thead = el('thead');
+		const hr = el('tr');
+		['', 'Step', 'Cost', 'Net res/CP'].forEach((h) => hr.appendChild(el('th', null, h)));
+		thead.appendChild(hr);
+		const tbody = el('tbody');
+		state.forEach((s, i) => {
+			if (hideDone && s.done) return;
+			tbody.appendChild(guideRow(v, s, i === next));
+		});
+		table.append(thead, tbody);
+		const scroll = el('div', 'bo__guide-scroll');
+		scroll.appendChild(table);
+		scroll.addEventListener('scroll', () => { guideScroll = scroll.scrollTop; });
+		card.appendChild(scroll);
+		if (typeof requestAnimationFrame === 'function') requestAnimationFrame(() => { scroll.scrollTop = guideScroll; });
+		return card;
+	}
+
 	function render() {
 		if (closeOpenPicker) closeOpenPicker(false);
 		root.innerHTML = '';
@@ -543,7 +632,7 @@
 			saveSetup(v, change(setupFor(v), v));
 			render();
 		};
-		root.append(buildBonusCard(v, setup, update), buildStepsCard(v, setup));
+		root.append(buildBonusCard(v, setup, update), buildStepsCard(v, setup), buildGuideCard(v));
 	}
 
 	select.addEventListener('change', () => {

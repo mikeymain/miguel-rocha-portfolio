@@ -1,5 +1,10 @@
 # Changelog
 
+## Travian QoL 1.7.0 — 2026-11-27
+
+- Build order tab: new **Starting guide · 4 party farming** card, based on the 4 party farming start by Caim. Steps tick automatically from the field and building levels the game shows; tasks, parties and troops are ticked by hand. Shows each step's cost and net resources per culture point. See [Starting guide](docs/starting-guide-4p.md).
+- The village centre scan now also records the levels of warehouse, granary, smithy, marketplace, embassy, barracks, stable, workshop, academy, cranny, town hall, residence, rally point and wall for the guide.
+
 ## Travian QoL 1.6.30 — 2026-11-27
 
 - Farm targets tab is grouped by farm list in the game's order, with collapsible list headers showing target count and average bag fill.
