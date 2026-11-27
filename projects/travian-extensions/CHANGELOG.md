@@ -1,5 +1,9 @@
 # Changelog
 
+## TravAlarm 3.75 — 2026-11-27
+
+- FNPC estimates raids still on their way out from each village's raid bounty over the last hour. Raids already returning still count at their exact amount and time.
+
 ## TravAlarm 3.74 — 2026-11-27
 
 - FNPC updates returning raids and incoming merchants on its own: while an FNPC time is shown, the active village's rally point and marketplace are re-read in the background, at most once every 5 minutes (shared across tabs, paused while the tab is hidden).

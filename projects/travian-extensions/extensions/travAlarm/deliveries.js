@@ -17,18 +17,27 @@ const MARKET_RES_ICONS = ["lumber_small", "clay_small", "iron_small", "crop_smal
 // `${serverTag}_${did}` -> { raids: Delivery[], merchants: Delivery[] },
 // Delivery = { at: epoch ms, res: [w, c, i, cr] }.
 let _deliveries = {};
+// Returning raids seen per village, kept for RAID_RATE_WINDOW_MS after they
+// arrive: `${serverTag}_${did}` -> Delivery[]. Feeds the raid income rate.
+const RAID_LOG_KEY = "_w4raidlog";
+const RAID_RATE_WINDOW_MS = 60 * 60 * 1000;
+let _raidLog = {};
 // Writes rebuild the whole stored object, so none may happen before it loads.
 let _deliveriesLoaded = false;
 let deliveriesReady = Promise.resolve();
 try {
-  deliveriesReady = api.storage.local.get(DELIVERIES_KEY).then((r) => {
-    _deliveries = r?.[DELIVERIES_KEY] || {};
+  deliveriesReady = Promise.all([
+    api.storage.local.get(DELIVERIES_KEY),
+    api.storage.local.get(RAID_LOG_KEY),
+  ]).then(([d, l]) => {
+    _deliveries = d?.[DELIVERIES_KEY] || {};
+    _raidLog = l?.[RAID_LOG_KEY] || {};
     _deliveriesLoaded = true;
   }).catch(() => {});
   api.storage.onChanged.addListener((changes, area) => {
-    if (area === "local" && changes[DELIVERIES_KEY]) {
-      _deliveries = changes[DELIVERIES_KEY].newValue || {};
-    }
+    if (area !== "local") return;
+    if (changes[DELIVERIES_KEY]) _deliveries = changes[DELIVERIES_KEY].newValue || {};
+    if (changes[RAID_LOG_KEY]) _raidLog = changes[RAID_LOG_KEY].newValue || {};
   });
 } catch {
   /* storage unavailable: FNPC uses production only */
@@ -101,8 +110,59 @@ function _isRallyOverview() {
 const _deliverySig = (list) =>
   JSON.stringify(list.map((d) => [Math.round(d.at / 10000), d.res]));
 
+// The same raid read twice has the same bounty and an arrival within a few seconds.
+const _sameRaid = (a, b) =>
+  Math.abs(a.at - b.at) < 5000 && a.res.every((v, i) => v === b.res[i]);
+
+/** Adds newly seen returning raids to the village's raid log. */
+function _logRaids(key, raids) {
+  const now = Date.now();
+  const prev = _raidLog[key] || [];
+  const added = raids.filter((d) => !prev.some((p) => _sameRaid(p, d)));
+  if (added.length === 0) return;
+  const recent = (list) => list.filter((d) => d.at > now - RAID_RATE_WINDOW_MS);
+  const pruned = {};
+  for (const [k, v] of Object.entries(_raidLog)) {
+    const kept = recent(v || []);
+    if (kept.length) pruned[k] = kept;
+  }
+  pruned[key] = recent([...prev, ...added]).sort((a, b) => a.at - b.at);
+  _raidLog = pruned;
+  api.storage.local.set({ [RAID_LOG_KEY]: pruned }).catch(() => {});
+}
+
+/**
+ * Raid bounty per hour [w, c, i, cr] from the village's raids that arrived
+ * in the last hour, or null when none did.
+ */
+function raidIncomePerHour(key, now = Date.now()) {
+  const arrived = (_raidLog[key] || []).filter(
+    (d) => d.at <= now && d.at > now - RAID_RATE_WINDOW_MS,
+  );
+  if (arrived.length === 0) return null;
+  const perHour = 3600000 / RAID_RATE_WINDOW_MS;
+  return [0, 1, 2, 3].map((i) => arrived.reduce((s, d) => s + (d.res[i] || 0), 0) * perHour);
+}
+
+/**
+ * The active village's raid income as an FNPC event. It starts after the
+ * last known returning raid, which is counted exactly, so no raid is
+ * counted twice; raids still outbound are covered by the rate.
+ */
+function raidIncomeEvent() {
+  const did = _readDidFromSidebar();
+  if (!did) return null;
+  const key = `${serverTag}_${did}`;
+  const now = Date.now();
+  const rate = raidIncomePerHour(key, now);
+  if (!rate) return null;
+  const lastReturn = (_deliveries[key]?.raids || []).reduce((m, d) => Math.max(m, d.at), now);
+  return { inHours: (lastReturn - now) / 3600000, prod: rate };
+}
+
 function _storeDeliveries(key, kind, list) {
   const now = Date.now();
+  if (kind === "raids") _logRaids(key, list);
   const kept = list
     .filter((d) => d.at > now && d.at - now < DELIVERY_MAX_AHEAD_MS)
     .sort((a, b) => a.at - b.at);

@@ -213,7 +213,9 @@ function scanNPCBuild(activeVillage) {
         ? [map.w, map.c, map.i, map.cr].map((p) => p || 0)
         : [prodTotal, 0, 0, 0];
       const noCaps = stock.map(() => Infinity);
-      const hours = npcEtaWithEvents(stock, prod, map ? caps : noCaps, costTotal, upcomingDeliveries());
+      const raidIncome = typeof raidIncomeEvent === "function" ? raidIncomeEvent() : null;
+      const events = raidIncome ? [...upcomingDeliveries(), raidIncome] : upcomingDeliveries();
+      const hours = npcEtaWithEvents(stock, prod, map ? caps : noCaps, costTotal, events);
       if (!isFinite(hours)) {
         msg = "NPC: Negative Prod";
       } else {

@@ -362,24 +362,32 @@ function advanceNpcStock(amt, prod, caps, costTotal, horizon) {
 /**
  * Like npcEtaHours, plus resource deliveries (returning raids, incoming
  * merchants) that land at known times. Each delivery is added to its
- * resource and clamped to the storage cap; overflow is lost.
- * @param {{inHours: number, res: number[]}[]} events deliveries; past ones are ignored
+ * resource and clamped to the storage cap; overflow is lost. An event with
+ * `prod` adds that hourly income from its time on (now if already past).
+ * @param {{inHours: number, res?: number[], prod?: number[]}[]} events deliveries; past `res` ones are ignored
  */
 function npcEtaWithEvents(stock, prod, caps, costTotal, events) {
   const amt = stock.map((v, i) => Math.min(Math.max(v, 0), caps[i]));
+  let rate = [...prod];
+  const addProd = (e) => {
+    if (!Array.isArray(e.prod)) return;
+    rate = rate.map((p, i) => p + (Number.isFinite(e.prod[i]) ? e.prod[i] : 0));
+  };
+  events.filter((e) => !(e.inHours > 0)).forEach(addProd);
   const upcoming = events
-    .filter((e) => e.inHours > 0 && Array.isArray(e.res))
+    .filter((e) => e.inHours > 0 && (Array.isArray(e.res) || Array.isArray(e.prod)))
     .sort((a, b) => a.inHours - b.inHours);
   let t = 0;
   for (const e of upcoming) {
-    const hit = advanceNpcStock(amt, prod, caps, costTotal, e.inHours - t);
+    const hit = advanceNpcStock(amt, rate, caps, costTotal, e.inHours - t);
     if (hit !== null) return t + hit;
     t = e.inHours;
-    e.res.forEach((r, i) => {
+    (e.res || []).forEach((r, i) => {
       if (Number.isFinite(r) && r > 0) amt[i] = Math.min(caps[i], amt[i] + r);
     });
+    addProd(e);
   }
-  const hit = advanceNpcStock(amt, prod, caps, costTotal, Infinity);
+  const hit = advanceNpcStock(amt, rate, caps, costTotal, Infinity);
   return hit === null ? Infinity : t + hit;
 }
 
