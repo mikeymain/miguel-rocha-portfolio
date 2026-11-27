@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.6.24 — 2026-11-27
+
+- Farm list shows each target's average bag fill over its last 5 raids, before the bounty sum, in red below 30%.
+
 ## TravAlarm 3.75 — 2026-11-27
 
 - FNPC estimates raids still on their way out from each village's raid bounty over the last hour. Raids already returning still count at their exact amount and time.
