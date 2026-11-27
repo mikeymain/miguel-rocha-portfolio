@@ -19,6 +19,13 @@
 		$("msg").classList.toggle("error", Boolean(isError));
 	}
 
+	async function prefillHost() {
+		const [tab] = await api.tabs.query({ active: true, currentWindow: true }).catch(() => []);
+		const host = WWCore.normalizeHost(tab?.url);
+		const input = $("host-input");
+		if (host && !input.value) input.value = host;
+	}
+
 	async function read() {
 		const data = await api.storage.local.get([KEYS.hosts, KEYS.status, KEYS.settings]);
 		return {
@@ -123,5 +130,6 @@
 	api.storage.onChanged.addListener((changes, area) => {
 		if (area === "local" && (changes[KEYS.status] || changes[KEYS.hosts])) render();
 	});
+	prefillHost();
 	render();
 })();

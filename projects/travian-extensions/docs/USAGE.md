@@ -213,7 +213,7 @@ Refreshes when you open the popup or click **Refresh**; there are no background 
 
 **Usage:**
 
-1. Click the extension icon, enter a world host such as `ts4.x1.arabics.travian.com`, and select **Add**. The first fetch starts at once.
+1. Click the extension icon on a Travian world tab to prefill its host, or enter a host such as `ts4.x1.arabics.travian.com` manually. Select **Add** to start the first fetch.
 2. Set the check interval in minutes (15–1440, default 60). **Fetch now** checks every world immediately.
 3. Select **Dashboard**. Pick the world, a **Snapshot** and a **Compare with** snapshot. Open any game page in that world once and **Your village** lists your villages; the selected one fills **Point (x|y)** and **Centre (x|y)**, and the map rings your villages blue. You can still type other coordinates.
 4. **Growth** lists sign-ups (highest account id) per snapshot. **Spawn ring** shows, per quadrant, the distance range of the newest accounts' first villages; change **Newest accounts** to widen the sample.

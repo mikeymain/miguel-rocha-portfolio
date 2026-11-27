@@ -4,7 +4,7 @@ Tracks a Travian Legends game world over time from its public `map.sql` dump. Us
 
 ## How it works
 
-- The popup holds a watch list of world hosts, for example `ts4.x1.arabics.travian.com`.
+- Open the popup on a Travian world tab to prefill its host. You can edit the host before selecting **Add**.
 - A `chrome.alarms` job (every 60 minutes by default, 15–1440 allowed) fetches `https://<host>/map.sql` for each host, one after another, 3 seconds apart.
 - Requests send no cookies (`credentials: "omit"`). They are read-only and need no login.
 - A snapshot is stored only when the SHA-256 of the dump changed. Travian appears to regenerate `map.sql` about once a day, so most hourly checks store nothing.
