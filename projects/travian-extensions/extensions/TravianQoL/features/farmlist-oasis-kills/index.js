@@ -1,18 +1,21 @@
 // Farm list oasis kills. For oasis targets, shows the animals killed in the
 // past hour before the bounty sum, read from each raid's report page.
 //
-// No raid is missed: besides the farm list's last raid, every oasis raided in
-// the last 2 hours has its tile report list checked every 15-20 minutes on
-// any game page (the tile lists every raid on it), and unread reports from
-// the last hour are read. All requests go one at a time with randomised
-// waits and pause while the tab is hidden.
+// No raid is missed: besides the farm list's last raid, an oasis with a raid
+// in the last 30 minutes has its tile report list checked every 15-20
+// minutes on any game page (the tile lists every raid on it), and unread
+// reports from the last hour are read. Checks start only on a new raid and
+// stop 30 minutes after the last one. All requests go one at a time with
+// randomised waits and pause while the tab is hidden.
 (function () {
 	const STORE_KEY = 'travianQoL.oasisKills';
 	const START_MS = [4000, 9000];
 	const GAP_MS = [2000, 6000];
 	const SWEEP_TICK_MS = [60000, 120000];
 	const TILE_CHECK_MS = [15 * 60000, 20 * 60000];
-	const ACTIVE_FOR_MS = 2 * 60 * 60000; // keep checking an oasis this long after its last raid
+	// Check an oasis only while it is being raided: until this long after its
+	// last known raid (from the farm list or its tile list).
+	const ACTIVE_FOR_MS = 30 * 60000;
 	const MAX_QUEUE = 60;
 	const SCAN_DELAY_MS = 300;
 	const BADGE_CLASS = 'tqol-oasis-kills';
@@ -221,9 +224,9 @@
 				changed = true;
 			}
 			if (reportId && !entry?.seen?.length) {
-				// First sight: the current report is the baseline; the tile check
-				// reads the raids from the last hour with their own times.
-				store = { ...store, [id]: { ...k().addReport(store[id], reportId, null), raidAt: now } };
+				// First sight: the current report is the baseline. It may be old,
+				// so it does not count as a raid and starts no checks.
+				store = { ...store, [id]: k().addReport(store[id], reportId, null) };
 				changed = true;
 			} else if (reportId && !entry.seen.includes(reportId)) {
 				update(id, { raidAt: now });

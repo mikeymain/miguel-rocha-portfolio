@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.6.27 — 2026-11-27
+
+- Oasis kills check tile report lists only while the oasis is being raided: checks start on a new raid and stop 30 minutes after the last one (was 2 hours). Opening the farm list no longer starts checks on its own.
+
 ## Travian QoL 1.6.26 — 2026-11-27
 
 - Oasis kills no longer miss raids: every oasis raided in the last 2 hours has its map tile report list checked every 15–20 minutes on any game page, and unread raids from the last hour are read with their own times.
