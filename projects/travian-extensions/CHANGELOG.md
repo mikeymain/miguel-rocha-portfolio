@@ -1,5 +1,14 @@
 # Changelog
 
+## World Watch 1.11.0 — 2026-11-27
+
+- Saves public `map.sql` snapshots and game terrain from normal map responses. DevTools is no longer required.
+- Adds an optional map grid scan with a configurable centre and radius, progress, and a Stop button. The scan visits and saves map views in the existing game tab.
+
+## World Watch 1.9.0 — 2026-11-27
+
+- Compare spawn areas and first settlements on a heat map. Inspect individual oases and valleys, compare quadrant coverage, and export the filtered evidence to CSV.
+
 ## World Watch 1.8.1 — 2026-11-27
 
 - The map wraps in both directions at every zoom level. Wide views show the opposite side of the world, including villages, overlays, and coordinates.

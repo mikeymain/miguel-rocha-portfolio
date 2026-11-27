@@ -6,8 +6,7 @@
 	},
 	"manifest_version": 3,
 	"name": "Travian World Watch",
-	"version": "1.8.1",
-	"devtools_page": "map-capture.html",
+	"version": "1.11.0",
 	"description": "Tracks a world's public map.sql over time: spawn ring, population gains and alliances.",
 	"permissions": ["storage", "alarms", "unlimitedStorage"],
 	"host_permissions": [
@@ -19,9 +18,20 @@
 	],
 	"background": {
 		"service_worker": "background.js",
-		"scripts": ["lib/mapsql.js", "lib/db.js", "lib/core.js", "lib/croppers.js", "background.js"]
+		"scripts": ["lib/mapsql.js", "lib/db.js", "lib/core.js", "lib/croppers.js", "lib/map-scan.js", "background.js"]
 	},
 	"content_scripts": [
+		{
+			"matches": ["https://*.travian.com/map*", "https://*.travian.org/map*", "https://*.travian.net/map*", "https://*.travian.us/map*", "https://*.travian.de/map*", "https://*.travian.com/karte.php*", "https://*.travian.org/karte.php*", "https://*.travian.net/karte.php*", "https://*.travian.us/karte.php*", "https://*.travian.de/karte.php*"],
+			"js": ["lib/core.js", "lib/croppers.js", "map-capture.js"],
+			"run_at": "document_start"
+		},
+		{
+			"matches": ["https://*.travian.com/map*", "https://*.travian.org/map*", "https://*.travian.net/map*", "https://*.travian.us/map*", "https://*.travian.de/map*", "https://*.travian.com/karte.php*", "https://*.travian.org/karte.php*", "https://*.travian.net/karte.php*", "https://*.travian.us/karte.php*", "https://*.travian.de/karte.php*"],
+			"js": ["map-interceptor.js"],
+			"world": "MAIN",
+			"run_at": "document_start"
+		},
 		{
 			"matches": ["https://*.travian.com/map*", "https://*.travian.org/map*", "https://*.travian.net/map*", "https://*.travian.us/map*", "https://*.travian.de/map*", "https://*.travian.com/karte.php*", "https://*.travian.org/karte.php*", "https://*.travian.net/karte.php*", "https://*.travian.us/karte.php*", "https://*.travian.de/karte.php*"],
 			"exclude_matches": ["https://ts1.x1.europe.travian.com/*"],

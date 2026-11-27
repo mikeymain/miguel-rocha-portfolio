@@ -4,6 +4,7 @@
 	const api = globalThis.browser ?? chrome; // eslint-disable-line no-undef
 	const KEYS = { hosts: "wwHosts", status: "wwStatus", settings: "wwSettings" };
 	const $ = (id) => document.getElementById(id);
+	let scanTab, scanTimer, scanRequest = 0;
 
 	function ago(ts) {
 		if (!ts) return "–";
@@ -24,6 +25,39 @@
 		const host = WWCore.normalizeHost(tab?.url);
 		const input = $("host-input");
 		if (host && !input.value) input.value = host;
+		const page = URL.parse(tab?.url || "");
+		const scanPanel = $("map-scan");
+		if (!scanPanel || !Number.isInteger(tab?.id) || !WWCore.canScanMap(page)) return;
+		scanTab = tab.id;
+		const x = page.searchParams.get("x"), y = page.searchParams.get("y");
+		if (x !== null && y !== null) $("scan-centre").value = `${x}|${y}`;
+		scanPanel.hidden = false;
+		void scanAction("status");
+	}
+
+	async function scanAction(action) {
+		const request = ++scanRequest;
+		clearTimeout(scanTimer);
+		$("scan-start").disabled = true;
+		$("scan-stop").disabled = action !== "status";
+		const state = await api.runtime.sendMessage({
+			type: `ww-scan-${action}`, tabId: scanTab,
+			...(action === "start" && { centre: $("scan-centre").value, radius: Number($("scan-radius").value) }),
+		}).catch((err) => ({ error: err.message }));
+		if (request !== scanRequest) return;
+		const running = state?.state === "running";
+		$("scan-start").hidden = running;
+		$("scan-start").disabled = false;
+		$("scan-stop").hidden = !running;
+		$("scan-stop").disabled = false;
+		$("scan-centre").disabled = $("scan-radius").disabled = running;
+		const progress = state?.total ? `${state.saved} of ${state.total} map views saved.` : "";
+		const status = $("scan-status");
+		const message = [state?.error || ({ running: "Scanning…", complete: "Scan complete.", stopped: "Scan stopped." })[state?.state], progress].filter(Boolean).join(" ");
+		if (status.textContent !== message) status.textContent = message;
+		status.hidden = !message;
+		status.classList.toggle("error", Boolean(state?.error));
+		if (running) scanTimer = setTimeout(() => void scanAction("status"), 1000);
 	}
 
 	async function read() {
@@ -130,6 +164,11 @@
 	$("interval").addEventListener("change", saveInterval);
 	$("poll").addEventListener("click", pollNow);
 	$("open-dash").addEventListener("click", () => api.tabs.create({ url: api.runtime.getURL("dashboard.html") }));
+	$("scan-form")?.addEventListener("submit", (event) => {
+		event.preventDefault();
+		void scanAction("start");
+	});
+	$("scan-stop")?.addEventListener("click", () => void scanAction("stop"));
 	api.storage.onChanged.addListener((changes, area) => {
 		if (area === "local" && (changes[KEYS.status] || changes[KEYS.hosts])) render();
 	});

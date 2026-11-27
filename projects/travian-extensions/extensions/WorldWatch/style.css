@@ -54,6 +54,14 @@ h1 {
 	font-size: 16px;
 	margin: 0 12px 8px 0;
 }
+#map-scan {
+	border-top: 1px solid var(--line);
+	margin-top: 12px;
+	padding-top: 10px;
+}
+#scan-title { font-size: 14px; margin: 0; }
+#scan-centre { width: 80px; }
+#scan-help, #scan-status { min-height: 0; margin: 4px 0 0; }
 .row {
 	display: flex;
 	flex-wrap: wrap;
@@ -122,6 +130,7 @@ button.icon:hover {
 }
 .tabs {
 	display: flex;
+	flex-wrap: wrap;
 	gap: 4px;
 	border-bottom: 1px solid var(--line);
 	margin: 8px 0;
@@ -140,6 +149,28 @@ button.icon:hover {
 .table-wrap {
 	overflow-x: auto;
 }
+.heat-layout { display: flex; flex-wrap: wrap; gap: 24px; margin: 16px 0; }
+.heat-atlas { width: min(100%, 480px); }
+.heat-axis, .heat-key { display: flex; align-items: center; justify-content: space-between; color: var(--muted); }
+#heat-grid {
+	display: grid; grid-template: repeat(var(--cells, 40), 1fr) / repeat(var(--cells, 40), 1fr);
+	aspect-ratio: 1; margin: 4px 0 8px; border: 1px solid var(--line); background-color: var(--surface);
+	background-image: linear-gradient(to right, transparent 49.85%, var(--line) 50%, transparent 50.15%),
+		linear-gradient(to bottom, transparent 49.85%, var(--line) 50%, transparent 50.15%);
+}
+#heat-grid.zoomed { background-image: none; }
+.heat-cell { padding: 0; min-height: 0; min-width: 0; border: 0; border-radius: 0; background: #92969a; }
+.heat-cell[data-level="0"] { background: #dae9cd; }
+.heat-cell[data-level="1"] { background: #acca98; }
+.heat-cell[data-level="2"] { background: #77ad7a; }
+.heat-cell[data-level="3"] { background: #438558; }
+.heat-cell[data-level="4"] { background: #1a5636; }
+.heat-cell:is(:hover, :focus-visible, [aria-pressed="true"]) { outline: 2px solid var(--text); z-index: 1; }
+.heat-key { justify-content: flex-start; gap: 8px; font-size: 12px; }
+.heat-key i { width: 72px; height: 8px; background: linear-gradient(to right, #dae9cd, #1a5636); }
+.heat-inspector { flex: 1 1 240px; max-width: 48ch; }
+.heat-inspector h2 { font-size: 18px; margin: 0; }
+#heat-detail { white-space: pre-line; line-height: 1.7; font-variant-numeric: tabular-nums; }
 table.grid {
 	width: 100%;
 	border-collapse: collapse;

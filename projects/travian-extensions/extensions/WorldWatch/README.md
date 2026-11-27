@@ -8,6 +8,7 @@ Tracks a Travian Legends game world over time from its public `map.sql` dump. Us
 - A `chrome.alarms` job (every 60 minutes by default, 15–1440 allowed) fetches `https://<host>/map.sql` for each host, one after another, 3 seconds apart.
 - Requests send no cookies (`credentials: "omit"`). They are read-only and need no login.
 - A snapshot is stored only when the SHA-256 of the dump changed. Travian appears to regenerate `map.sql` about once a day, so most hourly checks store nothing.
+- World Watch also saves successful same-world `map.sql` fetch and XHR responses it observes in an open game map for a watched world. They use the same snapshot history and retention as scheduled downloads.
 - **No map data yet** means Travian returned an empty download. World Watch keeps existing snapshots and checks again at the scheduled interval. Select **Fetch now** to check sooner.
 - Snapshots are kept in IndexedDB in columnar form (`x, y, tribe, vid, uid, aid, pop` plus player names and alliance tags). The newest 30 per host are kept.
 - The dump has no generation time. A snapshot's time is the time of the first fetch that saw the new content, so it can be up to one interval late.
@@ -28,9 +29,26 @@ Tracks a Travian Legends game world over time from its public `map.sql` dump. Us
 
 Every table exports to CSV. Nature and Natar villages are ignored. Positive y is north. Distances wrap around the 401 × 401 map.
 
-**Finding a 15c:** Open DevTools (`F12`) in the game tab, then open the map or reload it and pan normally. World Watch reads the game's completed map responses and saves confirmed `1-1-1-15` coordinates locally, even if the world is not on the watch list. Hover over a valley or open its details to save individual matches with DevTools closed. The finder does not track current occupancy. Check the tile in-game before settling. Collection is disabled on Europe 1 (`ts1.x1.europe.travian.com`).
+**Finding a 15c:** Open the map in the game tab and pan normally. World Watch reads the game's completed map responses and saves confirmed `1-1-1-15` coordinates locally, even if the world is not on the watch list. Hover over a valley or open its details to save individual matches. Check the tile in-game before settling. Terrain collection is disabled on Europe 1 (`ts1.x1.europe.travian.com`).
 
-**Mapping and comparing 15c tiles:** Pan at 100% zoom with DevTools open to collect nearby oasis bonuses. In World Watch, the **Map** tab shows teal diamonds for saved 15c tiles, including worlds without a snapshot. Hover a marker for the best observed bonuses and coverage. Crop potential can include occupied oases. **Free when seen** counts only oases that were unoccupied at their last observation. Both totals are limited to three oases and reflect the eight adjacent tiles in the finder’s 3 × 3 scoring area. Verify ownership and settlement availability in-game.
+**Map grid scan:** Open the game map at 100% zoom, then open the World Watch popup. Enter a centre (`x|y`), select a radius of 5, 10 or 15 tiles, and choose **Start scan**. The scan visits 9, 25 or 49 map centres in the same game tab, five tiles apart, and waits for each view to save before moving on. Reopen the popup to check progress or select **Stop scan**. The scan also stops if the tab leaves the route or a view does not return usable tiles. Reload the game map after updating the extension so the capture scripts can run.
+
+**Mapping and comparing 15c tiles:** Pan at 100% zoom to collect nearby oasis bonuses. In World Watch, the **Map** tab shows teal diamonds for saved 15c tiles, including worlds without a snapshot. Hover a marker for the best observed bonuses and coverage. Crop potential can include occupied oases. **Free when seen** counts only oases that were unoccupied at their last observation. Both totals are limited to three oases and reflect the eight adjacent tiles in the finder’s 3 × 3 scoring area. Verify ownership and settlement availability in-game.
+
+## Heat map
+
+Open **Dashboard → Heat map** and choose a world. Open its game map at 100% zoom and pan through the areas you want to compare. Each completed map response contributes a batch. The dashboard joins the latest observed terrain to the selected population snapshot. A blank area has no displayed observations. Grey cells have observations but no eligible observed valleys.
+
+| Layer | How the 100 points are assigned |
+| --- | --- |
+| Spawn areas | Each roughly 10×10 cell earns up to 25 points for two candidate 15c tiles, 10 for ten observed candidate valleys including 15c, and 25 for a combined 300% of free oasis resource bonuses. Proximity to the quadrant's median spawn radius earns up to 20, falling to zero at a 30-field difference. Competition earns up to 20, falling to zero at ten distinct players plus alliances in the cell. The ring uses the newest 40 accounts per quadrant. |
+| First settlement | Each candidate earns 35 terrain points for a confirmed 15c or 10 for another confirmed valley. Up to 30 points come from the best three observed free oases in the wrapped 7×7 area (crop at full value, other resources at half, 150% for full points). Distance to the target earns 20 at the target and zero at 30 fields. Competition earns up to 15, falling to zero at six distinct players plus alliances in the surrounding 48 fields. A cell displays its highest-scoring candidate. |
+
+The weights are planning heuristics. Missing inputs earn zero for that component. The target defaults to your selected village when available. Enter an expected spawn coordinate to compare travel distances instead. Set **Grey-zone radius** to your world's confirmed circular exclusion radius around 0|0. Zero leaves this optional filter off. Known occupied and excluded sites stay in the coordinate records and receive no settlement score. Layouts hidden by settled villages require an earlier observation. Snapshot competition covers the player villages in World Watch's dump parser. Check ownership in-game before settling.
+
+Compare each quadrant's best score alongside its observed tile count. Hover or focus a cell to inspect its points, then select it to filter the table. Filter by layer, quadrant, minimum area score or record type. **CSV** exports all matching coordinate records, including the evidence behind each score and available timestamps. Older captures retain their known crop bonuses. Revisit an area to collect other resources, ownership and observation times.
+
+![Heat map example using synthetic observations](../../docs/images/world-watch-heat.png)
 
 ## Live mode
 
@@ -45,7 +63,8 @@ Every table exports to CSV. Nature and Natar villages are ignored. Positive y is
 | `lib/core.js` | Host validation, settings, poll and dedupe |
 | `lib/db.js` | IndexedDB store |
 | `background.js` | Alarm and messages |
-| `map-capture.*`, `lib/croppers.js` | Read normal map responses in DevTools and identify 15c valleys |
+| `map-interceptor.js`, `map-capture.js`, `lib/croppers.js` | Observe game map fetch/XHR responses, forward public dumps, and identify terrain |
+| `lib/map-scan.js` | Navigate the game tab and wait for saved map views |
 | `cropper-collector.js` | Read 15c valley tooltips |
 | `own-village.js` | Content script: your villages from the game sidebar |
 | `map-view.js` | Map canvas |

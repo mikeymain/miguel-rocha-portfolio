@@ -26,12 +26,18 @@
 				if (!pair.every((n) => Number.isSafeInteger(n) || (typeof n === "string" && /^-?\d+$/.test(n) && Number.isSafeInteger(Number(n))))) return;
 				const [x, y] = pair.map(Number);
 				const row = { x, y, cropper: cropperTitle.test(tile.title), crop: 0 };
+				const text = String(tile.text ?? tile.t ?? "").replace(/[\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, "");
+				if (!row.cropper && /^\s*\{k\.vt\}\s*\{k\.f\d+\}\s*$/.test(tile.title)) row.valley = true;
+				if (Number(tile.uid) > 0 || /\{k\.(?:spieler|allianz)\}|href=["'][^"']*\/profile\//i.test(text)) row.claimed = true;
 				if (/\{k\.(fo|bt)\}/.test(tile.title)) {
-					const text = String(tile.text ?? tile.t ?? "").replace(/[\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, "");
 					const bonuses = [...text.matchAll(/\{a:r([1-4])\}[^%<]*?\b(25|50)\s*%/g)];
-					if (!bonuses.length) return;
 					row.crop = Math.max(0, ...bonuses.filter((m) => m[1] === "4").map((m) => Number(m[2])));
-					row.occupied = /\{k\.bt\}/.test(tile.title) || Number(tile.uid) > 0 || /\{k\.spieler\}/.test(text);
+					row.bonuses = Object.fromEntries(bonuses.map((m) => [m[1], Number(m[2])]));
+					row.occupied = /\{k\.bt\}/.test(tile.title) || Boolean(row.claimed);
+				} else if (row.claimed && !row.cropper) {
+					const fields = [...text.matchAll(/\{a:r([1-4])\}\s*\{a\.r\1\}\s*(\d+)(?=\s*(?:<|\{|$))/g)];
+					row.cropper = fields.length === 4 && ["1", "1", "1", "15"].every((n, i) =>
+						fields.some((m) => Number(m[1]) === i + 1 && m[2] === n));
 				}
 				matches.set(`${x}|${y}`, row);
 				return;
@@ -51,7 +57,7 @@
 				if (!dx && !dy) continue;
 				const ox = wrap(x + dx), oy = wrap(y + dy);
 				const observation = observations[`${ox}|${oy}`];
-				if (observation === undefined) continue;
+				if (observation === undefined || observation?.crop === null) continue;
 				seen++;
 				if (observation.crop) nearby.push({ x: ox, y: oy, ...observation, distance: dx * dx + dy * dy });
 			}

@@ -9,6 +9,7 @@
 	const MAX_INTERVAL = 1440;
 	const MAX_CAP = 200;
 	const EMPTY_MAP = "No map data yet";
+	const MAX_MAP_RESPONSE_CHARS = 16 * 1024 * 1024;
 
 	// Accepts "ts4.x1.arabics.travian.com" or a full URL. Returns null if invalid.
 	function normalizeHost(input) {
@@ -44,20 +45,16 @@
 		return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
 	}
 
-	// Fetches map.sql for one host and stores a snapshot when the content changed.
-	// deps: { fetch, store, now, cap }
-	// Returns a status object; never throws.
-	async function pollHost(host, deps) {
+	const isMapPage = (url) => url?.protocol === "https:" && !url.port &&
+		normalizeHost(url.hostname) && ["/map", "/karte.php"].includes(url.pathname);
+	const canScanMap = (url) => isMapPage(url) && url.hostname !== "ts1.x1.europe.travian.com";
+
+	// Both scheduled downloads and captured responses share deduplication and retention.
+	async function recordSnapshot(host, deps, readText) {
 		const now = deps.now();
 		const status = { host, lastCheckedAt: now, changed: false, error: null };
 		try {
-			const res = await deps.fetch(`https://${host}/map.sql`, {
-				credentials: "omit",
-				cache: "no-store",
-				redirect: "error",
-			});
-			if (!res.ok) throw new Error(`HTTP ${res.status}`);
-			const text = await res.text();
+			const text = await readText();
 			if (!text) throw new Error(EMPTY_MAP);
 			const hash = await sha256Hex(text);
 			const metas = await deps.store.list(host);
@@ -80,6 +77,18 @@
 		return status;
 	}
 
+	function pollHost(host, deps) {
+		return recordSnapshot(host, deps, async () => {
+			const res = await deps.fetch(`https://${host}/map.sql`, {
+				credentials: "omit",
+				cache: "no-store",
+				redirect: "error",
+			});
+			if (!res.ok) throw new Error(`HTTP ${res.status}`);
+			return res.text();
+		});
+	}
+
 	// Live-mode hook: a logged-in session can query same-origin
 	// POST /api/v1/graphql (401 without a session). Not used in v1.
 	// Return null to fall back to map.sql only.
@@ -87,5 +96,6 @@
 		return null;
 	}
 
-	root.WWCore = { normalizeHost, normalizeSettings, sha256Hex, pollHost, fetchLive, DEFAULT_SETTINGS, MIN_INTERVAL, MAX_INTERVAL, EMPTY_MAP };
+	root.WWCore = { normalizeHost, normalizeSettings, isMapPage, canScanMap, sha256Hex, pollHost, recordSnapshot, fetchLive,
+		DEFAULT_SETTINGS, MIN_INTERVAL, MAX_INTERVAL, EMPTY_MAP, MAX_MAP_RESPONSE_CHARS };
 })(globalThis);

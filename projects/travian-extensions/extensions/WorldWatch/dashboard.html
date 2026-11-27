@@ -8,6 +8,8 @@
 		<script src="lib/analysis.js"></script>
 		<script src="lib/db.js"></script>
 		<script src="lib/croppers.js"></script>
+		<script src="lib/heatmap.js"></script>
+		<script src="heat-view.js"></script>
 		<script src="map-view.js"></script>
 		<script src="dashboard.js" defer></script>
 	</head>
@@ -27,15 +29,40 @@
 		<nav class="tabs" role="tablist" aria-label="Views">
 			<button type="button" role="tab" data-view="growth" aria-selected="true">Growth</button>
 			<button type="button" role="tab" data-view="spawn" aria-selected="false">Spawn ring</button>
+			<button type="button" role="tab" data-view="heat" aria-selected="false">Heat map</button>
 			<button type="button" role="tab" data-view="gold" aria-selected="false">Gold suspects</button>
 			<button type="button" role="tab" data-view="nearby" aria-selected="false">Nearby</button>
 			<button type="button" role="tab" data-view="alliances" aria-selected="false">Alliances</button>
 			<button type="button" role="tab" data-view="map" aria-selected="false">Map</button>
 			<button type="button" role="tab" data-view="croppers" aria-selected="false">15c Finder</button>
 		</nav>
+		<section id="controls-heat" aria-label="Location heat map" hidden>
+			<div class="row">
+				<label>Layer <select id="heat-layer"><option value="spawn">Spawn areas</option><option value="settle">First settlement</option></select></label>
+				<label>Quadrant <select id="heat-quad"><option value="">All four</option><option>NE</option><option>NW</option><option>SE</option><option>SW</option></select></label>
+				<label>Minimum area score <input id="heat-min" type="number" min="0" max="100" value="0"></label>
+				<label>Settlement target <input id="heat-target" size="9" placeholder="x|y"></label>
+				<label title="Enter the confirmed grey-zone radius for this world. Zero disables exclusion.">Grey-zone radius <input id="heat-grey" type="number" min="0" max="200" value="0"></label>
+			</div>
+			<div class="heat-layout">
+				<div class="heat-atlas">
+					<div class="heat-axis"><span id="heat-west">West</span><span>North ↑</span><span id="heat-east">East</span></div>
+					<div id="heat-grid" role="group" aria-label="Observed areas, north up"></div>
+					<div class="heat-key"><span>Lower score</span><i></i><span>Higher</span><span>Grey · unscored</span></div>
+				</div>
+				<div class="heat-inspector">
+					<h2 id="heat-area">Area evidence</h2>
+					<p id="heat-detail"></p>
+					<p class="summary">Hover or focus an area for its evidence. Select it to filter coordinates below.</p>
+					<button id="heat-clear" type="button" hidden>Show all areas</button>
+					<table class="grid"><caption>World comparison</caption><thead><tr><th>Quad</th><th>Best /100</th><th>Tiles observed</th></tr></thead><tbody id="heat-quads"></tbody></table>
+				</div>
+			</div>
+			<label>Coordinate records <select id="heat-type"><option value="">All terrain</option><option>Oasis</option><option>15c</option><option>Valley</option></select></label>
+		</section>
 		<section id="controls-croppers" class="row" aria-label="15c Finder" hidden>
 			<a id="cropper-map" target="_blank" rel="noopener" hidden>Open game map</a>
-			<span class="summary">Pan at 100% with DevTools open to collect 15c tiles and 3 × 3 oasis data. Opening a 15c tile in-game also saves it.</span>
+			<span class="summary">Pan the game map at 100% to collect 15c tiles and 3 × 3 oasis data. Opening a 15c tile also saves it.</span>
 		</section>
 		<section id="controls-map" class="row" hidden>
 			<label for="map-count">Newest accounts</label>

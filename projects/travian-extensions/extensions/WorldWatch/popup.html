@@ -35,5 +35,22 @@
 			<button id="poll" type="button">Fetch now</button>
 			<button id="open-dash" type="button">Dashboard</button>
 		</div>
+		<section id="map-scan" hidden aria-labelledby="scan-title">
+			<h2 id="scan-title">Map grid scan</h2>
+			<form id="scan-form" class="row">
+				<label>Centre <input id="scan-centre" type="text" placeholder="0|0" size="8" required aria-describedby="scan-help" /></label>
+				<label>Radius
+					<select id="scan-radius">
+						<option value="5">5 tiles</option>
+						<option value="10">10 tiles</option>
+						<option value="15">15 tiles</option>
+					</select>
+				</label>
+				<button id="scan-start" type="submit">Start scan</button>
+				<button id="scan-stop" type="button" hidden>Stop scan</button>
+			</form>
+			<p id="scan-help" class="msg">Set the game map to 100% zoom before scanning.</p>
+			<p id="scan-status" class="msg" role="status" hidden></p>
+		</section>
 	</body>
 </html>

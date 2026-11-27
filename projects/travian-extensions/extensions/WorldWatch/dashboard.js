@@ -7,6 +7,7 @@
 	const state = { view: "growth", metas: [], cache: new Map(), rows: [], columns: [] };
 
 	const COLUMNS = {
+		heat: WWHeatView.columns,
 		growth: [
 			{ key: "time", label: "Time" },
 			{ key: "maxUid", label: "Sign-ups (max uid)" },
@@ -120,7 +121,7 @@
 		if (keepPrev) $("prev").value = keepPrev;
 		else if (newestFirst[1]) $("prev").value = newestFirst[1].id;
 		await loadOwn(host);
-		if (host && !state.metas.length && !["map", "croppers"].includes(state.view)) setMsg("No snapshots yet.", true);
+		if (host && !state.metas.length && !["map", "croppers", "heat"].includes(state.view)) setMsg("No snapshots yet.", true);
 		else if (host) setMsg("");
 		await render();
 	}
@@ -147,7 +148,7 @@
 		const v = state.own && state.own.villages[Number($("own").value)];
 		if (!v) return;
 		const text = `${v.x}|${v.y}`;
-		for (const id of ["point", "map-goto", "near-point"]) {
+		for (const id of ["point", "map-goto", "near-point", "heat-target"]) {
 			const input = $(id);
 			if (force || !input.value.trim() || input.value === input.dataset.auto) {
 				input.value = text;
@@ -172,6 +173,29 @@
 
 	async function compute() {
 		const view = state.view;
+		if (view === "heat") {
+			const host = $("host").value, cur = metaById($("cur").value);
+			const targetText = $("heat-target").value.trim(), target = A.parsePoint(targetText);
+			const valid = (!targetText || target) && $("heat-grey").validity.valid && $("heat-min").validity.valid;
+			if (!valid) return { rows: [], drawMap: () => {
+				$("heat-grid").replaceChildren();
+				$("heat-quads").replaceChildren();
+				$("heat-clear").hidden = true;
+				$("heat-area").textContent = "Check filters";
+				$("heat-detail").textContent = "Use a target within ±200, a grey-zone radius from 0 to 200 and a minimum score from 0 to 100.";
+				return "Invalid heat map filters";
+			} };
+			const greyRadius = Number($("heat-grey").value);
+			const key = JSON.stringify([host, cur?.id, targetText, greyRadius]);
+			if (state.heat?.key !== key) {
+				const oasisKey = "wwOasis:" + host;
+				const model = Promise.all([api.storage.local.get(["wwCroppers", oasisKey]), cur ? loadSnap(cur.id) : null])
+					.then(([data, snap]) => WWHeat.survey(data[oasisKey] || {}, data.wwCroppers?.[host] || {}, snap, { target, greyRadius }));
+				state.heat = { key, model };
+				model.catch(() => { if (state.heat?.model === model) state.heat = null; });
+			}
+			return WWHeatView.view(await state.heat.model, host, cur && new Date(cur.t).toISOString());
+		}
 		if (view === "croppers") {
 			const host = $("host").value;
 			const rows = (await scoredCroppers(host)).map((tile) => ({
@@ -394,7 +418,8 @@
 	}
 
 	function exportCsv() {
-		const csv = A.toCsv(state.columns, state.rows);
+		const columns = state.view === "heat" ? [{ key: "x", label: "X" }, { key: "y", label: "Y" }, ...state.columns] : state.columns;
+		const csv = A.toCsv(columns, state.rows);
 		const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
 		const a = document.createElement("a");
 		a.href = URL.createObjectURL(blob);
@@ -412,11 +437,12 @@
 		if (view === "nearby") preferDayOld();
 		$("controls-map").hidden = view !== "map";
 		$("controls-croppers").hidden = view !== "croppers";
+		$("controls-heat").hidden = view !== "heat";
 		setMsg(!$("host").value ? "No worlds watched. Add one in the popup." :
-			!state.metas.length && !["map", "croppers"].includes(view) ? "No snapshots yet." : "");
+			!state.metas.length && !["map", "croppers", "heat"].includes(view) ? "No snapshots yet." : "");
 		for (const id of ["cur", "prev"]) {
-			$(id).hidden = view === "croppers";
-			document.querySelector(`label[for="${id}"]`).hidden = view === "croppers";
+			$(id).hidden = view === "croppers" || (view === "heat" && id === "prev");
+			document.querySelector(`label[for="${id}"]`).hidden = $(id).hidden;
 		}
 		$("map-section").hidden = view !== "map";
 		$("table-wrap").hidden = view === "map";
@@ -435,7 +461,22 @@
 	}
 
 	for (const b of document.querySelectorAll("[data-view]")) b.addEventListener("click", () => selectView(b.dataset.view));
-	$("host").addEventListener("change", loadMetas);
+	$("host").addEventListener("change", () => {
+		delete $("heat-grid").dataset.cell;
+		$("heat-grey").value = 0;
+		$("heat-target").value = "";
+		loadMetas();
+	});
+	for (const id of ["heat-layer", "heat-quad", "heat-min", "heat-target", "heat-grey"]) $(id).addEventListener("change", () => {
+		delete $("heat-grid").dataset.cell;
+		render();
+	});
+	$("heat-type").addEventListener("change", render);
+	$("heat-grid").addEventListener("change", render);
+	$("heat-clear").addEventListener("click", () => {
+		delete $("heat-grid").dataset.cell;
+		render();
+	});
 	$("own").addEventListener("change", () => {
 		fillOwnPoint(true);
 		const v = state.own && state.own.villages[Number($("own").value)];
@@ -485,9 +526,10 @@
 	$("csv").addEventListener("click", exportCsv);
 	api.storage.onChanged.addListener((changes, area) => {
 		if (area !== "local") return;
+		if (changes.wwCroppers || changes[`wwOasis:${$("host").value}`]) state.heat = null;
 		if (changes.wwCroppers || changes.wwHosts) loadHosts();
 		else if (changes.wwStatus || changes.wwOwn) loadMetas();
-		else if (changes[`wwOasis:${$("host").value}`] && ["map", "croppers"].includes(state.view)) render();
+		else if (changes[`wwOasis:${$("host").value}`] && ["map", "croppers", "heat"].includes(state.view)) render();
 	});
 	loadHosts();
 })();

@@ -17,7 +17,7 @@ Eight standalone browser extensions for Travian: forecasting, statistics history
 | <a id="next-settlement-calc"></a>[Next Settlement Calc](extensions/NextSettlementCalc/) | Culture-point forecasts and celebration planning | 2.6.25 |
 | <a id="npc-automerchant"></a>[Travian NPC Calculator](extensions/automerchant/) | Maximum troop counts and resource splits for the NPC Merchant | 3.2.25 |
 | <a id="night-mode"></a>[Travian Dark Mode](extensions/travian_night_mode/) | Dark theme, button colours, and optional night-time village and field assets | 2.7.4 |
-| <a id="world-watch"></a>[World Watch](extensions/WorldWatch/) | World snapshots, spawn map, population gains, alliances and a 15c finder with oasis scoring | 1.8.1 |
+| <a id="world-watch"></a>[World Watch](extensions/WorldWatch/) | World snapshots, spawn and settlement heat maps, alliances and 15c finder | 1.11.0 |
 
 ## Install in Brave, Chrome, or Edge
 
