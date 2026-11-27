@@ -1,5 +1,9 @@
 # Changelog
 
+## World Watch 1.8.1 — 2026-11-27
+
+- The map wraps in both directions at every zoom level. Wide views show the opposite side of the world, including villages, overlays, and coordinates.
+
 ## World Watch 1.7.12 — 2026-11-27
 
 - The popup shows **No map data yet** when Travian returns an empty map download. World Watch keeps any saved snapshots and tries again on the next check.

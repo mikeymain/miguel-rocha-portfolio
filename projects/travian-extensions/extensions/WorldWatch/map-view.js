@@ -17,7 +17,6 @@
 	const TOP100 = "#ffffff";
 	const OWN = "#1e88e5";
 	const CROPPER = "#124c44";
-	const OUTSIDE = "#3f4a33";
 
 	// Zoom levels for a view; the last one fits the whole world.
 	function zoomLevels(vw, vh) {
@@ -129,48 +128,23 @@
 		const st = { snap: null, layers: null, croppers: new Map(), show: { spawns: true, alliances: true, top10: false, top100: false, croppers: true }, cx: 0, cy: 0, zoom: 0, byField: new Map(), onChange: null };
 
 		const levels = () => zoomLevels(vw, vh);
-		const zoomValue = () => levels()[Math.min(st.zoom, levels().length - 1)];
+		const zoomValue = () => levels()[st.zoom];
 		const scale = () => FIELD_PX * zoomValue();
-		// An axis "fits" when the whole world is narrower than the view on it.
-		const fitsX = () => scale() * SPAN <= vw;
-		const fitsY = () => scale() * SPAN <= vh;
-		const toScreen = (x, y) => {
-			const s = scale();
-			// An axis where the whole world fits on screen does not wrap.
-			const dx = fitsX() ? x - st.cx : signedWrap(x - st.cx);
-			const dy = fitsY() ? y - st.cy : signedWrap(y - st.cy);
-			return [RULER_Y_W + vw / 2 + dx * s, vh / 2 - dy * s];
-		};
+		const toScreen = (x, y, s) => [RULER_Y_W + vw / 2 + (x - st.cx) * s, vh / 2 - (y - st.cy) * s];
 		const toField = (px, py) => {
 			const s = scale();
 			const fx = st.cx + (px - RULER_Y_W - vw / 2) / s;
 			const fy = st.cy - (py - vh / 2) / s;
-			return [fitsX() ? Math.round(fx) : wrapCoord(fx), fitsY() ? Math.round(fy) : wrapCoord(fy)];
+			return [wrapCoord(fx), wrapCoord(fy)];
 		};
 
-		// On an axis that fits, keep the centre inside the world instead of wrapping.
-		function clampCentre() {
-			if (fitsX()) st.cx = Math.max(-200, Math.min(200, st.cx));
-			if (fitsY()) st.cy = Math.max(-200, Math.min(200, st.cy));
-		}
-
-		function worldRect(s) {
-			const x0 = fitsX() ? toScreen(-200, 0)[0] - s / 2 : RULER_Y_W;
-			const x1 = fitsX() ? toScreen(200, 0)[0] + s / 2 : RULER_Y_W + vw;
-			const y0 = fitsY() ? toScreen(0, 200)[1] - s / 2 : 0;
-			const y1 = fitsY() ? toScreen(0, -200)[1] + s / 2 : vh;
-			return [x0, y0, x1 - x0, y1 - y0];
-		}
-
 		function drawGround(s, fx0, fx1, fy0, fy1) {
-			g.fillStyle = OUTSIDE;
-			g.fillRect(RULER_Y_W, 0, vw, vh);
 			g.fillStyle = GRASS[0];
-			g.fillRect(...worldRect(s));
+			g.fillRect(RULER_Y_W, 0, vw, vh);
 			if (s < 30) return;
 			for (let fx = fx0; fx <= fx1; fx++) {
 				for (let fy = fy0; fy <= fy1; fy++) {
-					const [sx, sy] = toScreen(fx, fy);
+					const [sx, sy] = toScreen(fx, fy, s);
 					const wx = wrapCoord(fx);
 					const wy = wrapCoord(fy);
 					g.fillStyle = GRASS[Math.floor(noise(wx, wy) * GRASS.length)];
@@ -188,12 +162,12 @@
 				g.lineWidth = 1;
 				g.beginPath();
 				for (let fx = fx0; fx <= fx1 + 1; fx++) {
-					const x = Math.round(toScreen(fx, 0)[0] - s / 2) + 0.5;
+					const x = Math.round(toScreen(fx, 0, s)[0] - s / 2) + 0.5;
 					g.moveTo(x, 0);
 					g.lineTo(x, vh);
 				}
 				for (let fy = fy0; fy <= fy1 + 1; fy++) {
-					const y = Math.round(toScreen(0, fy)[1] - s / 2) + 0.5;
+					const y = Math.round(toScreen(0, fy, s)[1] - s / 2) + 0.5;
 					g.moveTo(RULER_Y_W, y);
 					g.lineTo(RULER_Y_W + vw, y);
 				}
@@ -201,10 +175,10 @@
 			}
 		}
 
-		function drawRing(s) {
+		function drawRing(s, project) {
 			const ring = st.layers && st.layers.ring;
 			if (!st.show.spawns || !ring) return;
-			const [ox, oy] = toScreen(0, 0);
+			const [ox, oy] = project(0, 0);
 			g.fillStyle = "rgba(255, 216, 74, 0.22)";
 			g.beginPath();
 			g.arc(ox, oy, ring.max * s, 0, Math.PI * 2);
@@ -246,13 +220,13 @@
 			g.stroke();
 		}
 
-		function drawVillages(s) {
+		function drawVillages(s, project) {
 			const snap = st.snap;
-			const pad = s;
+			const pad = Math.max(s, 8);
 			const spawnIdx = [];
 			const topIdx = [];
 			for (let i = 0; i < snap.uid.length; i++) {
-				const [sx, sy] = toScreen(snap.x[i], snap.y[i]);
+				const [sx, sy] = project(snap.x[i], snap.y[i]);
 				if (sx < RULER_Y_W - pad || sx > RULER_Y_W + vw + pad || sy < -pad || sy > vh + pad) continue;
 				if (shownRank(snap.uid[i])) topIdx.push(i);
 				if (st.show.spawns && st.layers.spawnVids.has(snap.vid[i])) {
@@ -262,7 +236,7 @@
 				drawVillage(g, sx, sy, s, snap.pop[i], allianceColor(snap.aid[i]));
 			}
 			for (const i of spawnIdx) {
-				const [sx, sy] = toScreen(snap.x[i], snap.y[i]);
+				const [sx, sy] = project(snap.x[i], snap.y[i]);
 				g.fillStyle = "rgba(255, 216, 74, 0.55)";
 				g.beginPath();
 				g.arc(sx, sy, Math.max(4, s * 0.42), 0, Math.PI * 2);
@@ -271,11 +245,11 @@
 			}
 			topIdx.sort((a, b) => shownRank(snap.uid[b]) - shownRank(snap.uid[a]));
 			for (const i of topIdx) {
-				const [sx, sy] = toScreen(snap.x[i], snap.y[i]);
+				const [sx, sy] = project(snap.x[i], snap.y[i]);
 				drawTopMarker(sx, sy, s, shownRank(snap.uid[i]));
 			}
 			for (const v of st.layers.own || []) {
-				const [sx, sy] = toScreen(v.x, v.y);
+				const [sx, sy] = project(v.x, v.y);
 				const r = Math.max(6, s * 0.46);
 				g.lineWidth = Math.max(3, s * 0.08);
 				g.strokeStyle = "rgba(0, 0, 0, 0.6)";
@@ -310,16 +284,15 @@
 			g.fillText(text, sx + 1, sy);
 		}
 
-		function drawLabels() {
-			const placed = [];
+		function drawLabels(project, placed) {
 			for (const v of st.layers.own || []) {
-				const [sx, sy] = toScreen(v.x, v.y);
+				const [sx, sy] = project(v.x, v.y);
 				if (sx < RULER_Y_W || sx > RULER_Y_W + vw || sy < 0 || sy > vh) continue;
 				label(v.name || `${v.x}|${v.y}`, sx, sy + 24, OWN, placed);
 			}
 			if (st.show.top10 || st.show.top100) {
 				for (const a of st.layers.top.slice(0, 10)) {
-					const [sx, sy] = toScreen(a.x, a.y);
+					const [sx, sy] = project(a.x, a.y);
 					if (sx < RULER_Y_W || sx > RULER_Y_W + vw || sy < 0 || sy > vh) continue;
 					label(`#${a.rank} ${a.player || a.uid}`, sx, sy - 22, TOP10, placed);
 				}
@@ -327,26 +300,24 @@
 			if (!st.show.alliances) return;
 			for (const a of st.layers.alliances) {
 				const [x, y] = a.centre.split("|").map(Number);
-				const [sx, sy] = toScreen(x, y);
+				const [sx, sy] = project(x, y);
 				if (sx < RULER_Y_W || sx > RULER_Y_W + vw || sy < 0 || sy > vh) continue;
 				label(a.tag || `#${a.aid}`, sx, sy, a.color, placed);
 			}
 		}
 
-		// Lines on the world edge: x = ±200 and y = ±200 (the wrap seam).
-		function drawEdges(s) {
+		// Each seam sits halfway between field 200 and the next copy's -200.
+		function drawEdges(s, fx0, fx1, fy0, fy1) {
 			g.strokeStyle = EDGE;
 			g.lineWidth = 2;
 			g.beginPath();
-			for (let x of new Set([toScreen(200, 0)[0] + s / 2, toScreen(-200, 0)[0] - s / 2])) {
-				if (x < RULER_Y_W - 1 || x > RULER_Y_W + vw + 1) continue;
-				x = Math.min(RULER_Y_W + vw - 1, Math.max(RULER_Y_W + 1, x));
+			for (let fx = Math.ceil((fx0 + SPAN / 2) / SPAN) * SPAN - SPAN / 2; fx <= fx1; fx += SPAN) {
+				const [x] = toScreen(fx, 0, s);
 				g.moveTo(x, 0);
 				g.lineTo(x, vh);
 			}
-			for (let y of new Set([toScreen(0, 200)[1] - s / 2, toScreen(0, -200)[1] + s / 2])) {
-				if (y < -1 || y > vh + 1) continue;
-				y = Math.min(vh - 1, Math.max(1, y));
+			for (let fy = Math.ceil((fy0 + SPAN / 2) / SPAN) * SPAN - SPAN / 2; fy <= fy1; fy += SPAN) {
+				const [, y] = toScreen(0, fy, s);
 				g.moveTo(RULER_Y_W, y);
 				g.lineTo(RULER_Y_W + vw, y);
 			}
@@ -367,27 +338,27 @@
 			const step = niceStep(28 / s);
 			for (let fx = fx0; fx <= fx1; fx++) {
 				const v = wrapCoord(fx);
-				if (v % step || (v === 200 && !fitsX())) continue;
-				const [sx] = toScreen(fx, 0);
+				if (v % step || v === 200) continue;
+				const [sx] = toScreen(fx, 0, s);
 				if (sx < RULER_Y_W + 8 || sx > W - 8) continue;
 				g.fillText(String(v), sx, vh + RULER_X_H / 2 + 1);
 			}
 			const stepY = niceStep(16 / s);
 			for (let fy = fy0; fy <= fy1; fy++) {
 				const v = wrapCoord(fy);
-				if (v % stepY || (v === 200 && !fitsY())) continue;
-				const [, sy] = toScreen(0, fy);
+				if (v % stepY || v === 200) continue;
+				const [, sy] = toScreen(0, fy, s);
 				if (sy < 6 || sy > vh - 6) continue;
 				g.fillText(String(v), RULER_Y_W / 2, sy);
 			}
 		}
 
-		function drawCroppers(s) {
+		function drawCroppers(s, project) {
 			if (!st.show.croppers) return;
 			const label = s >= 45;
 			const r = label ? 18 : s >= 12 ? 7 : 4;
 			for (const tile of st.croppers.values()) {
-				const [x, y] = toScreen(tile.x, tile.y);
+				const [x, y] = project(tile.x, tile.y);
 				if (x < RULER_Y_W - r || x > RULER_Y_W + vw + r || y < -r || y > vh + r) continue;
 				g.fillStyle = CROPPER;
 				g.strokeStyle = "#fff9ea";
@@ -415,28 +386,36 @@
 			g.clearRect(0, 0, W, H);
 			st.zoom = Math.min(st.zoom, levels().length - 1);
 			const s = scale();
-			clampCentre();
 			const halfX = Math.ceil(vw / 2 / s) + 1;
 			const halfY = Math.ceil(vh / 2 / s) + 1;
-			const fx0 = fitsX() ? -200 : Math.floor(st.cx) - halfX;
-			const fx1 = fitsX() ? 200 : Math.ceil(st.cx) + halfX;
-			const fy0 = fitsY() ? -200 : Math.floor(st.cy) - halfY;
-			const fy1 = fitsY() ? 200 : Math.ceil(st.cy) + halfY;
+			const fx0 = Math.floor(st.cx) - halfX;
+			const fx1 = Math.ceil(st.cx) + halfX;
+			const fy0 = Math.floor(st.cy) - halfY;
+			const fy1 = Math.ceil(st.cy) + halfY;
 			g.save();
 			g.beginPath();
 			g.rect(RULER_Y_W, 0, vw, vh);
 			g.clip();
 			drawGround(s, fx0, fx1, fy0, fy1);
-			if (st.snap) {
-				drawRing(s);
-				drawVillages(s);
-				drawLabels();
+			const placed = [];
+			const pad = 8 / s;
+			const worldIndex = (v) => Math.floor((v + SPAN / 2) / SPAN);
+			const copies = [];
+			for (let x = worldIndex(fx0 - pad); x <= worldIndex(fx1 + pad); x++) {
+				for (let y = worldIndex(fy0 - pad); y <= worldIndex(fy1 + pad); y++) {
+					copies.push((fx, fy) => toScreen(fx + x * SPAN, fy + y * SPAN, s));
+				}
 			}
-			drawEdges(s);
-			drawCroppers(s);
+			if (st.snap) {
+				for (const project of copies) drawRing(s, project);
+				for (const project of copies) drawVillages(s, project);
+				for (const project of copies) drawLabels(project, placed);
+			}
+			drawEdges(s, fx0, fx1, fy0, fy1);
+			for (const project of copies) drawCroppers(s, project);
 			g.restore();
 			drawRulers(s, fx0, fx1, fy0, fy1);
-			if (st.onChange) st.onChange({ cx: Math.round(st.cx), cy: Math.round(st.cy), zoom: zoomValue() });
+			if (st.onChange) st.onChange({ cx: wrapCoord(st.cx), cy: wrapCoord(st.cy), zoom: zoomValue() });
 		}
 
 		function indexFields() {
@@ -451,16 +430,17 @@
 			const px = evt.clientX - rect.left;
 			const py = evt.clientY - rect.top;
 			let [fx, fy] = toField(px, py);
-			if (px < RULER_Y_W || py > vh || Math.abs(fx) > 200 || Math.abs(fy) > 200) {
+			if (px < RULER_Y_W || px > W || py < 0 || py > vh) {
 				tooltip.hidden = true;
 				return;
 			}
 			let cropper = st.show.croppers ? st.croppers.get(`${fx}|${fy}`) : null;
 			if (!cropper && st.show.croppers && scale() < 12) {
+				const s = scale();
 				let nearest = 5;
 				for (const tile of st.croppers.values()) {
-					const [sx, sy] = toScreen(tile.x, tile.y);
-					const distance = Math.hypot(px - sx, py - sy);
+					const [sx, sy] = toScreen(tile.x, tile.y, s);
+					const distance = Math.hypot(signedWrap((px - sx) / s), signedWrap((py - sy) / s)) * s;
 					if (distance < nearest) { cropper = tile; nearest = distance; }
 				}
 				if (cropper) ({ x: fx, y: fy } = cropper);
@@ -516,8 +496,8 @@
 		const endDrag = () => {
 			if (!drag) return;
 			drag = null;
-			if (!fitsX()) st.cx = wrapCoord(st.cx);
-			if (!fitsY()) st.cy = wrapCoord(st.cy);
+			st.cx = signedWrap(st.cx);
+			st.cy = signedWrap(st.cy);
 			canvas.classList.remove("dragging");
 			draw();
 		};
