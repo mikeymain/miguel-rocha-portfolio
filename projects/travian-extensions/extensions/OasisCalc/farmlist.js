@@ -67,9 +67,20 @@
     return badge;
   }
 
+  // Badge and animals live in one nowrap flex row so they never split across lines.
+  function rowOf(cell) {
+    let row = cell.querySelector("._vpfl-row");
+    if (!row) {
+      row = document.createElement("div");
+      row.className = "_vpfl-row";
+      cell.appendChild(row);
+    }
+    return row;
+  }
+
   function showAnimals(cell, scan, isOasis) {
     let label = cell.querySelector("._vpfl-animals");
-    if (!isOasis) { label?.remove(); return; }
+    if (!isOasis) { label?.remove(); cell.querySelector("._vpfl-row")?.remove(); return; }
     const animals = scan?.animals;
     const valid = Array.isArray(animals) && animals.length && animals.every(a =>
       a && Number.isInteger(a.id) && ANIMAL_STATS[a.id] && Number.isSafeInteger(a.count) && a.count > 0);
@@ -78,11 +89,12 @@
     if (!label) {
       label = document.createElement("small");
       label.className = "_vpfl-animals";
-      cell.appendChild(label);
+      rowOf(cell).appendChild(label);
     }
     const minutes = valid && Number.isFinite(scan.scannedAt) ? Math.max(0, Math.floor((Date.now() - scan.scannedAt) / 60000)) : null;
-    const age = minutes === null || minutes < 1 ? "" : minutes < 60 ? ` · ${minutes}m old` :
-      minutes < 1440 ? ` · ${Math.floor(minutes / 60)}h old` : ` · ${Math.floor(minutes / 1440)}d old`;
+    // Short "· 16h" form keeps badge + animals + age inside the target column on one line.
+    const age = minutes === null || minutes < 1 ? "" : minutes < 60 ? ` · ${minutes}m` :
+      minutes < 1440 ? ` · ${Math.floor(minutes / 60)}h` : ` · ${Math.floor(minutes / 1440)}d`;
     const state = JSON.stringify([animals, !!scan?.observationIncomplete, defenceMode, age]);
     if (label.dataset.state !== state) {
       label.dataset.state = state;
@@ -128,6 +140,7 @@
       // Population 0 marks an oasis in any game language; villages never have 0.
       const isOasis = !!bonus || scans.has(key) || knownOases.has(key) ||
         parseNum(row.querySelector("td.population")?.textContent) === 0;
+      row.classList.toggle("_vpfl-oasis", isOasis);
       const pop = row.querySelector("td.population");
       if (pop && cell.nextElementSibling === pop) {
         cell.colSpan = isOasis ? 2 : 1;
@@ -141,7 +154,7 @@
       if (!isOasis) continue;
       const badge = renderBadge(bonus);
       badge.dataset.state = state;
-      cell.insertBefore(badge, cell.querySelector("._vpfl-animals"));
+      rowOf(cell).prepend(badge);
     }
     groupOases();
   }

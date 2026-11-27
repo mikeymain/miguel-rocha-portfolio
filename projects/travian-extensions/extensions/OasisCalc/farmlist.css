@@ -23,6 +23,15 @@
 ._vpfl-animals { display: inline-flex; vertical-align: middle; margin-left: 6px; flex-wrap: nowrap; align-items: center; gap: 0 4px; padding: 3px 0 4px; font-size: 0.9em; font-weight: normal; }
 
 td.target > a { padding: 3px 0 4px; }
+/* Oasis rows: line 1 is 20px (name, report), line 2 is 22px (badge + animals,
+   distance, troops, bag raw + sum). Same heights in every column keep line 2 level. */
+tr._vpfl-oasis td.target { white-space: nowrap; line-height: 22px; }
+tr._vpfl-oasis td.target > a { display: block; height: 20px; line-height: 20px; padding: 0; }
+tr._vpfl-oasis ._vpfl-row { display: flex; flex-wrap: nowrap; align-items: center; white-space: nowrap; height: 22px; overflow: hidden; }
+tr._vpfl-oasis ._vpfl-bonus, tr._vpfl-oasis ._vpfl-animals { height: 22px; box-sizing: border-box; padding-top: 0; padding-bottom: 0; }
+tr._vpfl-oasis td.distance, tr._vpfl-oasis td.troops { padding-top: 27px; line-height: 22px; }
+tr._vpfl-oasis td.lastRaid .lastRaidReport { height: 20px; line-height: 20px; }
+tr._vpfl-oasis td.lastRaid .lastRaidWrapper > :not(.lastRaidReport) { line-height: 22px; }
 table.slots td.target, table.slots td.lastRaid { padding-top: 7px; }
 table.slots td.lastRaid .lastRaidWrapper { display: flex; flex-wrap: wrap; align-items: center; }
 table.slots td.lastRaid .lastRaidReport { flex: 0 0 100%; order: -1; }
