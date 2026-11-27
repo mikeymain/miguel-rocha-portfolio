@@ -21,6 +21,9 @@
 ._vpfl-animals { display: flex; flex-wrap: wrap; align-items: center; gap: 0 4px; padding: 3px 0 4px; font-size: 0.9em; font-weight: normal; }
 
 td.target > a { padding: 3px 0 4px; }
+table.slots td.target, table.slots td.lastRaid { padding-top: 7px; }
+table.slots td.lastRaid .lastRaidWrapper { display: flex; flex-wrap: wrap; align-items: center; column-gap: 8px; }
+table.slots td.lastRaid .lastRaidReport { flex: 0 0 100%; }
 ._vpfl-animals > span { white-space: nowrap; }
 ._vpfl-animals .unit { vertical-align: middle; }
 th.target button[data-vpfl-def] {
