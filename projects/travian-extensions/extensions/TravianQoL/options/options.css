@@ -151,6 +151,7 @@ body {
 	padding: 0 12px;
 	border-radius: 6px;
 	font-size: 12.5px;
+	white-space: nowrap;
 	color: var(--text-secondary);
 	cursor: pointer;
 	transition: background 140ms var(--ease), color 140ms var(--ease);

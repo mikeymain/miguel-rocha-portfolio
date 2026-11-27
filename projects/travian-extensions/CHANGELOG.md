@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.6.29 — 2026-11-27
+
+- Settings header: tab labels stay on one line; the version number and the Saved indicator are removed.
+
 ## Travian QoL 1.6.28 — 2026-11-27
 
 - New **Farm targets** settings tab: every farm list target with its list, distance, carry, bounty, bag fill and, for oases, animals killed in the past hour. Sortable, per server.
