@@ -50,8 +50,11 @@
 			const s = status[host] || {};
 			const tr = document.createElement("tr");
 			tr.append(cell(host), cell(String(s.snapshots ?? 0)), cell(ago(s.lastChangeAt)));
-			const checked = cell(s.error ? "error" : ago(s.lastCheckedAt), s.error || "");
-			if (s.error) checked.classList.add("error");
+			const emptyMap = s.error === WWCore.EMPTY_MAP;
+			const checked = emptyMap
+				? cell(s.error, "Travian returned an empty map download. World Watch will check again.")
+				: cell(s.error ? "error" : ago(s.lastCheckedAt), s.error || "");
+			if (s.error && !emptyMap) checked.classList.add("error");
 			tr.append(checked);
 			const td = document.createElement("td");
 			const rm = document.createElement("button");

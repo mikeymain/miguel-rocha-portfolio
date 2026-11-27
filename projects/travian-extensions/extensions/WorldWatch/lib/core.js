@@ -8,6 +8,7 @@
 	const MIN_INTERVAL = 15;
 	const MAX_INTERVAL = 1440;
 	const MAX_CAP = 200;
+	const EMPTY_MAP = "No map data yet";
 
 	// Accepts "ts4.x1.arabics.travian.com" or a full URL. Returns null if invalid.
 	function normalizeHost(input) {
@@ -57,6 +58,7 @@
 			});
 			if (!res.ok) throw new Error(`HTTP ${res.status}`);
 			const text = await res.text();
+			if (!text) throw new Error(EMPTY_MAP);
 			const hash = await sha256Hex(text);
 			const metas = await deps.store.list(host);
 			const last = metas[metas.length - 1];
@@ -85,5 +87,5 @@
 		return null;
 	}
 
-	root.WWCore = { normalizeHost, normalizeSettings, sha256Hex, pollHost, fetchLive, DEFAULT_SETTINGS, MIN_INTERVAL, MAX_INTERVAL };
+	root.WWCore = { normalizeHost, normalizeSettings, sha256Hex, pollHost, fetchLive, DEFAULT_SETTINGS, MIN_INTERVAL, MAX_INTERVAL, EMPTY_MAP };
 })(globalThis);

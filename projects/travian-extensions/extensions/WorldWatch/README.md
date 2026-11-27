@@ -8,6 +8,7 @@ Tracks a Travian Legends game world over time from its public `map.sql` dump. Us
 - A `chrome.alarms` job (every 60 minutes by default, 15–1440 allowed) fetches `https://<host>/map.sql` for each host, one after another, 3 seconds apart.
 - Requests send no cookies (`credentials: "omit"`). They are read-only and need no login.
 - A snapshot is stored only when the SHA-256 of the dump changed. Travian appears to regenerate `map.sql` about once a day, so most hourly checks store nothing.
+- **No map data yet** means Travian returned an empty download. World Watch keeps existing snapshots and checks again at the scheduled interval. Select **Fetch now** to check sooner.
 - Snapshots are kept in IndexedDB in columnar form (`x, y, tribe, vid, uid, aid, pop` plus player names and alliance tags). The newest 30 per host are kept.
 - The dump has no generation time. A snapshot's time is the time of the first fetch that saw the new content, so it can be up to one interval late.
 

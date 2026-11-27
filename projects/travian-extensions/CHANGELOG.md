@@ -1,5 +1,9 @@
 # Changelog
 
+## World Watch 1.7.12 — 2026-11-27
+
+- The popup shows **No map data yet** when Travian returns an empty map download. World Watch keeps any saved snapshots and tries again on the next check.
+
 ## Travian QoL 1.7.0 — 2026-11-27
 
 - Build order tab: new **Starting guide · 4 party farming** card, based on the 4 party farming start by Caim. Steps tick automatically from the field and building levels the game shows; tasks, parties and troops are ticked by hand. Shows each step's cost and net resources per culture point. See [Starting guide](docs/starting-guide-4p.md).
