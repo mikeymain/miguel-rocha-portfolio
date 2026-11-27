@@ -18,7 +18,7 @@
 ._vpfl-bonus span + i { margin-left: 3px; }
 ._vpfl-unknown { opacity: 0.6; cursor: help; }
 
-._vpfl-animals { display: flex; flex-wrap: wrap; align-items: center; gap: 0 4px; padding: 3px 0 4px; font-size: 0.9em; font-weight: normal; }
+._vpfl-animals { display: inline-flex; vertical-align: middle; margin-left: 6px; flex-wrap: wrap; align-items: center; gap: 0 4px; padding: 3px 0 4px; font-size: 0.9em; font-weight: normal; }
 
 td.target > a { padding: 3px 0 4px; }
 table.slots td.target, table.slots td.lastRaid { padding-top: 7px; }
