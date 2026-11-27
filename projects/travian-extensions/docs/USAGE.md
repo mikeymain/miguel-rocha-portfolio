@@ -88,7 +88,7 @@ Unknown-age or incomplete readings are excluded. **Errors** shows scan problems,
 5. Drag the widget by its title bar to move it. The position is saved.
 6. Click the TravAlarm icon in the browser toolbar for display settings: panel width, opacity, accent color, start minimized, a color for each category and training building, and reset buttons. Changes apply to open Travian tabs immediately.
 7. To pause TravAlarm on one server (for example a test world), click the power button in the widget title bar. The server then shows only **TravAlarm · Ignored**; click **Resume** to turn it back on.
-8. **FNPC** next to a build or training cost shows when the village can afford it with an NPC trade. It uses the village production and storage caps, plus returning raid bounties and incoming merchant deliveries. Open the rally point **Overview** and the marketplace **Send resources** page to update those; raids sent afterwards are not counted.
+8. **FNPC** next to a build or training cost shows when the village can afford it with an NPC trade. It uses the village production and storage caps, plus returning raid bounties and incoming merchant deliveries. While an FNPC time is shown, TravAlarm re-reads the active village's rally point and marketplace in the background, at most once every 5 minutes. Raids still on their way out have no bounty yet and are not counted.
 
 Categories keep their fixed order. Within a category, pinned timers come first, then finished ones, then the rest from soonest to latest.
 

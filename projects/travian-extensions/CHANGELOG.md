@@ -1,5 +1,10 @@
 # Changelog
 
+## TravAlarm 3.74 — 2026-11-27
+
+- FNPC updates returning raids and incoming merchants on its own: while an FNPC time is shown, the active village's rally point and marketplace are re-read in the background, at most once every 5 minutes (shared across tabs, paused while the tab is hidden).
+- Fetch cooldowns now survive page reloads.
+
 ## TravAlarm 3.73 — 2026-11-26
 
 - FNPC time no longer appears under raid bounty in the rally point troop movements.

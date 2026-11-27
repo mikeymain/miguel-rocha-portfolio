@@ -25,24 +25,61 @@ function _readDidFromSidebar(root = document) {
 }
 
 
+// Last fetch time per `${host}|${key}`, kept in extension storage so a page
+// reload or a second tab does not start a fetcher's cooldown over.
+const FETCH_COOLDOWNS_KEY = "_w4fcd";
+let _fetchCooldowns = {};
+const _cooldownId = (key) => `${window.location.hostname}|${key}`;
+try {
+	api.storage.local.get(FETCH_COOLDOWNS_KEY).then((r) => {
+		const stored = r?.[FETCH_COOLDOWNS_KEY] || {};
+		const merged = { ..._fetchCooldowns };
+		for (const [k, t] of Object.entries(stored)) {
+			if (Number.isFinite(t) && !(merged[k] > t)) merged[k] = t;
+		}
+		_fetchCooldowns = merged;
+	}).catch(() => {});
+	api.storage.onChanged.addListener((changes, area) => {
+		if (area === "local" && changes[FETCH_COOLDOWNS_KEY]) {
+			_fetchCooldowns = { ...(changes[FETCH_COOLDOWNS_KEY].newValue || {}) };
+		}
+	});
+} catch {
+	/* storage unavailable: cooldowns are per page */
+}
+
+function _saveFetchCooldowns() {
+	try {
+		api.storage.local.set({ [FETCH_COOLDOWNS_KEY]: _fetchCooldowns }).catch(() => {});
+	} catch {
+		/* storage unavailable */
+	}
+}
+
 /**
  * Returns true if the named fetcher is allowed to run (not already running and past cooldown).
- * Sets isFetching=true and records lastTime when it returns true.
- * @param {string} key - key in fetchState ("prod"|"training"|"warehouse"|"celebrations")
+ * Sets isFetching=true and records the time when it returns true.
+ * @param {string} key - key in fetchState; unknown keys are added
  * @param {number} cooldownMs
  */
 function canFetch(key, cooldownMs) {
 	if (!isPlayerActive()) return false;
-	const f = fetchState[key];
+	const f = (fetchState[key] ??= { isFetching: false, lastTime: 0 });
 	const now = Date.now();
-	if (f.isFetching || now - f.lastTime < cooldownMs) return false;
+	const last = Math.max(f.lastTime, _fetchCooldowns[_cooldownId(key)] || 0);
+	if (f.isFetching || now - last < cooldownMs) return false;
 	f.isFetching = true;
 	f.lastTime = now;
+	_fetchCooldowns = { ..._fetchCooldowns, [_cooldownId(key)]: now };
+	_saveFetchCooldowns();
 	return true;
 }
 
 function resetFetchCooldown(key) {
-	fetchState[key].lastTime = 0;
+	if (fetchState[key]) fetchState[key].lastTime = 0;
+	const { [_cooldownId(key)]: _dropped, ...rest } = _fetchCooldowns;
+	_fetchCooldowns = rest;
+	_saveFetchCooldowns();
 }
 
 /**

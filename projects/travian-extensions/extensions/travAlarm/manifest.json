@@ -7,7 +7,7 @@
 	"manifest_version": 3,
 	"key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA33wv5ae90ycn0WVFQs2t/vM1UCz1eLOubWZSRH6Wksayi5lNJU+T/HKLyAiSKUf+vSkCDVfP1j69j8GKLs9SnIDvJax0nJ9KGrx/SWKyyMG6ftOe4yzY6iCnwsTMt2r+9+FmwydBe9IJMAkT+Peoc1GcGQ6z1H37ksu60E2G0CJI5eyxvvNOIG/zEtONIAcosrBjO2B5bvl/GOFNSPJQJiDuYEonwgpZ7LL9bUSd3nTj6aDt4PK2yxT9aoeDlMrmkcue4T5RcHpyuQlP1UhzCAb8qB2RVyvpHyaeU/hrw4P/skjpbg00tjlA2ybnlbQ7aT230YQhHNTrmuSjGWtJmwIDAQAB",
 	"name": "TravAlarm",
-	"version": "3.73",
+	"version": "3.74",
 	"description": "Get incoming attack alerts and track Travian building, troop training and research timers, plus custom reminders.",
 	"permissions": [
 		"notifications",

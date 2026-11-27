@@ -182,6 +182,7 @@ function scanNPCBuild(activeVillage) {
     fetchProductionData();
   }
 
+  let showsNpcTime = false;
   costWrappers.forEach((wrapper) => {
     const c1 = getResourceValue(wrapper, "r1");
     const c2 = getResourceValue(wrapper, "r2");
@@ -221,8 +222,11 @@ function scanNPCBuild(activeVillage) {
         msg = `FNPC: ${npcClockText(doneAt)}`;
       }
     }
+    if (doneAt) showsNpcTime = true;
     setNpcLabel(wrapper, msg, doneAt);
   });
+  // Deliveries only change an FNPC time, so they are fetched only when one is shown.
+  if (showsNpcTime && typeof fetchDeliveries === "function") fetchDeliveries();
 }
 
 // Each cost box keeps one label. Text changes go through the label's text

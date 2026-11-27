@@ -2,9 +2,10 @@
  * TRAVALARM - RESOURCE DELIVERIES FOR FNPC
  *
  * Reads returning raids (rally point overview) and incoming merchants
- * (marketplace delivery overview) from pages the user opens. Nothing is
- * fetched: each page replaces that village's cached list, and FNPC adds the
- * deliveries at their arrival times.
+ * (marketplace delivery overview) for the active village: from pages the
+ * user opens, and from a background fetch while an FNPC time is shown (at
+ * most once per cooldown). Each read replaces that village's cached list,
+ * and FNPC adds the deliveries at their arrival times.
  */
 
 const DELIVERIES_KEY = "_w4deliv";
@@ -137,16 +138,76 @@ function scanDeliveries() {
   }
 
   const merchants = parseIncomingMerchants(document, now);
-  if (merchants) {
-    let list = merchants.list;
-    if (merchants.partial) {
-      // "Show all" hides later deliveries: keep cached ones after the last shown.
-      const last = list.reduce((m, d) => Math.max(m, d.at), 0);
-      const later = (_deliveries[key]?.merchants || []).filter((d) => d.at > last + 10000);
-      list = [...list, ...later];
-    }
-    _storeDeliveries(key, "merchants", list);
+  if (merchants) _storeMerchants(key, merchants);
+}
+
+function _storeMerchants(key, merchants) {
+  let list = merchants.list;
+  if (merchants.partial) {
+    // "Show all" hides later deliveries: keep cached ones after the last shown.
+    const last = list.reduce((m, d) => Math.max(m, d.at), 0);
+    const later = (_deliveries[key]?.merchants || []).filter((d) => d.at > last + 10000);
+    list = [...list, ...later];
   }
+  _storeDeliveries(key, "merchants", list);
+}
+
+// Background refresh, so FNPC does not depend on the user opening the rally
+// point or marketplace. Both pages are read for the active village only
+// (no `newdid=`, see fetchers.js), at most once per cooldown across tabs.
+const DELIVERY_FETCH_COOLDOWN_MS = 5 * 60 * 1000;
+// Randomised waits before each request, so a fetch never follows a page load
+// or the previous request at a fixed, instant delay.
+const DELIVERY_FETCH_START_MS = 6000;
+const DELIVERY_FETCH_GAP_MS = 4000;
+const _waitJittered = (ms) => new Promise((resolve) => setTimeout(resolve, jitterMs(ms)));
+const RALLY_INCOMING_URL = "/build.php?gid=16&tt=1&filter=1";
+const MARKET_DELIVERIES_URL = "/build.php?gid=17&t=5";
+
+/** Fetched page as a parsed document, or null on an error page. */
+async function _fetchGamePage(url) {
+  const res = await fetch(url, { credentials: "include" });
+  if (!res.ok) return null;
+  const text = await res.text();
+  return { doc: new DOMParser().parseFromString(text, "text/html"), observedAt: Date.now() };
+}
+
+/**
+ * Re-reads returning raids and incoming merchants for the active village.
+ * A page that belongs to another village (switched in another tab) or that
+ * is not the rally point / delivery overview leaves the cache unchanged.
+ */
+async function fetchDeliveries() {
+  if (!_deliveriesLoaded) return;
+  // The passive scan already reads these pages when they are open.
+  if (_isRallyOverview() || document.querySelector(".deliveriesOverview")) return;
+  const did = _readDidFromSidebar();
+  if (!did) return;
+  const fetchKey = `deliveries_${did}`;
+  if (!canFetch(fetchKey, jitterMs(DELIVERY_FETCH_COOLDOWN_MS))) return;
+  const key = `${serverTag}_${did}`;
+  // Stop if the tab was hidden or the user switched village during a wait.
+  const stillWanted = () => isPlayerActive() && _readDidFromSidebar() === did;
+  try {
+    await _waitJittered(DELIVERY_FETCH_START_MS);
+    if (!stillWanted()) return;
+    const rally = await _fetchGamePage(RALLY_INCOMING_URL);
+    if (rally?.doc.querySelector("#build.gid16") && _readDidFromSidebar(rally.doc) === did) {
+      _storeDeliveries(key, "raids", parseReturningRaids(rally.doc, rally.observedAt));
+    }
+    await _waitJittered(DELIVERY_FETCH_GAP_MS);
+    if (!stillWanted()) return;
+    const market = await _fetchGamePage(MARKET_DELIVERIES_URL);
+    if (market && _readDidFromSidebar(market.doc) === did) {
+      const merchants = parseIncomingMerchants(market.doc, market.observedAt);
+      if (merchants) _storeMerchants(key, merchants);
+    }
+  } catch {
+    /* network errors keep the cached deliveries */
+  } finally {
+    fetchState[fetchKey].isFetching = false;
+  }
+  if (typeof scan === "function") scan();
 }
 
 /** Upcoming deliveries for the active village as FNPC events. */
