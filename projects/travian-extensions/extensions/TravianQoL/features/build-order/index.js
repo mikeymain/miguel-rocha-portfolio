@@ -27,7 +27,6 @@
 	const VILLAGE_ENTRY = ':is(.villageList, #sidebarBoxVillageList, #sidebarBoxVillagelist) .listEntry';
 	const SLOT_SELECTOR = '#villageContent .buildingSlot:not(.top)';
 	const SLOT_HINT_ID = 'tqol-bo-slot-hint';
-	const VILLAGE_HINT_ID = 'tqol-bo-village-hint';
 	const STYLE_ID = 'tqol-bo-style';
 	const ORDER_ATTR = 'tqolBo';
 	const CSS = `
@@ -43,7 +42,17 @@
 	from { box-shadow: 0 0 0 2px #ffd75e, 0 0 6px 2px rgba(255, 200, 40, .6); }
 	to   { box-shadow: 0 0 0 2px #ffd75e, 0 0 16px 7px rgba(255, 200, 40, 1); }
 }
-#villageContent .buildingSlot[data-tqol-bo="1"] {
+#resourceFieldContainer svg.villageCenter:has(> path[data-tqol-bo="1"]) {
+	overflow: visible;
+}
+#resourceFieldContainer svg.villageCenter > path[data-tqol-bo="1"] {
+	stroke: #ffd75e;
+	stroke-width: 2px;
+	stroke-linejoin: round;
+	vector-effect: non-scaling-stroke;
+}
+#villageContent .buildingSlot[data-tqol-bo="1"],
+#resourceFieldContainer svg.villageCenter > path[data-tqol-bo="1"] {
 	filter: drop-shadow(0 0 4px #ffd75e) drop-shadow(0 0 8px rgba(255, 200, 40, .85));
 	animation: tqol-bo-pulse 1.4s ease-in-out infinite alternate;
 }
@@ -63,22 +72,6 @@
 	outline-offset: 2px;
 }
 #tqol-bo-slot-hint { margin-block: 10px; color: #ffd75e; font-weight: bold; }
-#tqol-bo-village-hint {
-	display: block;
-	width: fit-content;
-	max-width: 100%;
-	box-sizing: border-box;
-	margin: 0 auto 8px;
-	padding: 6px 12px;
-	border: 1px solid #ffd75e;
-	border-radius: 4px;
-	background: #252018;
-	color: #ffe49a;
-	font-weight: bold;
-	text-align: center;
-}
-#tqol-bo-village-hint:hover { text-decoration: underline; }
-#tqol-bo-village-hint:focus-visible { outline: 2px solid #ffe49a; outline-offset: 2px; }
 @keyframes tqol-bo-pulse {
 	from { filter: drop-shadow(0 0 3px #ffd75e) drop-shadow(0 0 5px rgba(255, 200, 40, .6)); }
 	to   { filter: drop-shadow(0 0 5px #ffd75e) drop-shadow(0 0 12px rgba(255, 200, 40, 1)); }
@@ -86,6 +79,7 @@
 @media (prefers-reduced-motion: reduce) {
 	#resourceFieldContainer a.resourceField[data-tqol-bo="1"] .labelLayer,
 	#resourceFieldContainer a:not(.resourceField)[data-tqol-bo="1"],
+	#resourceFieldContainer svg.villageCenter > path[data-tqol-bo="1"],
 	#villageContent .buildingSlot[data-tqol-bo="1"] { animation: none; }
 }
 `;
@@ -325,22 +319,6 @@
 		chrome.storage.local.set({ [capacityKey()]: queued });
 	}
 
-	function renderVillageHint(text, village) {
-		const oldHint = document.getElementById(VILLAGE_HINT_ID);
-		if (!text) {
-			oldHint?.remove();
-			return;
-		}
-		const hint = oldHint || document.createElement('a');
-		hint.id = VILLAGE_HINT_ID;
-		const href = village?.getAttribute('href') || (location.pathname === '/resources' ? '/village' : '/dorf2.php');
-		if (hint.getAttribute('href') !== href) hint.setAttribute('href', href);
-		if (hint.textContent !== text) hint.textContent = text;
-		const map = document.getElementById('resourceFieldContainer');
-		if (hint.nextElementSibling !== map) map.before(hint);
-		injectStyle();
-	}
-
 	function render() {
 		if (!isResourcesPage()) return;
 		const fields = readFields();
@@ -357,22 +335,20 @@
 		const building = new Set(fields.filter((f) => f.el.classList.contains('underConstruction')).map((f) => f.slot));
 		let next = null;
 		let village = null;
-		let villageHint = '';
 		if (guideOn()) {
 			// Show the guide's next field even while the previous step is building.
 			const target = guideTarget(fields, storedSlots);
 			const free = fields.filter((f) => !building.has(f.slot));
 			next = target?.item.k === 'f' ? window.TravianQoLGuide4P.pickField(target.step, target.item, free) : null;
-			if (target?.item.k === 'b' || !storedSlots) {
-				village = document.querySelector('#resourceFieldContainer a:is(.village, [href="/village"], [href^="/dorf2.php"])');
-				villageHint = target?.item.k === 'b' ? 'Village centre · ' + target.step.label : 'Open village centre to check buildings';
+			if (target?.item.k === 'b') {
+				village = document.querySelector('#resourceFieldContainer svg.villageCenter > path')
+					|| document.querySelector('#resourceFieldContainer a:is(.village, .villageCenter, [href="/village"], [href^="/dorf2.php"])');
 			}
 		} else {
 			const steps = window.TravianQoLBuildOrder.plan(fields, bonuses, PLAN_DEPTH, undefined, forceMax);
 			next = hasFreeSlot ? steps.find((s) => s.kind === 'field' && !building.has(s.slot)) : null;
 		}
 		markTargets(fields.find((f) => f.slot === next?.slot)?.el || village);
-		renderVillageHint(villageHint, village);
 	}
 
 	function schedule() {
@@ -645,7 +621,6 @@
 			guideReady = false;
 			document.getElementById(STYLE_ID)?.remove();
 			document.getElementById(SLOT_HINT_ID)?.remove();
-			document.getElementById(VILLAGE_HINT_ID)?.remove();
 			document.querySelectorAll('[data-tqol-bo]').forEach((el) => delete el.dataset[ORDER_ATTR]);
 		},
 	});
