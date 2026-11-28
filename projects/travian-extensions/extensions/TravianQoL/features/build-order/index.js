@@ -24,16 +24,18 @@
 	// Per-host { villageId: [starting guide step ids ticked by hand] }.
 	const GUIDE_PREFIX = 'travianQoL.buildGuide.';
 	const LAYOUT_KEY = 'travianQoL.buildGuideLayout';
+	const VILLAGE_ENTRY = ':is(.villageList, #sidebarBoxVillageList, #sidebarBoxVillagelist) .listEntry';
 	const SLOT_SELECTOR = '#villageContent .buildingSlot:not(.top)';
 	const SLOT_HINT_ID = 'tqol-bo-slot-hint';
+	const VILLAGE_HINT_ID = 'tqol-bo-village-hint';
 	const STYLE_ID = 'tqol-bo-style';
 	const ORDER_ATTR = 'tqolBo';
 	const CSS = `
-#resourceFieldContainer a.village[data-tqol-bo="1"] {
+#resourceFieldContainer a:not(.resourceField)[data-tqol-bo="1"] {
 	border-radius: 50%;
 }
 #resourceFieldContainer a.resourceField[data-tqol-bo="1"] .labelLayer,
-#resourceFieldContainer a.village[data-tqol-bo="1"] {
+#resourceFieldContainer a:not(.resourceField)[data-tqol-bo="1"] {
 	box-shadow: 0 0 0 2px #ffd75e, 0 0 10px 4px rgba(255, 200, 40, .85);
 	animation: tqol-bo-glow 1.4s ease-in-out infinite alternate;
 }
@@ -61,13 +63,29 @@
 	outline-offset: 2px;
 }
 #tqol-bo-slot-hint { margin-block: 10px; color: #ffd75e; font-weight: bold; }
+#tqol-bo-village-hint {
+	display: block;
+	width: fit-content;
+	max-width: 100%;
+	box-sizing: border-box;
+	margin: 0 auto 8px;
+	padding: 6px 12px;
+	border: 1px solid #ffd75e;
+	border-radius: 4px;
+	background: #252018;
+	color: #ffe49a;
+	font-weight: bold;
+	text-align: center;
+}
+#tqol-bo-village-hint:hover { text-decoration: underline; }
+#tqol-bo-village-hint:focus-visible { outline: 2px solid #ffe49a; outline-offset: 2px; }
 @keyframes tqol-bo-pulse {
 	from { filter: drop-shadow(0 0 3px #ffd75e) drop-shadow(0 0 5px rgba(255, 200, 40, .6)); }
 	to   { filter: drop-shadow(0 0 5px #ffd75e) drop-shadow(0 0 12px rgba(255, 200, 40, 1)); }
 }
 @media (prefers-reduced-motion: reduce) {
 	#resourceFieldContainer a.resourceField[data-tqol-bo="1"] .labelLayer,
-	#resourceFieldContainer a.village[data-tqol-bo="1"],
+	#resourceFieldContainer a:not(.resourceField)[data-tqol-bo="1"],
 	#villageContent .buildingSlot[data-tqol-bo="1"] { animation: none; }
 }
 `;
@@ -99,7 +117,7 @@
 	const capacityKey = () => CAPACITY_PREFIX + location.host;
 
 	function activeVillage() {
-		return document.querySelector('.villageList .listEntry.active, #sidebarBoxVillageList .listEntry.active');
+		return document.querySelector(VILLAGE_ENTRY + '.active');
 	}
 	function villageId() {
 		return activeVillage()?.dataset?.did || 'default';
@@ -107,7 +125,7 @@
 	/** Villages in the sidebar list (0 if it is not shown). */
 	function villageCount() {
 		const ids = new Set();
-		for (const el of document.querySelectorAll('.villageList .listEntry[data-did], #sidebarBoxVillageList .listEntry[data-did]')) ids.add(el.dataset.did);
+		for (const el of document.querySelectorAll(VILLAGE_ENTRY + '[data-did]')) ids.add(el.dataset.did);
 		return ids.size;
 	}
 	// The starting guide drives the highlights until the second village is settled.
@@ -307,6 +325,22 @@
 		chrome.storage.local.set({ [capacityKey()]: queued });
 	}
 
+	function renderVillageHint(text, village) {
+		const oldHint = document.getElementById(VILLAGE_HINT_ID);
+		if (!text) {
+			oldHint?.remove();
+			return;
+		}
+		const hint = oldHint || document.createElement('a');
+		hint.id = VILLAGE_HINT_ID;
+		const href = village?.getAttribute('href') || (location.pathname === '/resources' ? '/village' : '/dorf2.php');
+		if (hint.getAttribute('href') !== href) hint.setAttribute('href', href);
+		if (hint.textContent !== text) hint.textContent = text;
+		const map = document.getElementById('resourceFieldContainer');
+		if (hint.nextElementSibling !== map) map.before(hint);
+		injectStyle();
+	}
+
 	function render() {
 		if (!isResourcesPage()) return;
 		const fields = readFields();
@@ -323,17 +357,22 @@
 		const building = new Set(fields.filter((f) => f.el.classList.contains('underConstruction')).map((f) => f.slot));
 		let next = null;
 		let village = null;
+		let villageHint = '';
 		if (guideOn()) {
 			// Show the guide's next field even while the previous step is building.
 			const target = guideTarget(fields, storedSlots);
 			const free = fields.filter((f) => !building.has(f.slot));
 			next = target?.item.k === 'f' ? window.TravianQoLGuide4P.pickField(target.step, target.item, free) : null;
-			if (target?.item.k === 'b') village = document.querySelector('#resourceFieldContainer a.village.buildingView');
+			if (target?.item.k === 'b' || !storedSlots) {
+				village = document.querySelector('#resourceFieldContainer a:is(.village, [href="/village"], [href^="/dorf2.php"])');
+				villageHint = target?.item.k === 'b' ? 'Village centre · ' + target.step.label : 'Open village centre to check buildings';
+			}
 		} else {
 			const steps = window.TravianQoLBuildOrder.plan(fields, bonuses, PLAN_DEPTH, undefined, forceMax);
 			next = hasFreeSlot ? steps.find((s) => s.kind === 'field' && !building.has(s.slot)) : null;
 		}
-		markTargets(village || fields.find((f) => f.slot === next?.slot)?.el);
+		markTargets(fields.find((f) => f.slot === next?.slot)?.el || village);
+		renderVillageHint(villageHint, village);
 	}
 
 	function schedule() {
@@ -606,6 +645,7 @@
 			guideReady = false;
 			document.getElementById(STYLE_ID)?.remove();
 			document.getElementById(SLOT_HINT_ID)?.remove();
+			document.getElementById(VILLAGE_HINT_ID)?.remove();
 			document.querySelectorAll('[data-tqol-bo]').forEach((el) => delete el.dataset[ORDER_ATTR]);
 		},
 	});

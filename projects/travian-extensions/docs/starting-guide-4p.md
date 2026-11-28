@@ -15,7 +15,10 @@ The step list follows the 4 party farming start from the community "Settling" sp
 - Counts are cumulative. "Cropland 1x to 4" followed by "Cropland 2nd to 4" needs two croplands at level 4.
 - For **All** field steps, upgrade in rounds. The guide highlights the lowest available field among the requested types, so fields at the same level take turns before the next round.
 - Tick tasks, culture point targets, population targets, parties, settlers and troops by clicking the step name or its checkbox. **Hide done** and **Show done** are remembered when you reopen the guide.
-- With one village on the world, the guide leads the Build order tab and highlights the next field, building or empty slot. On the resources view, the village itself glows when the next step is in the village centre. The payback highlight returns once the second village is settled. The guide then starts collapsed at the bottom of the tab.
+- With one village on the world, the guide leads the Build order tab and highlights the next field, building or empty slot. On the resources view, a link above the map names the next building and opens the village centre. If the guide still needs building levels, the link prompts you to open the village centre to read them. The payback highlight returns once the second village is settled. The guide then starts collapsed at the bottom of the tab.
+
+  ![Example village-centre link for the Main Building 3 step](images/qol-village-centre-hint.png)
+
 - To reuse a village's building positions, visit its resources and village centre, select it in **Build order**, then open the guide and click **Use this village layout**. The saved layout supplies preferred slots across worlds. If the preferred slot is occupied, the guide selects another free slot. Open the highlighted slot to see the building choice marked in the construction menu.
 - The highlighted row is the next required step. **Optional** rows are skipped by the highlight and the progress count.
 - The guide can highlight the next field, building or empty slot while the queue is full. It skips fields and buildings that are already under construction, along with steps ticked by hand.
