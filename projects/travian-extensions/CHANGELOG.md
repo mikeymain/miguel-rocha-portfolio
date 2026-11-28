@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.7.7 — 2026-11-28
+
+- Build order: **Use best** stays available and refreshes planned oasis slots from the best known free oases, including when those slots are filled. Owned oases stay in place.
+
 ## Travian QoL 1.7.6 — 2026-11-28
 
 - Build order: open **Manage villages** and click the × beside the village you want to remove.

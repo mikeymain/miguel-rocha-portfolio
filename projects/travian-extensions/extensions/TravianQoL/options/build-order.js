@@ -360,16 +360,13 @@
 		return { ...near, ranked: planner.rankOases(v.fields, near.oases).filter((o) => typeOf(o.bonus)) };
 	}
 
-	// Empty slots get the best free oases not already planned in a slot.
+	// Rebuild the plan around the oases the village already owns.
 	function pickBest(setup, ranked) {
-		const left = [...ranked];
-		for (const o of setup.oases) {
-			const i = o.type && !o.owned ? left.findIndex((r) => typeOf(r.bonus) === o.type) : -1;
-			if (i >= 0) left.splice(i, 1);
-		}
+		let next = 0;
 		const oases = setup.oases.map((o) => {
-			if (o.type || !left.length) return o;
-			return { type: typeOf(left.shift().bonus), owned: false };
+			if (o.type && o.owned) return o;
+			const best = ranked[next++];
+			return best ? { type: typeOf(best.bonus), owned: false } : { type: '', owned: true };
 		});
 		return { ...setup, oases };
 	}
@@ -379,17 +376,16 @@
 		const head = el('div', 'bo__block-head');
 		head.appendChild(el('span', 'bo__block-title', 'Nearby'));
 		box.appendChild(head);
-		if (!Number.isInteger(v.x) || !Number.isInteger(v.y)) {
-			head.appendChild(el('span', 'bo__hint', 'Open the resources view to read coordinates'));
-			return box;
-		}
-		const near = nearbyRanked(v);
-		head.appendChild(el('span', 'bo__hint', `Seen ${near.seen}/${near.total}`));
-		if (!near.ranked.length) {
-			box.appendChild(el('div', 'bo__hint', near.seen < near.total ? 'Hover the tiles around the village on the map' : 'No free oases in range'));
-			return box;
-		}
-		for (const o of near.ranked.slice(0, NEARBY_SHOWN)) {
+		const near = Number.isInteger(v.x) && Number.isInteger(v.y) ? nearbyRanked(v) : null;
+		const ranked = near?.ranked || [];
+		if (near) head.appendChild(el('span', 'bo__hint', `Seen ${near.seen}/${near.total}`));
+		const unavailable = !near ? 'Open the resources view to read coordinates'
+			: near.seen < near.total ? 'Hover the tiles around the village on the map' : 'No free oases in range';
+		const hint = el('div', 'bo__hint bo-near__status');
+		hint.setAttribute('role', 'status');
+		if (!ranked.length) hint.textContent = unavailable;
+		box.appendChild(hint);
+		for (const o of ranked.slice(0, NEARBY_SHOWN)) {
 			const row = el('div', 'bo-near__row');
 			const gain = el('span', 'bo-near__gain', `+${o.gain}/h`);
 			gain.title = 'Speed x1';
@@ -398,8 +394,21 @@
 		}
 		const use = el('button', 'bo-link', 'Use best');
 		use.type = 'button';
-		use.disabled = !setup.oases.some((o) => !o.type);
-		use.addEventListener('click', () => update((s) => pickBest(s, nearbyRanked(v).ranked)));
+		use.id = 'bo-use-best';
+		use.title = 'Refresh the oasis plan while keeping owned oases';
+		use.addEventListener('click', () => {
+			if (setup.oases.every((o) => o.type && o.owned)) {
+				hint.textContent = 'All three oasis slots are marked Owned.';
+				return;
+			}
+			if (!ranked.length) {
+				hint.textContent = `No plan applied. ${unavailable}.`;
+				return;
+			}
+			const focused = document.activeElement === use;
+			update((s) => pickBest(s, ranked));
+			if (focused) root.querySelector('#bo-use-best').focus({ preventScroll: true });
+		});
 		box.appendChild(use);
 		return box;
 	}
