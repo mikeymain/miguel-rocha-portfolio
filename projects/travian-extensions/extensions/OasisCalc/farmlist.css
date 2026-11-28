@@ -3,9 +3,8 @@
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  margin-left: 6px;
   position: relative;
-  left: -8px;
+  left: -2px;
   padding: 3px 4px 4px;
   border-radius: 3px;
   background: rgba(127, 127, 127, 0.15);
@@ -20,24 +19,28 @@
 ._vpfl-bonus span + i { margin-left: 3px; }
 ._vpfl-unknown { opacity: 0.6; cursor: help; }
 
-._vpfl-animals { display: inline-flex; vertical-align: middle; margin-left: 6px; flex-wrap: nowrap; align-items: center; gap: 0 4px; padding: 3px 0 4px; font-size: 0.9em; font-weight: normal; }
+._vpfl-animals { display: inline-flex; vertical-align: middle; margin-left: 4px; flex-wrap: nowrap; align-items: center; gap: 0 3px; padding: 3px 0 4px; font-size: 0.9em; font-weight: normal; }
 
 td.target > a { padding: 3px 0 4px; }
 /* Oasis rows: line 1 is 20px (name, report), line 2 is 22px (badge + animals,
-   distance, troops, bag raw + sum). Same heights in every column keep line 2 level. */
+   distance, troops, bag raw + sum + fill). Line 2 starts at the troops value's top
+   in every column so the text sits level. */
 tr._vpfl-oasis td.target { white-space: nowrap; line-height: 22px; }
 tr._vpfl-oasis td.target > a { display: block; height: 20px; line-height: 20px; padding: 0; }
-tr._vpfl-oasis ._vpfl-row { display: flex; flex-wrap: nowrap; align-items: center; white-space: nowrap; height: 22px; overflow: hidden; }
+tr._vpfl-oasis ._vpfl-row { display: flex; flex-wrap: nowrap; align-items: center; white-space: nowrap; height: 22px; overflow: hidden; margin-top: 4px; }
 tr._vpfl-oasis ._vpfl-bonus, tr._vpfl-oasis ._vpfl-animals { height: 22px; box-sizing: border-box; padding-top: 0; padding-bottom: 0; }
 tr._vpfl-oasis td.distance, tr._vpfl-oasis td.troops { padding-top: 27px; line-height: 22px; }
+tr._vpfl-oasis td.distance { padding-top: 31px; }
 tr._vpfl-oasis td.lastRaid .lastRaidReport { height: 20px; line-height: 20px; }
-tr._vpfl-oasis td.lastRaid .lastRaidWrapper > :not(.lastRaidReport) { line-height: 22px; }
+tr._vpfl-oasis td.lastRaid .lastRaidWrapper > :not(.lastRaidReport) { line-height: 22px; margin-top: 2px; }
 table.slots td.target, table.slots td.lastRaid { padding-top: 7px; }
-table.slots td.lastRaid .lastRaidWrapper { display: flex; flex-wrap: wrap; align-items: center; }
-table.slots td.lastRaid .lastRaidReport { flex: 0 0 100%; order: -1; }
-table.slots td.lastRaid .tqol-raid-fill { order: 3; }
+/* The game lays .lastRaidWrapper out as a grid: report on row 1 across all
+   columns, then bag raw, sum and the TravianQoL fill badge on row 2. */
+table.slots td.lastRaid .lastRaidWrapper { grid-template-columns: repeat(3, auto) !important; justify-content: start; column-gap: 4px !important; }
+table.slots td.lastRaid .lastRaidWrapper > .lastRaidReport { grid-column: 1 / -1 !important; }
+table.slots td.lastRaid .lastRaidWrapper > .tqol-raid-fill { grid-area: 2 / 3 !important; }
+table.slots td.lastRaid .lastRaidWrapper > .averageRaidBounty { display: inline-flex !important; align-items: center; gap: 2px; }
 table.slots tr.slot td.target, table.slots tr.slot td.distance, table.slots tr.slot td.troops, table.slots tr.slot td.lastRaid { vertical-align: top; }
-table.slots td.lastRaid .lastRaidWrapper { column-gap: 6px; }
 table.slots td.lastRaid .lastRaidWrapper > * { margin-left: 0 !important; margin-right: 0 !important; }
 
 ._vpfl-animals > span { white-space: nowrap; }
