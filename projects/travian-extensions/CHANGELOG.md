@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.7.2 — 2026-11-28
+
+- The starting guide card stays above the other Build order cards until every required step is done (optional steps do not count), then moves below them.
+
 ## Travian QoL 1.7.1 — 2026-11-28
 
 - Starting guide drives the in-game highlight while the account has one village: the resource field on the resources view and the building on the village centre view. The payback highlight returns once the second village is settled.
