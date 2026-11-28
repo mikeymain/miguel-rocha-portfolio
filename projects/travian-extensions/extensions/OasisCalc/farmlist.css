@@ -40,6 +40,7 @@ table.slots td.lastRaid .lastRaidWrapper > .tqol-raid-fill { grid-area: 2 / 3 !i
 table.slots td.lastRaid .lastRaidWrapper > .averageRaidBounty { display: inline-flex !important; align-items: center; gap: 2px; }
 table.slots tr.slot td.target, table.slots tr.slot td.distance, table.slots tr.slot td.troops, table.slots tr.slot td.lastRaid { vertical-align: top; }
 table.slots tr._vpfl-oasis td.distance, table.slots tr._vpfl-oasis td.troops { vertical-align: middle; padding-top: 0; padding-bottom: 0; }
+table.slots tr._vpfl-oasis td.target, table.slots tr._vpfl-oasis td.lastRaid { padding-bottom: 6px; }
 table.slots td.lastRaid .lastRaidWrapper > * { margin-left: 0 !important; margin-right: 0 !important; }
 
 ._vpfl-animals > span { white-space: nowrap; }
