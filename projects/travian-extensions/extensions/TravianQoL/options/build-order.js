@@ -14,6 +14,7 @@
 	const MAX20_PREFIX = 'travianQoL.buildMax20.';
 	// Per-host { villageId: [guide step ids ticked by hand] }.
 	const GUIDE_PREFIX = 'travianQoL.buildGuide.';
+	const HIDE_DONE_KEY = 'travianQoL.buildGuideHideDone';
 	const STEPS = 12;
 	// Plan depth for the boost-building timing (covers every field to 20).
 	const BOOST_DEPTH = 450;
@@ -88,6 +89,7 @@
 
 	async function load() {
 		const all = await chrome.storage.local.get(null);
+		hideDone = all[HIDE_DONE_KEY] === true;
 		villages = [];
 		bonusStore = {};
 		setupStore = {};
@@ -672,6 +674,7 @@
 		toggle.addEventListener('click', () => {
 			const focused = document.activeElement === toggle;
 			hideDone = !hideDone;
+			chrome.storage.local.set({ [HIDE_DONE_KEY]: hideDone });
 			render();
 			if (focused) root.querySelector('.bo__guide button').focus({ preventScroll: true });
 		});

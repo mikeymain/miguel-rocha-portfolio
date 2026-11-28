@@ -8,9 +8,10 @@ The step list follows the 4 party farming start from the community "Settling" sp
 
 - A step is ticked automatically when the game shows it done: resource field levels come from the resources view, building levels from the village centre. Open both once per village.
 - Counts are cumulative. "Cropland 1x to 4" followed by "Cropland 2nd to 4" needs two croplands at level 4.
-- Tick tasks, culture point targets, population targets, parties, settlers and troops by clicking the step name or its checkbox. Use **Hide done** to work through the remaining steps.
+- Tick tasks, culture point targets, population targets, parties, settlers and troops by clicking the step name or its checkbox. **Hide done** and **Show done** are remembered when you reopen the guide.
 - With one village on the world, the guide leads the Build order tab until every required step is done. With more than one village on the world, the guide starts collapsed at the bottom. Click its heading to open it. While the account has one village it also drives the in-game highlight: the resource field on the resources view, the building on the village centre view. The payback highlight returns once the second village is settled. Steps ticked by hand are skipped, and steps that need a building to be built from scratch have no highlight.
 - The highlighted row is the next required step. **Optional** rows are skipped by the highlight and the progress count.
+- The next field or existing building can be highlighted while an upgrade is in progress, even if the construction queue is full.
 - **Cost** is the sheet's cost. **Net res/CP** is (cost - task reward) / CP per day gained, for steps that give CP.
 
 ## Improvements found

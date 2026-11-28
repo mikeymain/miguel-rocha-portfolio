@@ -251,10 +251,10 @@
 		const building = new Set(fields.filter((f) => f.el.classList.contains('underConstruction')).map((f) => f.slot));
 		let next = null;
 		if (guideOn()) {
-			// Starting guide: the field it wants next, not the best payback.
+			// Show the guide's next field even while the previous step is building.
 			const target = guideTarget(fields, storedSlots);
 			const free = fields.filter((f) => !building.has(f.slot));
-			next = hasFreeSlot && target?.item.k === 'f' ? window.TravianQoLGuide4P.pickField(target.item, free) : null;
+			next = target?.item.k === 'f' ? window.TravianQoLGuide4P.pickField(target.item, free) : null;
 		} else {
 			const steps = window.TravianQoLBuildOrder.plan(fields, bonuses, PLAN_DEPTH, undefined, forceMax);
 			next = hasFreeSlot ? steps.find((s) => s.kind === 'field' && !building.has(s.slot)) : null;
