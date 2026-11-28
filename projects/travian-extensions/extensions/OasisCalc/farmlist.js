@@ -109,7 +109,7 @@
           icon.className = "unit u" + id;
           icon.setAttribute("role", "img");
           icon.setAttribute("aria-label", name);
-          item.append(icon, " ×" + count);
+          item.append(icon, "×" + count);
           label.appendChild(item);
         }
         label.dataset.infantry = oasisDefense(animals, 0);
