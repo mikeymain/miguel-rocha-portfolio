@@ -2,7 +2,7 @@
 // On the resources view (dorf1), marks the resource field with the best
 // payback as the next upgrade: only that one field glows. While the account
 // has one village, the starting guide (guide-4p.js) drives the glow instead:
-// the field on the resources view, the building in the village centre. The step list and
+// the field or village on the resources view, the building in the village centre. The step list and
 // the per-village production bonus live in the QoL settings "Build order"
 // tab; this script saves each village's field levels there and re-ranks when
 // the bonus changes.
@@ -29,7 +29,11 @@
 	const STYLE_ID = 'tqol-bo-style';
 	const ORDER_ATTR = 'tqolBo';
 	const CSS = `
-#resourceFieldContainer a.resourceField[data-tqol-bo="1"] .labelLayer {
+#resourceFieldContainer a.village[data-tqol-bo="1"] {
+	border-radius: 50%;
+}
+#resourceFieldContainer a.resourceField[data-tqol-bo="1"] .labelLayer,
+#resourceFieldContainer a.village[data-tqol-bo="1"] {
 	box-shadow: 0 0 0 2px #ffd75e, 0 0 10px 4px rgba(255, 200, 40, .85);
 	animation: tqol-bo-glow 1.4s ease-in-out infinite alternate;
 }
@@ -41,10 +45,15 @@
 	filter: drop-shadow(0 0 4px #ffd75e) drop-shadow(0 0 8px rgba(255, 200, 40, .85));
 	animation: tqol-bo-pulse 1.4s ease-in-out infinite alternate;
 }
+#villageContent .buildingSlot[data-gid="0"][data-tqol-bo="1"] .buildingShape,
 #villageContent .buildingSlot[data-gid="0"][data-tqol-bo="1"] .buildingShape path {
-	fill: rgba(255, 215, 94, .18);
+	visibility: visible;
+	opacity: 1;
+}
+#villageContent .buildingSlot[data-gid="0"][data-tqol-bo="1"] .buildingShape path {
+	fill: rgba(255, 215, 94, .35);
 	stroke: #ffd75e;
-	stroke-width: 2;
+	stroke-width: 3;
 }
 #content .buildingWrapper[data-tqol-bo="1"],
 #content .titleInHeader[data-tqol-bo="1"] {
@@ -58,6 +67,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
 	#resourceFieldContainer a.resourceField[data-tqol-bo="1"] .labelLayer,
+	#resourceFieldContainer a.village[data-tqol-bo="1"],
 	#villageContent .buildingSlot[data-tqol-bo="1"] { animation: none; }
 }
 `;
@@ -235,11 +245,12 @@
 			|| ordinary[0];
 	}
 
-	function markBuilding(el) {
+	function markTargets(...targets) {
 		for (const marked of document.querySelectorAll('[data-tqol-bo]')) {
-			if (marked !== el) delete marked.dataset[ORDER_ATTR];
+			if (!targets.includes(marked)) delete marked.dataset[ORDER_ATTR];
 		}
-		if (el) {
+		for (const el of targets) {
+			if (!el) continue;
 			injectStyle();
 			if (el.dataset[ORDER_ATTR] !== '1') el.dataset[ORDER_ATTR] = '1';
 		}
@@ -248,7 +259,8 @@
 	function renderVillage(buildings, slots) {
 		const target = guideOn() && storedFields ? guideTarget(storedFields, slots) : null;
 		const next = target?.item.k === 'b' && pickBuildingSlot(target.item, buildings);
-		markBuilding(next?.el);
+		const wallTop = next?.slot === 40 && document.querySelector('#villageContent .buildingSlot.a40.top');
+		markTargets(next?.el, wallTop);
 	}
 
 	function renderSlot() {
@@ -259,12 +271,12 @@
 		const next = target?.item.k === 'b' && pickBuildingSlot(target.item, buildings);
 		if (!next || next.slot !== slot) {
 			oldHint?.remove();
-			markBuilding(null);
+			markTargets();
 			return;
 		}
 		const card = [].concat(target.item.g).map((gid) => document.getElementById('contract_building' + gid)).find(Boolean);
 		const firstCard = document.querySelector('#content .buildingWrapper');
-		markBuilding(card || (!firstCard && document.querySelector('#content .titleInHeader')));
+		markTargets(card || (!firstCard && document.querySelector('#content .titleInHeader')));
 		if (!firstCard) {
 			oldHint?.remove();
 			return;
@@ -310,21 +322,18 @@
 		// the glow goes to the first step on a field that is not being built.
 		const building = new Set(fields.filter((f) => f.el.classList.contains('underConstruction')).map((f) => f.slot));
 		let next = null;
+		let village = null;
 		if (guideOn()) {
 			// Show the guide's next field even while the previous step is building.
 			const target = guideTarget(fields, storedSlots);
 			const free = fields.filter((f) => !building.has(f.slot));
 			next = target?.item.k === 'f' ? window.TravianQoLGuide4P.pickField(target.step, target.item, free) : null;
+			if (target?.item.k === 'b') village = document.querySelector('#resourceFieldContainer a.village.buildingView');
 		} else {
 			const steps = window.TravianQoLBuildOrder.plan(fields, bonuses, PLAN_DEPTH, undefined, forceMax);
 			next = hasFreeSlot ? steps.find((s) => s.kind === 'field' && !building.has(s.slot)) : null;
 		}
-		injectStyle();
-		for (const f of fields) {
-			const mark = next && f.slot === next.slot;
-			if (mark && f.el.dataset[ORDER_ATTR] !== '1') f.el.dataset[ORDER_ATTR] = '1';
-			else if (!mark && f.el.dataset[ORDER_ATTR]) delete f.el.dataset[ORDER_ATTR];
-		}
+		markTargets(village || fields.find((f) => f.slot === next?.slot)?.el);
 	}
 
 	function schedule() {

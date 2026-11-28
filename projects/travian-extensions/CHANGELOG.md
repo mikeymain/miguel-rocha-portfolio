@@ -5,6 +5,12 @@
 - Units needed forecasts the oasis defence at arrival using the selected team's travel time, scan age, and species spawn timers.
 - Troop loss tolerance now sets the estimated casualty limit. The calculator prefers loss-free clears up to 50 troops, then compares net resources across eligible loss thresholds.
 
+## Travian QoL 1.7.11 — 2026-11-28
+
+- The village glows on the resources view when the Starting guide points to a village-centre build.
+- Empty plots have a visible outline for first builds such as a level-zero Cranny.
+- A wall upgrade highlights both halves of the wall.
+
 ## Travian QoL 1.7.10 — 2026-11-28
 
 - The Starting guide upgrades all-field steps in rounds, highlighting the lowest available field across the requested types.
