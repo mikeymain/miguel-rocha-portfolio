@@ -1,5 +1,12 @@
 # Changelog
 
+## Travian QoL 1.7.4 — 2026-11-28
+
+- Build order: click a starting guide step name to check it off. Step names use the full available column width.
+- With more than one village on a world, the starting guide opens collapsed at the bottom of Build order.
+- Use **Manage villages** to hide and restore villages in the selector while keeping their progress and settings.
+
+
 ## Travian QoL 1.7.3 — 2026-11-28
 
 - Build order **Nearby**: with Oasis Finder (OasisCalc) running on the map, every tile in each map view it loads is recorded, not only hovered tiles. QoL listens to the map data OasisCalc already passes along and adds no page script of its own. Without OasisCalc, hovering tiles still works.

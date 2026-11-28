@@ -107,6 +107,8 @@ In Loot Calculator, badge position **X 0, Y 0** uses the default placement. Adju
 
 The popup opens on **Build order** the first time. Reopening it restores the last tab you selected by mouse or keyboard.
 
+Under **Manage villages**, untick a village to hide it from the selector. Tick it again to restore it with its saved progress and settings.
+
 The **Build order** tab also holds a [starting guide for 4 party farming](starting-guide-4p.md) that ticks steps from the field and building levels the game shows.
 
 <a href="images/qol-settings.png"><img src="images/qol-settings.png" alt="Travian QoL feature controls" width="520" /></a>

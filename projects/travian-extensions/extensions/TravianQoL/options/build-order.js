@@ -6,6 +6,7 @@
 	const FIELDS_PREFIX = 'travianQoL.buildFields.';
 	const BONUS_PREFIX = 'travianQoL.buildOrder.';
 	const PICK_KEY = 'travianQoL.buildOrder.pick';
+	const HIDDEN_PREFIX = 'travianQoL.buildHidden.';
 	// Per-host { villageId: setup } (see setupFor).
 	const SETUP_PREFIX = 'travianQoL.buildOasis.';
 	// Per-host boolean: the +25% gold bonus applies to every village.
@@ -36,6 +37,8 @@
 
 	const root = document.getElementById('bo-root');
 	const select = document.getElementById('bo-village');
+	const manage = document.getElementById('bo-manage');
+	const visibilityList = document.getElementById('bo-visible-villages');
 	const planner = window.TravianQoLBuildOrder;
 	if (!root || !select || !planner || !window.TravianQoLGuide4P) return;
 	// Editable buildings: the five boosts (max 5). The Hero's Mansion level is
@@ -44,6 +47,7 @@
 	const SHORT_NAMES = { 'Iron Foundry': 'Foundry' };
 
 	let villages = []; // { value, host, id, name, fields, buildings, updatedAt }
+	let hiddenVillages = new Set();
 	let bonusStore = {}; // host -> { villageId: [4] }
 	let setupStore = {}; // host -> { villageId: setup }
 	let goldStore = {}; // host -> bool (Plus bonus is account wide)
@@ -84,6 +88,7 @@
 	async function load() {
 		const all = await chrome.storage.local.get(null);
 		villages = [];
+		hiddenVillages = new Set();
 		bonusStore = {};
 		setupStore = {};
 		goldStore = {};
@@ -91,7 +96,9 @@
 		tilesStore = {};
 		guideStore = {};
 		for (const [key, value] of Object.entries(all)) {
-			if (key.startsWith(GUIDE_PREFIX)) {
+			if (key.startsWith(HIDDEN_PREFIX) && value === true) {
+				hiddenVillages.add(key.slice(HIDDEN_PREFIX.length));
+			} else if (key.startsWith(GUIDE_PREFIX)) {
 				guideStore[key.slice(GUIDE_PREFIX.length)] = value || {};
 			} else if (key.startsWith(TILES_PREFIX)) {
 				tilesStore[key.slice(TILES_PREFIX.length)] = value || {};
@@ -134,14 +141,41 @@
 	function fillSelect(pick) {
 		select.innerHTML = '';
 		const multiHost = new Set(villages.map((v) => v.host)).size > 1;
-		for (const v of villages) {
+		const visible = villages.filter((v) => !hiddenVillages.has(v.value));
+		for (const v of visible) {
 			const opt = el('option', null, multiHost ? `${v.name} · ${shortHost(v.host)}` : v.name);
 			opt.value = v.value;
 			select.appendChild(opt);
 		}
-		select.disabled = villages.length === 0;
-		const latest = [...villages].sort((a, b) => b.updatedAt - a.updatedAt)[0];
-		select.value = villages.some((v) => v.value === pick) ? pick : latest?.value || '';
+		select.disabled = visible.length === 0;
+		const latest = [...visible].sort((a, b) => b.updatedAt - a.updatedAt)[0];
+		select.value = visible.some((v) => v.value === pick) ? pick : latest?.value || '';
+	}
+
+	function buildVillageManager() {
+		manage.hidden = villages.length === 0;
+		const multiHost = new Set(villages.map((v) => v.host)).size > 1;
+		visibilityList.replaceChildren(...villages.map((v) => {
+			const label = el('label', null);
+			const box = el('input');
+			box.type = 'checkbox';
+			box.checked = !hiddenVillages.has(v.value);
+			box.addEventListener('change', () => {
+				const key = HIDDEN_PREFIX + v.value;
+				const pick = select.value || v.value;
+				if (box.checked) {
+					hiddenVillages.delete(v.value);
+					chrome.storage.local.remove(key, flash);
+				} else {
+					hiddenVillages.add(v.value);
+					chrome.storage.local.set({ [key]: true }, flash);
+				}
+				fillSelect(pick);
+				render();
+			});
+			label.append(box, el('span', null, multiHost ? `${v.name} · ${shortHost(v.host)}` : v.name));
+			return label;
+		}));
 	}
 
 	const current = () => villages.find((v) => v.value === select.value);
@@ -541,6 +575,7 @@
 	const guide = window.TravianQoLGuide4P;
 	let hideDone = false;
 	let guideScroll = 0;
+	const guideOpen = new Map();
 
 	const guideManual = (v) => new Set(guideStore[v.host]?.[v.id] || []);
 
@@ -558,27 +593,32 @@
 		});
 	}
 
-	function guideRow(v, { step, auto, done }, isNext) {
+	function guideRow(v, { step, auto, done }, isNext, index) {
 		const tr = el('tr', [done ? 'is-done' : '', isNext ? 'is-next' : ''].join(' ').trim() || null);
 		const box = document.createElement('input');
 		box.type = 'checkbox';
 		box.checked = done;
 		box.disabled = auto;
-		box.setAttribute('aria-label', step.label);
+		box.dataset.guideIndex = index;
 		box.addEventListener('change', () => {
+			const focused = document.activeElement === box;
 			const set = guideManual(v);
 			if (box.checked) set.add(step.id); else set.delete(step.id);
 			saveGuideManual(v, set);
 			render();
+			if (focused) {
+				const boxes = [...root.querySelectorAll('.bo__guide input:not(:disabled)')];
+				const target = boxes.find((item) => Number(item.dataset.guideIndex) >= index);
+				(target || boxes.at(-1) || root.querySelector('.bo__guide button')).focus();
+			}
 		});
-		const check = el('td', 'bo__n');
-		check.appendChild(box);
-		const name = el('td', 'bo__field');
-		name.appendChild(el('span', null, step.label));
-		if (step.optional) name.appendChild(el('span', 'bo-tag', 'Optional'));
+		const name = el('td', 'bo__guide-step');
+		const label = el('label', 'bo__guide-label');
+		label.append(box, el('span', 'bo__guide-name', step.label));
+		if (step.optional) label.appendChild(el('span', 'bo-tag', 'Optional'));
+		name.appendChild(label);
 		const perCp = step.cost ? guide.costPerCp(step) : null;
 		tr.append(
-			check,
 			name,
 			el('td', 'bo__num', step.cost ? step.cost.toLocaleString() : ''),
 			el('td', 'bo__num', perCp == null ? '' : perCp.toLocaleString()),
@@ -586,45 +626,74 @@
 		return tr;
 	}
 
-	function buildGuideCard(v) {
-		const card = el('section', 'card lc-card bo__guide');
-		const state = guideState(v);
+	function buildGuideCard(v, state, defaultOpen) {
+		const card = el('details', 'card lc-card bo__guide');
+		card.dataset.village = v.value;
+		card.dataset.defaultOpen = String(defaultOpen);
+		card.open = guideOpen.get(v.value) ?? defaultOpen;
+		card.addEventListener('toggle', () => {
+			if (card.isConnected) rememberGuideOpen(card);
+		});
 		const next = state.findIndex((s) => !s.done && !s.step.optional);
 		const core = state.filter((s) => !s.step.optional);
-		const head = el('div', 'lc-card__head');
+		const head = el('summary', 'lc-card__head');
 		head.appendChild(el('span', 'lc-card__title', 'Starting guide · 4 party farming'));
 		head.appendChild(el('span', 'bo__age', `${core.filter((s) => s.done).length}/${core.length}`));
+		card.appendChild(head);
+		const actions = el('div', 'bo__guide-actions');
+		if (!v.slots) actions.appendChild(el('span', 'bo__guide-hint', 'Open the village centre to read buildings'));
 		const toggle = el('button', 'bo-link', hideDone ? 'Show done' : 'Hide done');
 		toggle.type = 'button';
-		toggle.addEventListener('click', () => { hideDone = !hideDone; render(); });
-		head.appendChild(toggle);
-		card.appendChild(head);
-		if (!v.slots) card.appendChild(el('div', 'bo__hint bo__guide-hint', 'Open the village centre to read buildings'));
+		toggle.addEventListener('click', () => {
+			const focused = document.activeElement === toggle;
+			hideDone = !hideDone;
+			render();
+			if (focused) root.querySelector('.bo__guide button').focus({ preventScroll: true });
+		});
+		actions.appendChild(toggle);
+		card.appendChild(actions);
 		const table = el('table', 'bo__table');
 		const thead = el('thead');
 		const hr = el('tr');
-		['', 'Step', 'Cost', 'Net res/CP'].forEach((h) => hr.appendChild(el('th', null, h)));
+		['Step', 'Cost', 'Net res/CP'].forEach((h) => hr.appendChild(el('th', null, h)));
 		thead.appendChild(hr);
 		const tbody = el('tbody');
 		state.forEach((s, i) => {
 			if (hideDone && s.done) return;
-			tbody.appendChild(guideRow(v, s, i === next));
+			tbody.appendChild(guideRow(v, s, i === next, i));
 		});
+		if (!tbody.children.length) {
+			const row = el('tr');
+			const cell = el('td', null, 'All guide steps are complete.');
+			cell.colSpan = 3;
+			row.appendChild(cell);
+			tbody.appendChild(row);
+		}
 		table.append(thead, tbody);
 		const scroll = el('div', 'bo__guide-scroll');
 		scroll.appendChild(table);
 		scroll.addEventListener('scroll', () => { guideScroll = scroll.scrollTop; });
 		card.appendChild(scroll);
-		if (typeof requestAnimationFrame === 'function') requestAnimationFrame(() => { scroll.scrollTop = guideScroll; });
 		return card;
+	}
+
+	function rememberGuideOpen(card) {
+		const { village, defaultOpen } = card.dataset;
+		if (card.open === (defaultOpen === 'true')) guideOpen.delete(village);
+		else guideOpen.set(village, card.open);
 	}
 
 	function render() {
 		if (closeOpenPicker) closeOpenPicker(false);
+		const previousGuide = root.querySelector('.bo__guide');
+		if (previousGuide) rememberGuideOpen(previousGuide);
 		root.innerHTML = '';
 		const v = current();
 		if (!v) {
-			root.appendChild(el('div', 'bo__empty card', 'Open a village\'s resources view in Travian to load its fields.'));
+			const message = villages.length
+				? 'All villages are hidden. Use Manage villages to bring them back.'
+				: 'Open a village\'s resources view in Travian to load its fields.';
+			root.appendChild(el('div', 'bo__empty card', message));
 			return;
 		}
 		const setup = setupFor(v);
@@ -632,11 +701,13 @@
 			saveSetup(v, change(setupFor(v), v));
 			render();
 		};
-		// The guide leads until every required step is done.
 		const cards = [buildBonusCard(v, setup, update), buildStepsCard(v, setup)];
-		const guideCard = buildGuideCard(v);
-		const finished = guideState(v).filter((s) => !s.step.optional).every((s) => s.done);
-		root.append(...(finished ? [...cards, guideCard] : [guideCard, ...cards]));
+		const state = guideState(v);
+		const multipleVillages = villages.filter((entry) => entry.host === v.host).length > 1;
+		const guideCard = buildGuideCard(v, state, !multipleVillages);
+		const finished = state.every((s) => s.step.optional || s.done);
+		root.append(...(multipleVillages || finished ? [...cards, guideCard] : [guideCard, ...cards]));
+		guideCard.querySelector('.bo__guide-scroll').scrollTop = guideScroll;
 	}
 
 	select.addEventListener('change', () => {
@@ -651,12 +722,15 @@
 		const keep = select.value;
 		load().then(() => {
 			fillSelect(keep);
+			buildVillageManager();
 			render();
 		});
 	});
 
 	load().then(async (pick) => {
-		fillSelect((await activeTabVillage()) || pick);
+		const active = await activeTabVillage();
+		fillSelect(active && !hiddenVillages.has(active) ? active : pick);
+		buildVillageManager();
 		render();
 	});
 })();
