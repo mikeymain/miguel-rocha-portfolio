@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.7.5 — 2026-11-28
+
+- Build order: **Remove village** clears the selected village’s saved snapshot and replaces the visibility checklist. Villages with the same name on the same world show coordinates or an ID. Reopening a village’s resources view adds it back with its saved progress and settings.
+
 ## Travian QoL 1.7.4 — 2026-11-28
 
 - Build order: click a starting guide step name to check it off. Step names use the full available column width.

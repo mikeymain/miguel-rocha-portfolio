@@ -107,7 +107,7 @@ In Loot Calculator, badge position **X 0, Y 0** uses the default placement. Adju
 
 The popup opens on **Build order** the first time. Reopening it restores the last tab you selected by mouse or keyboard.
 
-Under **Manage villages**, untick a village to hide it from the selector. Tick it again to restore it with its saved progress and settings.
+Select a village and click **Remove village** to clear its saved Build order snapshot. Reopen its resources view in Travian to add it again with its saved checklist progress and planner settings.
 
 The **Build order** tab also holds a [starting guide for 4 party farming](starting-guide-4p.md) that ticks steps from the field and building levels the game shows.
 

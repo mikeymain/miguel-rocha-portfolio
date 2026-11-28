@@ -11,11 +11,13 @@
 .bo__age { margin-left: auto; font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); }
 .bo__empty { padding: 16px 14px; font-size: 12.5px; color: var(--text-secondary); }
 
-#bo-manage { margin: 0 0 12px; font-size: 12.5px; }
-#bo-manage summary { width: fit-content; padding: 6px 0; color: var(--amber); cursor: pointer; }
-#bo-manage p { margin: 2px 0 6px; color: var(--text-secondary); }
-#bo-visible-villages { display: flex; flex-wrap: wrap; gap: 4px 16px; }
-#bo-visible-villages label { display: flex; align-items: center; gap: 8px; min-height: 32px; cursor: pointer; }
+#tab-build-order .panel__head { flex-wrap: wrap; }
+.bo__village-pick { flex-wrap: wrap; min-width: 0; }
+.bo__village-pick .select { flex: 1 1 200px; min-width: 0; }
+#bo-remove-village { min-height: 28px; font-size: 11px; white-space: nowrap; }
+#bo-remove-village:disabled { opacity: 0.55; cursor: default; }
+#bo-village-status { margin: 0 0 12px; color: var(--text-secondary); font-size: 12px; }
+#bo-village-status:empty { margin: 0; }
 
 /* Game resource icon (options/res/*_small.png, about 26x19). */
 .res-ico {
@@ -184,8 +186,7 @@
 .bo__guide-label:has(input:enabled) { cursor: pointer; }
 .bo__guide-label:has(input:enabled):hover { background: var(--amber-dim); }
 .bo__guide-label:has(input:focus-visible) { outline: 2px solid var(--amber); outline-offset: -2px; }
-.bo__guide-label input, #bo-visible-villages input { flex: none; margin: 0; accent-color: var(--amber); }
-.bo__guide-label input { width: 16px; height: 16px; }
+.bo__guide-label input { flex: none; margin: 0; accent-color: var(--amber); width: 16px; height: 16px; }
 .bo__guide th:nth-child(n + 2) { text-align: right; white-space: nowrap; }
 .bo__guide th:first-child { width: 100%; }
 .bo__guide tr.is-done td { color: var(--text-tertiary); }

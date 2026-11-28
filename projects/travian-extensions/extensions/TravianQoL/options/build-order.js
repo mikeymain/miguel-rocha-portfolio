@@ -6,7 +6,6 @@
 	const FIELDS_PREFIX = 'travianQoL.buildFields.';
 	const BONUS_PREFIX = 'travianQoL.buildOrder.';
 	const PICK_KEY = 'travianQoL.buildOrder.pick';
-	const HIDDEN_PREFIX = 'travianQoL.buildHidden.';
 	// Per-host { villageId: setup } (see setupFor).
 	const SETUP_PREFIX = 'travianQoL.buildOasis.';
 	// Per-host boolean: the +25% gold bonus applies to every village.
@@ -37,8 +36,8 @@
 
 	const root = document.getElementById('bo-root');
 	const select = document.getElementById('bo-village');
-	const manage = document.getElementById('bo-manage');
-	const visibilityList = document.getElementById('bo-visible-villages');
+	const removeVillage = document.getElementById('bo-remove-village');
+	const villageStatus = document.getElementById('bo-village-status');
 	const planner = window.TravianQoLBuildOrder;
 	if (!root || !select || !planner || !window.TravianQoLGuide4P) return;
 	// Editable buildings: the five boosts (max 5). The Hero's Mansion level is
@@ -47,7 +46,7 @@
 	const SHORT_NAMES = { 'Iron Foundry': 'Foundry' };
 
 	let villages = []; // { value, host, id, name, fields, buildings, updatedAt }
-	let hiddenVillages = new Set();
+	let removingVillage = false;
 	let bonusStore = {}; // host -> { villageId: [4] }
 	let setupStore = {}; // host -> { villageId: setup }
 	let goldStore = {}; // host -> bool (Plus bonus is account wide)
@@ -88,7 +87,6 @@
 	async function load() {
 		const all = await chrome.storage.local.get(null);
 		villages = [];
-		hiddenVillages = new Set();
 		bonusStore = {};
 		setupStore = {};
 		goldStore = {};
@@ -96,9 +94,7 @@
 		tilesStore = {};
 		guideStore = {};
 		for (const [key, value] of Object.entries(all)) {
-			if (key.startsWith(HIDDEN_PREFIX) && value === true) {
-				hiddenVillages.add(key.slice(HIDDEN_PREFIX.length));
-			} else if (key.startsWith(GUIDE_PREFIX)) {
+			if (key.startsWith(GUIDE_PREFIX)) {
 				guideStore[key.slice(GUIDE_PREFIX.length)] = value || {};
 			} else if (key.startsWith(TILES_PREFIX)) {
 				tilesStore[key.slice(TILES_PREFIX.length)] = value || {};
@@ -112,7 +108,7 @@
 				const host = key.slice(FIELDS_PREFIX.length);
 				for (const [id, v] of Object.entries(value || {})) {
 					if (!Array.isArray(v?.fields) || !v.fields.length) continue;
-					villages.push({ value: `${host}|${id}`, host, id, name: v.name || id, fields: v.fields, buildings: v.buildings || null, slots: v.slots || null, updatedAt: v.updatedAt || 0, x: v.x, y: v.y });
+					villages.push({ value: `${host}|${id}`, host, id, name: v.name || id, fields: v.fields, buildings: v.buildings || null, slots: v.slots || null, count: v.count, updatedAt: v.updatedAt || 0, x: v.x, y: v.y });
 				}
 			} else if (key.startsWith(BONUS_PREFIX) && key !== PICK_KEY) {
 				bonusStore[key.slice(BONUS_PREFIX.length)] = value || {};
@@ -141,44 +137,49 @@
 	function fillSelect(pick) {
 		select.innerHTML = '';
 		const multiHost = new Set(villages.map((v) => v.host)).size > 1;
-		const visible = villages.filter((v) => !hiddenVillages.has(v.value));
-		for (const v of visible) {
-			const opt = el('option', null, multiHost ? `${v.name} · ${shortHost(v.host)}` : v.name);
+		for (const v of villages) {
+			const duplicate = villages.some((entry) => entry !== v && entry.host === v.host && entry.name === v.name);
+			const location = Number.isInteger(v.x) && Number.isInteger(v.y) ? `(${v.x}|${v.y})` : `#${v.id}`;
+			const label = [v.name, duplicate && location, multiHost && shortHost(v.host)].filter(Boolean).join(' · ');
+			const opt = el('option', null, label);
 			opt.value = v.value;
 			select.appendChild(opt);
 		}
-		select.disabled = visible.length === 0;
-		const latest = [...visible].sort((a, b) => b.updatedAt - a.updatedAt)[0];
-		select.value = visible.some((v) => v.value === pick) ? pick : latest?.value || '';
-	}
-
-	function buildVillageManager() {
-		manage.hidden = villages.length === 0;
-		const multiHost = new Set(villages.map((v) => v.host)).size > 1;
-		visibilityList.replaceChildren(...villages.map((v) => {
-			const label = el('label', null);
-			const box = el('input');
-			box.type = 'checkbox';
-			box.checked = !hiddenVillages.has(v.value);
-			box.addEventListener('change', () => {
-				const key = HIDDEN_PREFIX + v.value;
-				const pick = select.value || v.value;
-				if (box.checked) {
-					hiddenVillages.delete(v.value);
-					chrome.storage.local.remove(key, flash);
-				} else {
-					hiddenVillages.add(v.value);
-					chrome.storage.local.set({ [key]: true }, flash);
-				}
-				fillSelect(pick);
-				render();
-			});
-			label.append(box, el('span', null, multiHost ? `${v.name} · ${shortHost(v.host)}` : v.name));
-			return label;
-		}));
+		select.disabled = villages.length === 0;
+		removeVillage.disabled = select.disabled || removingVillage;
+		const latest = [...villages].sort((a, b) => b.updatedAt - a.updatedAt)[0];
+		select.value = villages.some((v) => v.value === pick) ? pick : latest?.value || '';
 	}
 
 	const current = () => villages.find((v) => v.value === select.value);
+
+	removeVillage.addEventListener('click', async () => {
+		const v = current();
+		if (!v || removingVillage) return;
+		const focused = document.activeElement === removeVillage;
+		removingVillage = true;
+		removeVillage.disabled = true;
+		try {
+			const key = FIELDS_PREFIX + v.host;
+			const stored = await chrome.storage.local.get(key);
+			const snapshots = { ...stored[key] };
+			delete snapshots[v.id];
+			await chrome.storage.local.set({ [key]: snapshots });
+			villages = villages.filter((entry) => entry.value !== v.value);
+			fillSelect(select.value);
+			render();
+			villageStatus.textContent = `Removed ${v.name} from Build order.`;
+			flash();
+		} catch {
+			villageStatus.textContent = `Could not remove ${v.name}. Try again.`;
+		} finally {
+			removingVillage = false;
+			removeVillage.disabled = select.disabled;
+			if (focused && document.activeElement === document.body) {
+				(select.disabled ? villageStatus : select).focus();
+			}
+		}
+	});
 
 	// setup = { oases: [{ type, owned }] x3, gold, buildings: {gid: level} | null }
 	// buildings null = use the levels read in game. Older saves stored oases
@@ -690,10 +691,7 @@
 		root.innerHTML = '';
 		const v = current();
 		if (!v) {
-			const message = villages.length
-				? 'All villages are hidden. Use Manage villages to bring them back.'
-				: 'Open a village\'s resources view in Travian to load its fields.';
-			root.appendChild(el('div', 'bo__empty card', message));
+			root.appendChild(el('div', 'bo__empty card', 'Open a village\'s resources view in Travian to load its fields.'));
 			return;
 		}
 		const setup = setupFor(v);
@@ -703,7 +701,7 @@
 		};
 		const cards = [buildBonusCard(v, setup, update), buildStepsCard(v, setup)];
 		const state = guideState(v);
-		const multipleVillages = villages.filter((entry) => entry.host === v.host).length > 1;
+		const multipleVillages = v.count > 1 || villages.some((entry) => entry.host === v.host && entry.id !== v.id);
 		const guideCard = buildGuideCard(v, state, !multipleVillages);
 		const finished = state.every((s) => s.step.optional || s.done);
 		root.append(...(multipleVillages || finished ? [...cards, guideCard] : [guideCard, ...cards]));
@@ -711,6 +709,7 @@
 	}
 
 	select.addEventListener('change', () => {
+		villageStatus.textContent = '';
 		chrome.storage.local.set({ [PICK_KEY]: select.value });
 		render();
 	});
@@ -722,15 +721,12 @@
 		const keep = select.value;
 		load().then(() => {
 			fillSelect(keep);
-			buildVillageManager();
 			render();
 		});
 	});
 
 	load().then(async (pick) => {
-		const active = await activeTabVillage();
-		fillSelect(active && !hiddenVillages.has(active) ? active : pick);
-		buildVillageManager();
+		fillSelect((await activeTabVillage()) || pick);
 		render();
 	});
 })();

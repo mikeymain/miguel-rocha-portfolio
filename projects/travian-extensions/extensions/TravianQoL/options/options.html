@@ -107,16 +107,13 @@
 				<section id="tab-build-order" class="panel is-active" role="tabpanel" aria-labelledby="tabbtn-build-order" tabindex="0">
 					<header class="panel__head">
 						<h1 class="panel__title">Build order</h1>
-						<div class="server-pick">
+						<div class="server-pick bo__village-pick">
 							<label for="bo-village">Village</label>
-							<select id="bo-village" class="select"></select>
+							<select id="bo-village" class="select" disabled></select>
+							<button id="bo-remove-village" class="btn" type="button" disabled>Remove village</button>
 						</div>
 					</header>
-					<details id="bo-manage" hidden>
-						<summary>Manage villages</summary>
-						<p>Choose which villages appear in the selector.</p>
-						<div id="bo-visible-villages"></div>
-					</details>
+					<p id="bo-village-status" role="status" tabindex="-1"></p>
 					<div id="bo-root" class="bo"></div>
 				</section>
 
