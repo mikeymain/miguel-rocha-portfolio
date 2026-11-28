@@ -19,6 +19,8 @@ The step list follows the 4 party farming start from the community "Settling" sp
 
   ![Gold glow around the village-centre hotspot](images/qol-village-centre-glow.png)
 
+- The in-game glow pauses while the build queue is full and returns when a slot opens.
+
 - To reuse a village's building positions, visit its resources and village centre, select it in **Build order**, then open the guide and click **Use this village layout**. The saved layout supplies preferred slots across worlds. If the preferred slot is occupied, the guide selects another free slot. Open the highlighted slot to see the building choice marked in the construction menu.
 - The highlighted row is the next required step. **Optional** rows are skipped by the highlight and the progress count.
 - The guide can highlight the next field, building or empty slot while the queue is full. For all-field steps it skips fields already under construction. Single-field steps keep their target through intermediate upgrades. Buildings already under construction and steps ticked by hand are skipped.

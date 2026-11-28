@@ -299,6 +299,7 @@
 	}
 
 	function renderVillage(buildings, slots) {
+		if (!hasFreeBuildSlot()) return markTargets();
 		const target = guideOn() && storedFields ? guideTarget(storedFields, slots) : null;
 		const next = target?.item.k === 'b' && pickBuildingSlot(target.item, buildings);
 		const wallTop = next?.slot === 40 && document.querySelector('#villageContent .buildingSlot.a40.top');
@@ -311,7 +312,7 @@
 		const target = guideOn() && storedFields && storedSlots ? guideTarget(storedFields, storedSlots) : null;
 		const buildings = Object.entries(storedLayout).map(([slot, b]) => ({ ...b, slot: Number(slot) }));
 		const next = target?.item.k === 'b' && pickBuildingSlot(target.item, buildings);
-		if (!next || next.slot !== slot) {
+		if (!hasFreeBuildSlot() || !next || next.slot !== slot) {
 			oldHint?.remove();
 			markTargets();
 			return;
@@ -343,23 +344,24 @@
 
 	// Queue size is not in the page, so learn it: the most builds ever seen
 	// running at once on this host (1 without Plus, 2 with).
-	function learnCapacity(queued) {
-		if (queued <= queueCapacity) return;
-		queueCapacity = queued;
-		chrome.storage.local.set({ [capacityKey()]: queued });
+	function hasFreeBuildSlot() {
+		const queued = queuedCount();
+		if (queued > queueCapacity) {
+			queueCapacity = queued;
+			chrome.storage.local.set({ [capacityKey()]: queued });
+		}
+		return queued < queueCapacity;
 	}
 
 	function render() {
 		if (!isResourcesPage()) return;
 		const fields = readFields();
 		if (!fields.length) return;
-		// Wait for the guide ticks so the glow does not flash on the wrong field.
-		if (!guideReady && guideOn()) return;
+		// Wait for the guide ticks and saved queue capacity before showing a glow.
+		if (!guideReady) return;
 		// `building`: an upgrade to `level` is in the queue (shown in the settings tab).
 		saveSnapshot({ fields: fields.map(({ el, slot, gid, level }) => ({ slot, gid, level, ...(el.classList.contains('underConstruction') ? { building: true } : {}) })) });
-		const queued = queuedCount();
-		learnCapacity(queued);
-		const hasFreeSlot = queued < queueCapacity;
+		if (!hasFreeBuildSlot()) return markTargets();
 		// Plan deep enough to skip fields that already have an upgrade queued:
 		// the glow goes to the first step on a field that is not being built.
 		const building = new Set(fields.filter((f) => f.el.classList.contains('underConstruction')).map((f) => f.slot));
@@ -376,7 +378,7 @@
 			}
 		} else {
 			const steps = window.TravianQoLBuildOrder.plan(fields, bonuses, PLAN_DEPTH, undefined, forceMax);
-			next = hasFreeSlot ? steps.find((s) => s.kind === 'field' && !building.has(s.slot)) : null;
+			next = steps.find((s) => s.kind === 'field' && !building.has(s.slot));
 		}
 		markTargets(fields.find((f) => f.slot === next?.slot)?.el || village);
 	}
@@ -391,11 +393,13 @@
 		bonuses = Array.isArray(saved) && saved.length === 4 ? saved.map((v) => Number(v) || 0) : [0, 0, 0, 0];
 	}
 
-	/** Loads the guide ticks and the other view's snapshot, then calls `done`. */
+	/** Loads the guide state, village snapshot and build queue capacity. */
 	function loadGuideState(done) {
 		const guideKey = GUIDE_PREFIX + location.host;
 		const snapKey = fieldsKey();
-		chrome.storage.local.get([guideKey, snapKey, LAYOUT_KEY], (res) => {
+		const queueKey = capacityKey();
+		chrome.storage.local.get([guideKey, snapKey, LAYOUT_KEY, queueKey], (res) => {
+			queueCapacity = Math.max(1, Number(res?.[queueKey]) || 1);
 			guideManual = new Set(res?.[guideKey]?.[villageId()] || []);
 			const snap = res?.[snapKey]?.[villageId()];
 			storedFields = snap?.fields || null;
@@ -434,14 +438,10 @@
 			forceMax = !!res?.[maxKey]?.[villageId()];
 			render();
 		});
-		chrome.storage.local.get(capacityKey(), (cap) => {
-			queueCapacity = Math.max(1, Number(cap?.[capacityKey()]) || 1);
-			render();
-		});
 		chrome.storage.local.get(key, (res) => {
 			applyBonuses(res[key]);
 			render();
-			const container = document.getElementById('resourceFieldContainer') || document.body;
+			const container = document.getElementById('content') || document.body;
 			observer = new MutationObserver(schedule);
 			observer.observe(container, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
 		});
