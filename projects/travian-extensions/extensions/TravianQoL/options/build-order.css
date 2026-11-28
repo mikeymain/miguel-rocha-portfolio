@@ -12,10 +12,13 @@
 .bo__empty { padding: 16px 14px; font-size: 12.5px; color: var(--text-secondary); }
 
 #tab-build-order .panel__head { flex-wrap: wrap; }
-.bo__village-pick { flex-wrap: wrap; min-width: 0; }
-.bo__village-pick .select { flex: 1 1 200px; min-width: 0; }
-#bo-remove-village { min-height: 28px; font-size: 11px; white-space: nowrap; }
-#bo-remove-village:disabled { opacity: 0.55; cursor: default; }
+#bo-manage { margin-bottom: 12px; font-size: 12.5px; }
+#bo-manage summary { width: fit-content; padding: 4px 0; color: var(--amber); cursor: pointer; }
+#bo-village-list { max-height: 220px; overflow-y: auto; margin: 4px 0 0; padding: 0; list-style: none; }
+#bo-village-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 8px; border-bottom: 1px solid var(--border-subtle); }
+#bo-village-list span { overflow-wrap: anywhere; }
+.bo__remove-village { flex: none; justify-content: center; width: 28px; height: 28px; padding: 0; }
+.bo__remove-village:disabled { opacity: 0.55; cursor: default; }
 #bo-village-status { margin: 0 0 12px; color: var(--text-secondary); font-size: 12px; }
 #bo-village-status:empty { margin: 0; }
 

@@ -107,12 +107,22 @@
 				<section id="tab-build-order" class="panel is-active" role="tabpanel" aria-labelledby="tabbtn-build-order" tabindex="0">
 					<header class="panel__head">
 						<h1 class="panel__title">Build order</h1>
-						<div class="server-pick bo__village-pick">
+						<div class="server-pick">
 							<label for="bo-village">Village</label>
 							<select id="bo-village" class="select" disabled></select>
-							<button id="bo-remove-village" class="btn" type="button" disabled>Remove village</button>
 						</div>
 					</header>
+					<details id="bo-manage" hidden>
+						<summary>Manage villages</summary>
+						<ul id="bo-village-list"></ul>
+					</details>
+					<template id="bo-remove-village">
+						<button class="btn bo__remove-village" type="button" title="Remove village">
+							<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+								<path d="m4 4 8 8m0-8-8 8"/>
+							</svg>
+						</button>
+					</template>
 					<p id="bo-village-status" role="status" tabindex="-1"></p>
 					<div id="bo-root" class="bo"></div>
 				</section>

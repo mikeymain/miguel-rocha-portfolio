@@ -36,7 +36,9 @@
 
 	const root = document.getElementById('bo-root');
 	const select = document.getElementById('bo-village');
-	const removeVillage = document.getElementById('bo-remove-village');
+	const manage = document.getElementById('bo-manage');
+	const villageList = document.getElementById('bo-village-list');
+	const removeTemplate = document.getElementById('bo-remove-village');
 	const villageStatus = document.getElementById('bo-village-status');
 	const planner = window.TravianQoLBuildOrder;
 	if (!root || !select || !planner || !window.TravianQoLGuide4P) return;
@@ -108,7 +110,7 @@
 				const host = key.slice(FIELDS_PREFIX.length);
 				for (const [id, v] of Object.entries(value || {})) {
 					if (!Array.isArray(v?.fields) || !v.fields.length) continue;
-					villages.push({ value: `${host}|${id}`, host, id, name: v.name || id, fields: v.fields, buildings: v.buildings || null, slots: v.slots || null, count: v.count, updatedAt: v.updatedAt || 0, x: v.x, y: v.y });
+					villages.push({ value: `${host}|${id}`, host, id, name: v.name || id, fields: v.fields, buildings: v.buildings || null, slots: v.slots || null, count: v.count, updatedAt: v.updatedAt || 0, buildingsAt: v.buildingsAt || 0, x: v.x, y: v.y });
 				}
 			} else if (key.startsWith(BONUS_PREFIX) && key !== PICK_KEY) {
 				bonusStore[key.slice(BONUS_PREFIX.length)] = value || {};
@@ -136,6 +138,8 @@
 
 	function fillSelect(pick) {
 		select.innerHTML = '';
+		const focused = document.activeElement?.dataset.removeVillage;
+		const rows = [];
 		const multiHost = new Set(villages.map((v) => v.host)).size > 1;
 		for (const v of villages) {
 			const duplicate = villages.some((entry) => entry !== v && entry.host === v.host && entry.name === v.name);
@@ -144,21 +148,32 @@
 			const opt = el('option', null, label);
 			opt.value = v.value;
 			select.appendChild(opt);
+			const row = el('li');
+			const button = removeTemplate.content.firstElementChild.cloneNode(true);
+			button.dataset.removeVillage = v.value;
+			button.setAttribute('aria-label', `Remove ${label}`);
+			button.addEventListener('click', () => removeVillage(v, button));
+			row.append(el('span', null, label), button);
+			rows.push(row);
 		}
+		villageList.replaceChildren(...rows);
+		manage.hidden = villages.length === 0;
 		select.disabled = villages.length === 0;
-		removeVillage.disabled = select.disabled || removingVillage;
 		const latest = [...villages].sort((a, b) => b.updatedAt - a.updatedAt)[0];
 		select.value = villages.some((v) => v.value === pick) ? pick : latest?.value || '';
+		if (focused) {
+			const button = rows.find((row) => row.lastElementChild.dataset.removeVillage === focused)?.lastElementChild;
+			(button || (manage.hidden ? villageStatus : manage.querySelector('summary'))).focus();
+		}
 	}
 
 	const current = () => villages.find((v) => v.value === select.value);
 
-	removeVillage.addEventListener('click', async () => {
-		const v = current();
-		if (!v || removingVillage) return;
-		const focused = document.activeElement === removeVillage;
+	async function removeVillage(v, button) {
+		if (removingVillage) return;
+		const focused = document.activeElement === button;
 		removingVillage = true;
-		removeVillage.disabled = true;
+		button.disabled = true;
 		try {
 			const key = FIELDS_PREFIX + v.host;
 			const stored = await chrome.storage.local.get(key);
@@ -166,20 +181,20 @@
 			delete snapshots[v.id];
 			await chrome.storage.local.set({ [key]: snapshots });
 			villages = villages.filter((entry) => entry.value !== v.value);
+			villageStatus.textContent = `Removed ${v.name} from Build order.`;
 			fillSelect(select.value);
 			render();
-			villageStatus.textContent = `Removed ${v.name} from Build order.`;
 			flash();
 		} catch {
 			villageStatus.textContent = `Could not remove ${v.name}. Try again.`;
 		} finally {
 			removingVillage = false;
-			removeVillage.disabled = select.disabled;
+			button.disabled = false;
 			if (focused && document.activeElement === document.body) {
-				(select.disabled ? villageStatus : select).focus();
+				(button.isConnected ? button : manage.hidden ? villageStatus : manage.querySelector('summary')).focus();
 			}
 		}
-	});
+	}
 
 	// setup = { oases: [{ type, owned }] x3, gold, buildings: {gid: level} | null }
 	// buildings null = use the levels read in game. Older saves stored oases
@@ -701,7 +716,10 @@
 		};
 		const cards = [buildBonusCard(v, setup, update), buildStepsCard(v, setup)];
 		const state = guideState(v);
-		const multipleVillages = v.count > 1 || villages.some((entry) => entry.host === v.host && entry.id !== v.id);
+		const worldVillages = villages.filter((entry) => entry.host === v.host);
+		const latestCount = worldVillages.filter((entry) => entry.count > 0)
+			.sort((a, b) => Math.max(b.updatedAt, b.buildingsAt) - Math.max(a.updatedAt, a.buildingsAt))[0]?.count;
+		const multipleVillages = (latestCount ?? worldVillages.length) > 1;
 		const guideCard = buildGuideCard(v, state, !multipleVillages);
 		const finished = state.every((s) => s.step.optional || s.done);
 		root.append(...(multipleVillages || finished ? [...cards, guideCard] : [guideCard, ...cards]));

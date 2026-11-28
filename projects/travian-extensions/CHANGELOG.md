@@ -1,5 +1,10 @@
 # Changelog
 
+## Travian QoL 1.7.6 — 2026-11-28
+
+- Build order: open **Manage villages** and click the × beside the village you want to remove.
+- An incomplete Starting guide opens at the top when the latest village count for that world is one, even if older entries are still in the selector.
+
 ## Travian QoL 1.7.5 — 2026-11-28
 
 - Build order: **Remove village** clears the selected village’s saved snapshot and replaces the visibility checklist. Villages with the same name on the same world show coordinates or an ID. Reopening a village’s resources view adds it back with its saved progress and settings.
