@@ -12,7 +12,8 @@
   vertical-align: middle;
 }
 ._vpfl-bonus[data-tier="best"] { background: rgba(60, 170, 60, 0.4); }
-._vpfl-bonus[data-tier="mixed"] { background: rgba(230, 190, 30, 0.45); }
+._vpfl-bonus[data-tier="wood"] { background: rgba(230, 190, 30, 0.45); }
+._vpfl-bonus[data-tier="crop"] { background: rgba(200, 50, 50, 0.45); }
 ._vpfl-bonus i { flex: none; }
 ._vpfl-bonus span + i { margin-left: 3px; }
 ._vpfl-unknown { opacity: 0.6; cursor: help; }

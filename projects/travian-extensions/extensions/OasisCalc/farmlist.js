@@ -60,9 +60,8 @@
       names.push(`+${pct}% ${RES_NAMES[r]}`);
       res.add(r);
     }
-    // Clay or iron alone → green, clay/iron + crop → yellow, the rest grey.
-    const clayIron = res.has("2") || res.has("3");
-    badge.dataset.tier = clayIron ? (res.has("4") ? "mixed" : "best") : "plain";
+    // Any clay or iron (incl. 25+25 with crop) → green, lumber → yellow, crop only → red.
+    badge.dataset.tier = res.has("2") || res.has("3") ? "best" : res.has("1") ? "wood" : "crop";
     badge.title = `Oasis bonus: ${names.join(", ")}`;
     return badge;
   }
