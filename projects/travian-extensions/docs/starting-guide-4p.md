@@ -8,6 +8,7 @@ The step list follows the 4 party farming start from the community "Settling" sp
 
 - A step is ticked automatically when the game shows it done: resource field levels come from the resources view, building levels from the village centre. Open both once per village.
 - Counts are cumulative. "Cropland 1x to 4" followed by "Cropland 2nd to 4" needs two croplands at level 4.
+- For **All** field steps, upgrade in rounds. The guide highlights the lowest available field among the requested types, so fields at the same level take turns before the next round.
 - Tick tasks, culture point targets, population targets, parties, settlers and troops by clicking the step name or its checkbox. **Hide done** and **Show done** are remembered when you reopen the guide.
 - With one village on the world, the guide leads the Build order tab and highlights the next field, building or empty slot. The payback highlight returns once the second village is settled. The guide then starts collapsed at the bottom of the tab.
 - To reuse a village's building positions, visit its resources and village centre, select it in **Build order**, then open the guide and click **Use this village layout**. The saved layout supplies preferred slots across worlds. If the preferred slot is occupied, the guide selects another free slot. Open the highlighted slot to see the building choice marked in the construction menu.

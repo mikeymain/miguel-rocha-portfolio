@@ -164,8 +164,13 @@
 	const closest = (list) => [...list].sort((a, b) => b.level - a.level || (a.slot ?? 0) - (b.slot ?? 0))[0] || null;
 
 	/** Resource field to upgrade for an unmet field need, or null. */
-	function pickField(item, fields) {
-		return closest((fields || []).filter((x) => x.gid === item.g && x.level < item.to));
+	function pickField(step, item, fields) {
+		if (item.n === 'all') {
+			const eligible = fields.filter((field) => step.need.some((need) =>
+				need.k === 'f' && need.n === 'all' && need.g === field.gid && field.level < need.to));
+			return eligible.sort((a, b) => a.level - b.level || a.slot - b.slot)[0] || null;
+		}
+		return closest(fields.filter((field) => field.gid === item.g && field.level < item.to));
 	}
 
 	/** Existing building to upgrade for an unmet building need, or null. */

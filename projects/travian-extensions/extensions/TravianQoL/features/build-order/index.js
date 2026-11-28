@@ -314,7 +314,7 @@
 			// Show the guide's next field even while the previous step is building.
 			const target = guideTarget(fields, storedSlots);
 			const free = fields.filter((f) => !building.has(f.slot));
-			next = target?.item.k === 'f' ? window.TravianQoLGuide4P.pickField(target.item, free) : null;
+			next = target?.item.k === 'f' ? window.TravianQoLGuide4P.pickField(target.step, target.item, free) : null;
 		} else {
 			const steps = window.TravianQoLBuildOrder.plan(fields, bonuses, PLAN_DEPTH, undefined, forceMax);
 			next = hasFreeSlot ? steps.find((s) => s.kind === 'field' && !building.has(s.slot)) : null;
