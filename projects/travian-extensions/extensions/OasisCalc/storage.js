@@ -448,6 +448,7 @@ function loadSettings() {
     if (riskLabel && riskSlider) {
       const lvl = parseInt(riskSlider.value);
       riskLabel.textContent = getRiskThresholds(lvl).label;
+      riskSlider.setAttribute("aria-valuetext", riskLabel.textContent);
       riskLabel.className = "_vprisk-label _vprisk-" + lvl;
     }
   });

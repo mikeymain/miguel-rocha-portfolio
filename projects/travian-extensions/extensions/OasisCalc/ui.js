@@ -549,7 +549,7 @@ function createUI() {
                         </select>
                     </div>
                     <div class="_vprisk-slider">
-                        <input type="range" id="_vprisk" min="1" max="5" value="3" step="1" class="_vpslider" aria-label="Risk tolerance">
+                        <input type="range" id="_vprisk" min="1" max="5" value="3" step="1" class="_vpslider" aria-label="Troop loss tolerance" title="Maximum estimated share of troops lost. Safe is 2.5%; Max is 7–20% depending on the clear size.">
                         <span id="_vprisk-label" class="_vprisk-label _vprisk-3">Balanced</span>
                     </div>
                 </div>
@@ -842,6 +842,7 @@ function createUI() {
       riskLabel.className = "_vprisk-label _vprisk-" + lvl;
     };
     riskSlider.addEventListener("input", updateRiskLabel);
+    riskSlider.addEventListener("change", updateRiskLabel);
     updateRiskLabel();
     // Travian's map handlers swallow mousemove/up on document, killing the
     // drag mid-stroke. setPointerCapture re-routes all pointer events for the

@@ -28,7 +28,7 @@
   }
 
 
-  function buildRows(oasis) {
+  function buildPlan(oasis) {
     const tribe = TROOP_DATA[detectTribe()];
     if (!tribe) return null;
     const { cx, cy } = getCoords();
@@ -38,12 +38,13 @@
     const maxHp = hero ? (parseInt(document.getElementById("_vpmax-hp")?.value) || 100) - HERO_HP_BUFFER : null;
     const unit = selectedTroopUnit(tribe);
     if (!unit) return null;
-    return [unit].map((unit) => {
-        const smithyLvl = parseInt(document.getElementById(`_vpsmithy-${unit.id}`)?.value) || 0;
-        const { count, reserve } = calculateOptimalTroopCount(oasis, unit, smithyLvl, cx, cy, tsLvl, hero, riskLevel, maxHp);
-        const m = count == null ? null : calculateTroopMetrics(oasis, [{ unit, count, smithyLvl }], cx, cy, tsLvl, hero, riskLevel);
-        return { unit, count, reserve, lost: m?.troopLossCount ?? 0 };
-      });
+    const smithyLvl = parseInt(document.getElementById(`_vpsmithy-${unit.id}`)?.value) || 0;
+    const maxCount = parseInt(document.getElementById("_vpmax-troops")?.value) || 0;
+    const plan = calculateOptimalTroopCount(oasis, unit, smithyLvl, cx, cy, tsLvl, hero, riskLevel, maxHp, maxCount);
+    const metrics = plan.count == null ? null : calculateTroopMetrics(
+      oasis, [{ unit, count: plan.count, smithyLvl }], cx, cy, tsLvl, hero, plan.arrival,
+    );
+    return { unit, ...plan, metrics };
   }
 
   function render(dialog, troopTable) {
@@ -53,7 +54,7 @@
     const tribe = TROOP_DATA[detectTribe()];
     const unitId = tribe ? selectedTroopUnit(tribe)?.id : null;
     const settings = ["_vppreview-unit", "_vprisk", "_vptroop-hero", "_vpts-lvl", "_vpmax-hp",
-      "_vphero-off", "_vpdmg-red", "_vpspeed", `_vpsmithy-${unitId}`].map((id) => {
+      "_vphero-off", "_vpdmg-red", "_vpspeed", "_vpmax-troops", "_vpcoords", `_vpsmithy-${unitId}`].map((id) => {
       const el = document.getElementById(id);
       return el?.type === "checkbox" ? el.checked : el?.value;
     });
@@ -63,40 +64,45 @@
     existing?.remove();
     if (!coords || !animals.length) return;
 
-    const rows = buildRows({ x: coords.x, y: coords.y, animals });
-    if (!rows?.length) return;
+    const plan = buildPlan({ ...coords, animals });
+    if (!plan) return;
 
     const box = document.createElement("div");
     box.className = "_vpclear";
     box.dataset.state = state;
     const head = document.createElement("h4");
-    head.textContent = getHeroForTroops() ? "Clear (with hero)" : "Clear";
+    head.textContent = getHeroForTroops() ? "Units needed (with hero)" : "Units needed";
     const table = document.createElement("table");
     table.className = "transparent _vpclear-table";
     const headRow = table.createTHead().insertRow();
-    for (const label of ["", "Send", "Lost"]) {
+    for (const label of ["Unit", "Send", "Est. losses"]) {
       const th = document.createElement("th");
       th.textContent = label;
       headRow.appendChild(th);
     }
-    const body = table.createTBody();
-    for (const r of rows) {
-      const tr = body.insertRow();
-      const icon = document.createElement("i");
-      icon.className = "unit " + r.unit.id;
-      icon.title = r.unit.name;
-      icon.setAttribute("role", "img");
-      icon.setAttribute("aria-label", r.unit.name);
-      tr.insertCell().appendChild(icon);
-      const send = tr.insertCell();
-      send.className = "_vpclear-count";
-      send.textContent = r.count == null ? "—" : r.count.toLocaleString();
-      if (r.reserve) send.title = `Includes ${r.reserve} reserve animals`;
-      const lost = tr.insertCell();
-      lost.textContent = r.lost ? "−" + r.lost : "0";
-      if (r.lost) lost.className = "_vpclear-lost";
+    const row = table.createTBody().insertRow();
+    const icon = document.createElement("i");
+    icon.className = "unit " + plan.unit.id;
+    icon.title = plan.unit.name;
+    icon.setAttribute("role", "img");
+    icon.setAttribute("aria-label", plan.unit.name);
+    row.insertCell().appendChild(icon);
+    const send = row.insertCell();
+    send.className = "_vpclear-count";
+    send.textContent = plan.count == null ? "—" : plan.count.toLocaleString();
+    const lost = row.insertCell();
+    lost.textContent = plan.count == null ? "—" : `${plan.lostCount} (${(plan.lossRate * 100).toFixed(1)}%)`;
+    if (plan.lostCount) lost.className = "_vpclear-lost";
+    const details = document.createElement("p");
+    details.className = "_vpclear-details";
+    if (plan.metrics) {
+      const added = plan.reserve ? ` · +${plan.reserve} ${ANIMAL_STATS[plan.arrival.species].name.toLowerCase()}` : "";
+      details.textContent = `${plan.metrics.time} min · ${Math.round(plan.metrics.defense)} def${added} · ${plan.metrics.netRes.toLocaleString()} net res`;
+      lost.title = `Troop loss limit ${(plan.lossCap * 100).toFixed(1)}%`;
+    } else {
+      details.textContent = "No clear within these limits.";
     }
-    box.append(head, table);
+    box.append(head, table, details);
     troopTable.after(box);
   }
 

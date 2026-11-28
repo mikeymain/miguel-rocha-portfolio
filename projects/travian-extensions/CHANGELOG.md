@@ -1,5 +1,10 @@
 # Changelog
 
+## Oasis Finder 70.35 — 2026-11-28
+
+- Units needed forecasts the oasis defence at arrival using the selected team's travel time, scan age, and species spawn timers.
+- Troop loss tolerance now sets the estimated casualty limit. The calculator prefers loss-free clears up to 50 troops, then compares net resources across eligible loss thresholds.
+
 ## Travian QoL 1.7.7 — 2026-11-28
 
 - Build order: **Use best** stays available and refreshes planned oasis slots from the best known free oases, including when those slots are filled. Owned oases stay in place.

@@ -30,7 +30,7 @@ Replace the files in the same installed folder, click **Reload** in the extensio
 
 <a href="images/oasis-finder.png"><img src="images/oasis-finder.png" alt="Oasis Finder hero view" width="280" /></a>
 
-**Features:** Discovery/Update modes, scan coverage, local oasis database, observation ages, Hero/Troops views, hero-stat fetch, troop counts and smithy levels, optional hero inclusion, troop preview/cap, five risk levels, sort controls, density controls, draggable/collapsible panel, database and error viewers. Native farm-list name sorting groups oases by bonus type, then distance.
+**Features:** Discovery/Update modes, scan coverage, local oasis database, observation ages, Hero/Troops views, hero-stat fetch, troop counts and smithy levels, optional hero inclusion, troop preview/cap, five troop-loss settings, sort controls, density controls, draggable/collapsible panel, database and error viewers. Native farm-list name sorting groups oases by bonus type, then distance.
 
 Click an unoccupied oasis on the map to see the **Clear** table under its animals: how many of the unit chosen under **Troops → Unit** to send from the panel's selected village so no animals survive, and the predicted losses. It uses the smithy levels, Tournament Square, hero and risk settings from the panel; hover a count to see the reserve animals it includes.
 
@@ -45,10 +45,12 @@ Select **Inf def** or **Cav def** in the Target header to see the defence score 
 1. Open the map, select the origin village, and set the radius.
 2. Select **Discovery** and pan the map to collect oasis data. Use **Update** to refresh known targets. The coverage meter shows observed areas.
 3. In **Hero**, click **Fetch** and check health, Tournament Square level, and map bonus under **Adjust**. In **Troops**, fetch or enter counts and smithy levels; set hero inclusion, **Unit**, and troop cap.
-4. Choose a risk level and sort: **Best score**, **Net resources**, **Res / minute**, **Distance**, or **Res / HP**. Net resources includes modeled troop losses.
+4. Set **Troop loss tolerance** in **Troops** and choose a sort: **Best score**, **Net resources**, **Res / minute**, **Distance**, or **Res / HP**. Net resources includes modeled troop losses.
 5. Check observation age and current garrison before raiding. Coordinates open the map; **Send** opens a prefilled rally-point page. Sending the raid requires confirmation in the game.
 
-**Troop sizing.** With no troop counts entered, **Troops** starts from the fewest of the **Unit** choice that clear each oasis within the risk level's loss limit, then adds troops while that raises net resources per troop; every count travels at the same speed, so this is also the best net per troop-minute. It stays within the troop cap and keeps the fewest when no count makes a profit. Targets that need more than the troop cap are hidden. With counts entered, each row shows **Clears** or **×k**, the copies of that team needed. A raid clears when every animal stack rounds to zero survivors: the winner loses x/(1+x) of each unit type, x = (def/att)^1.5, oases add a base defence of 10, and losses round separately for each unit type. With the hero included, hero HP stays within the **Adjust** limit.
+**Troop sizing.** With no counts entered, **Troops** and the map dialog's **Units needed** recommend a clear with the selected unit. The estimate uses effective infantry and cavalry defence, the existing +10 base-defence model, smithy level, one-way march time and any selected hero. It compares the possible continuation of each observed species using its 5-14 minute x1 guide timer, the time to arrival and up to an hour of scan age. The forecast uses the single continuation adding the most effective defence. The next spawn phase and batch size are unknown. Estimated net resources credit the observed animals and deduct troop replacement costs.
+
+**Troop loss tolerance.** Safe allows up to 2.5% estimated losses. Max allows roughly 7-20%, with the highest allowance for smaller clears. The slider changes the casualty allowance. The calculator tries the smallest loss-free clear up to 50 troops, then compares profitable loss thresholds. It prioritises net resources per troop, or total net resources within **Max troops** when set. If every eligible estimate is unprofitable, the smallest eligible clear stays visible along with its estimated loss. With counts entered, **Clears** or **×k** shows whether the entered team fits or how many copies are needed. The hero's HP limit remains in **Adjust**.
 
 | Risk | Reserve animals | Most of each unit type lost |
 | --- | --- | --- |
