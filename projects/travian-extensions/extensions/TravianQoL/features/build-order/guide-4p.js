@@ -47,7 +47,7 @@
 		S('All Woodcutters to 2', all(WOOD, 2), 1995, 900, 3, 9),
 		S('All Clay Pits to 2', all(CLAY, 2), 2010, 900, 3, 9),
 		S('All Iron Mines to 2', all(IRON, 2), 2175, 900, 3, 15),
-		S('Population 50', null, 0, 1500),
+		S('Population 50', null, 0, 1500, 0, 0, { metric: 'population', threshold: 50 }),
 		S('Warehouse 3', [b(GID.warehouse, 3)], 1220, 600, 1, 2),
 		S('Barracks 1', [b(GID.barracks, 1)], 730, 600, 1, 4),
 		S('Woodcutter 1x to 4', [f(WOOD, 1, 4)], 1860, 1200, 1, 2),
@@ -57,13 +57,13 @@
 		S('Even growth: 1 of each to 4', each(4), 0, 600, 0, 0),
 		S('Cranny 6', [b(GID.cranny, 6)], 1065, 900, 1, 1),
 		S('Main Building 7', [b(GID.main, 7)], 2395, 1800, 4, 6),
-		S('Culture points 50/day', null, 0, 1500),
+		S('Culture points 50/day', null, 0, 1500, 0, 0, { metric: 'cpPerDay', threshold: 50 }),
 		S('Barracks 3', [b(GID.barracks, 3)], 2135, 600, 1, 4),
 		S('Academy 1', [b(GID.academy, 1)], 510, 600, 5, 4),
 		S('Cropland 2nd to 3', [f(CROP, 2, 3)], 695, 0, 1, 0),
 		S('Smithy 1', [b(GID.smithy, 1)], 1090, 600, 2, 4),
 		S('All Iron Mines to 3', all(IRON, 3), 2265, 1800, 3, 6),
-		S('Population 100', null, 0, 3000),
+		S('Population 100', null, 0, 3000, 0, 0, { metric: 'population', threshold: 100 }),
 		S('All Croplands to 3', all(CROP, 3), 2780, 1800, 4, 0),
 		S('All Woodcutters to 3', all(WOOD, 3), 2085, 1800, 3, 3),
 		S('All Clay Pits to 3', all(CLAY, 3), 2100, 1800, 3, 3),
@@ -74,11 +74,11 @@
 		S('Cropland 2nd to 4', [f(CROP, 2, 4)], 1165, 0, 0, 0),
 		S('Smithy 3', [b(GID.smithy, 3)], 2570, 0, 1, 4),
 		S('Academy 5', [b(GID.academy, 5)], 3915, 0, 5, 8),
-		S('Culture points 100/day', null, 0, 3000),
+		S('Culture points 100/day', null, 0, 3000, 0, 0, { metric: 'cpPerDay', threshold: 100 }),
 		S('Cropland 3rd to 4', [f(CROP, 3, 4)], 1165, 0, 0, 0),
 		S('Stable 1', [b(GID.stable, 1)], 720, 600, 2, 5),
 		S('Stable 3', [b(GID.stable, 3)], 2105, 1200, 1, 6),
-		S('Population 150', null, 0, 4500),
+		S('Population 150', null, 0, 4500, 0, 0, { metric: 'population', threshold: 150 }),
 		S('Research farm unit', null),
 		S('Train 8 farm units', null, 3200, 3200, 0, 0),
 		S('All resource fields to 4', allRes(4), 14280, 4800, 0, 12, { timing: 'Reach in 12–16h' }),
@@ -88,7 +88,7 @@
 		S('Workshop 1', [b(GID.workshop, 1)], 1895, 2400, 4, 3),
 		S('Town Hall 1', [b(GID.townhall, 1)], 4220, 2400, 6, 4),
 		S('Embassy 6', [b(GID.embassy, 6)], 6015, 0, 7, 10),
-		S('Culture points 150/day', null, 0, 4500),
+		S('Culture points 150/day', null, 0, 4500, 0, 0, { metric: 'cpPerDay', threshold: 150 }),
 		S('Warehouse 7', [b(GID.warehouse, 7)], 5295, 900, 2, 4),
 		S('Warehouse 8', [b(GID.warehouse, 8)], 2360, 0, 0, 1),
 		S('Party 1', null, 20330, 2400, 0, 0, { timing: 'Start by 48h' }),
@@ -98,7 +98,7 @@
 		S('Marketplace 12', [b(GID.market, 12)], 16655, 2400, 16, 15),
 		S('Granary 7', [b(GID.granary, 7)], 3415, 900, 2, 4),
 		S('7 Crannies to 7', [b(GID.cranny, 7, 7)], 11445, 0, 14, 14),
-		S('Population 250', null, 0, 6000),
+		S('Population 250', null, 0, 6000, 0, 0, { metric: 'population', threshold: 250 }),
 		S('Residence 3', [b(GID.residence, 3)], 4585, 2400, 1, 2),
 		S('Residence 7', [b(GID.residence, 7)], 19810, 3600, 4, 4),
 		S('Party 2', null, 20330),
@@ -135,7 +135,8 @@
 	}
 
 	/** Whether a step's detectable need is met. Manual steps return null. */
-	function isDone(step, fields, slots) {
+	function isDone(step, fields, slots, village) {
+		if (step.metric) return Number.isFinite(village?.[step.metric]) ? village[step.metric] >= step.threshold : null;
 		if (!step.need) return null;
 		return step.need.every((item) => met(item, fields || [], slots));
 	}

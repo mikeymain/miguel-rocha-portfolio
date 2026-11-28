@@ -113,7 +113,7 @@
 				const host = key.slice(FIELDS_PREFIX.length);
 				for (const [id, v] of Object.entries(value || {})) {
 					if (!Array.isArray(v?.fields) || !v.fields.length) continue;
-					villages.push({ value: `${host}|${id}`, host, id, name: v.name || id, fields: v.fields, buildings: v.buildings || null, slots: v.slots || null, layout: v.layout, count: v.count, updatedAt: v.updatedAt || 0, buildingsAt: v.buildingsAt || 0, x: v.x, y: v.y });
+					villages.push({ value: `${host}|${id}`, host, id, name: v.name || id, fields: v.fields, population: v.population, cpPerDay: v.cpPerDay, buildings: v.buildings || null, slots: v.slots || null, layout: v.layout, count: v.count, updatedAt: v.updatedAt || 0, buildingsAt: v.buildingsAt || 0, x: v.x, y: v.y });
 				}
 			} else if (key.startsWith(BONUS_PREFIX) && key !== PICK_KEY) {
 				bonusStore[key.slice(BONUS_PREFIX.length)] = value || {};
@@ -616,7 +616,7 @@
 	function guideState(v) {
 		const manual = guideManual(v);
 		return guide.STEPS.map((s) => {
-			const auto = guide.isDone(s, v.fields, v.slots || {});
+			const auto = guide.isDone(s, v.fields, v.slots || {}, v);
 			return { step: s, auto: auto === true, done: auto === true || manual.has(s.id) };
 		});
 	}

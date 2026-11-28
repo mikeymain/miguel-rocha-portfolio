@@ -100,6 +100,8 @@
 	let storedLayout = {};
 	let referenceLayout = {};
 	let guideReady = false;
+	let cpRequest = null;
+	let cpReading = null;
 
 	const isResourcesPage = () => /^\/(dorf1\.php|resources)$/.test(location.pathname);
 	const isVillagePage = () => /^\/(dorf2\.php|village)$/.test(location.pathname);
@@ -169,10 +171,38 @@
 	// Village snapshot for the settings tab, merged so the resources view
 	// (fields) and the village centre (buildings) each keep the other's part.
 	// Written only when it changes.
+	function readPopulation() {
+		const side = document.querySelector('#sidebarBoxActiveVillage') || document.querySelector('#sidebarAfterContent');
+		const match = side?.textContent.replace(/[\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, '').match(/Population\s*:\s*([0-9]+(?:[,.][0-9]{3})*)/i);
+		return match ? Number(match[1].replace(/[,.]/g, '')) : null;
+	}
+
+	async function readGuideCp(refresh) {
+		if (!window.fetch || !activeVillage()?.dataset.did) return;
+		const id = villageId();
+		const request = new AbortController();
+		cpRequest = request;
+		try {
+			const response = await fetch('/village/statistics/culturepoints', { signal: request.signal });
+			if (!response.ok) return;
+			const page = new DOMParser().parseFromString(await response.text(), 'text/html');
+			const rows = [...page.querySelectorAll('#culture_points tr')];
+			const row = rows.find(r => {
+				const link = r.querySelector('td.vil a[href]');
+				return link && new URL(link.getAttribute('href'), location.href).searchParams.get('newdid') === id;
+			});
+			const value = row?.querySelector('td.cps')?.textContent.replace(/[\s.,'’\u202a-\u202e\u2066-\u2069]/g, '');
+			if (!/^\d+$/.test(value || '') || request.signal.aborted || villageId() !== id) return;
+			cpReading = { id, value: Number(value) };
+			refresh();
+		} catch { /* Keep the last observed rate if the overview is unavailable. */ }
+	}
+
 	function saveSnapshot(part) {
 		const id = villageId();
 		const count = villageCount();
-		const entry = { name: villageName(), ...villageCoords(), ...(count ? { count } : {}), ...part };
+		const population = readPopulation();
+		const entry = { ...(population != null ? { population } : {}), ...(cpReading?.id === id ? { cpPerDay: cpReading.value } : {}), name: villageName(), ...villageCoords(), ...(count ? { count } : {}), ...part };
 		const sig = id + JSON.stringify(entry);
 		if (sig === lastSnapshot) return;
 		lastSnapshot = sig;
@@ -338,8 +368,8 @@
 		if (guideOn()) {
 			// Show the guide's next field even while the previous step is building.
 			const target = guideTarget(fields, storedSlots);
-			const free = fields.filter((f) => !building.has(f.slot));
-			next = target?.item.k === 'f' ? window.TravianQoLGuide4P.pickField(target.step, target.item, free) : null;
+			const candidates = target?.item.n === 'all' ? fields.filter((f) => !building.has(f.slot)) : fields;
+			next = target?.item.k === 'f' ? window.TravianQoLGuide4P.pickField(target.step, target.item, candidates) : null;
 			if (target?.item.k === 'b') {
 				village = document.querySelector('#resourceFieldContainer svg.villageCenter > path')
 					|| document.querySelector('#resourceFieldContainer a:is(.village, .villageCenter, [href="/village"], [href^="/dorf2.php"])');
@@ -399,6 +429,7 @@
 		const key = bonusKey();
 		const maxKey = MAX20_PREFIX + location.host;
 		loadGuideState(render);
+		readGuideCp(render);
 		chrome.storage.local.get(maxKey, (res) => {
 			forceMax = !!res?.[maxKey]?.[villageId()];
 			render();
@@ -434,6 +465,7 @@
 			} else if (isSlotPage()) renderSlot();
 		};
 		loadGuideState(update);
+		if (isVillagePage()) readGuideCp(update);
 		storageListener = watchGuideState(update);
 		chrome.storage.onChanged?.addListener(storageListener);
 		const container = document.getElementById('content') || document.body;
@@ -619,6 +651,8 @@
 			tileTimer = null;
 			lastSnapshot = '';
 			guideReady = false;
+			cpRequest?.abort();
+			cpReading = null;
 			document.getElementById(STYLE_ID)?.remove();
 			document.getElementById(SLOT_HINT_ID)?.remove();
 			document.querySelectorAll('[data-tqol-bo]').forEach((el) => delete el.dataset[ORDER_ATTR]);

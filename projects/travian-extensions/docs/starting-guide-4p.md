@@ -14,14 +14,14 @@ The step list follows the 4 party farming start from the community "Settling" sp
 - A step is ticked automatically when the game shows it done: resource field levels come from the resources view, building levels from the village centre. Open both once per village.
 - Counts are cumulative. "Cropland 1x to 4" followed by "Cropland 2nd to 4" needs two croplands at level 4.
 - For **All** field steps, upgrade in rounds. The guide highlights the lowest available field among the requested types, so fields at the same level take turns before the next round.
-- Tick tasks, culture point targets, population targets, parties, settlers and troops by clicking the step name or its checkbox. **Hide done** and **Show done** are remembered when you reopen the guide.
+- Population and CP/day targets tick when the village reaches the listed value. The guide reads population from the sidebar and CP/day from the village culture points overview. Tick tasks, parties, settlers and troops by clicking the step name or its checkbox. **Hide done** and **Show done** are remembered when you reopen the guide.
 - With one village on the world, the guide leads the Build order tab and highlights the next field, building or empty slot. When the next step is a building, the village-centre hotspot glows on the resources map. Open the village centre once so the guide can read building levels. The payback highlight returns once the second village is settled. The guide then starts collapsed at the bottom of the tab.
 
   ![Gold glow around the village-centre hotspot](images/qol-village-centre-glow.png)
 
 - To reuse a village's building positions, visit its resources and village centre, select it in **Build order**, then open the guide and click **Use this village layout**. The saved layout supplies preferred slots across worlds. If the preferred slot is occupied, the guide selects another free slot. Open the highlighted slot to see the building choice marked in the construction menu.
 - The highlighted row is the next required step. **Optional** rows are skipped by the highlight and the progress count.
-- The guide can highlight the next field, building or empty slot while the queue is full. It skips fields and buildings that are already under construction, along with steps ticked by hand.
+- The guide can highlight the next field, building or empty slot while the queue is full. For all-field steps it skips fields already under construction. Single-field steps keep their target through intermediate upgrades. Buildings already under construction and steps ticked by hand are skipped.
 - **Cost** is the sheet's cost. **Net res/CP** is (cost - task reward) / CP per day gained, for steps that give CP.
 
 ## Improvements found
