@@ -408,7 +408,73 @@
 		tileTimer = setTimeout(saveTiles, TILE_SAVE_MS);
 	}
 
+	// --- Map: whole map/position responses from OasisCalc ------------------
+	// OasisCalc (same author) wraps Travian.api in the page and re-sends each
+	// map/position response as this document event, detail = JSON string.
+	// Listening from the isolated world adds no page-visible code; without
+	// OasisCalc only the tooltip reader above records tiles.
+	const MAP_FEED_EVENT = 'oasiscalc:map-data:v1';
+	const MAP_SIZE = 401;
+	const BIDI = /[‎‏‪-‮⁦-⁩]/g;
+	let mapFeedListener = null;
+	const wrapCoord = (n) => (((n + 200) % MAP_SIZE) + MAP_SIZE) % MAP_SIZE - 200;
+
+	/** Tile objects ({ position, text | t | title }) anywhere in a response. */
+	function feedTiles(obj) {
+		const out = [];
+		const seen = new Set();
+		(function visit(value, depth) {
+			if (!value || typeof value !== 'object' || depth > 12 || seen.has(value)) return;
+			seen.add(value);
+			if (Array.isArray(value)) { value.forEach((v) => visit(v, depth + 1)); return; }
+			if (value.position && ('text' in value || 't' in value || 'title' in value)) { out.push(value); return; }
+			if (value.position && value.tile && typeof value.tile === 'object') { visit({ ...value.tile, position: value.position }, depth + 1); return; }
+			for (const k of ['tiles', 'elements', 'data', 'response']) visit(value[k], depth + 1);
+		})(obj, 0);
+		return out;
+	}
+
+	/**
+	 * [key, value] for a map/position tile, or null if unreadable.
+	 * Oasis bonus tokens: "{a:r1} {a.r1} 25%" (r1 lumber .. r4 crop); valleys
+	 * use the same tokens without "%". {k.fo} free oasis, {k.bt} occupied.
+	 */
+	function feedTile(tile) {
+		const x = Number(tile.position?.x);
+		const y = Number(tile.position?.y);
+		if (tile.position?.x == null || tile.position?.y == null || !Number.isSafeInteger(x) || !Number.isSafeInteger(y)) return null;
+		const text = String(typeof tile.text === 'string' ? tile.text : typeof tile.t === 'string' ? tile.t : '').replace(BIDI, '');
+		const title = typeof tile.title === 'string' ? tile.title : '';
+		const key = `${wrapCoord(x)}|${wrapCoord(y)}`;
+		const isOasis = /\{k\.(?:fo|bt)\}/.test(title + text) || /^(?:unoccupied|occupied) oasis\b/i.test(title.trim());
+		if (!isOasis) return [key, 0];
+		const bonus = [0, 0, 0, 0];
+		for (const m of text.matchAll(/\{a:r([1-4])\}[^%<]*?(\d+)\s*%/g)) bonus[m[1] - 1] += Number(m[2]);
+		if (!bonus.some(Boolean)) return null;
+		const occupied = /\{k\.bt\}/.test(title + text) || Number(tile.uid) > 0
+			|| /\{k\.(?:spieler|allianz)\}/.test(text) || /^occupied oasis\b/i.test(title.trim());
+		return [key, { b: bonus, o: occupied }];
+	}
+
+	function onMapFeed(e) {
+		if (typeof e.detail !== 'string') return;
+		let data;
+		try { data = JSON.parse(e.detail); } catch { return; }
+		let added = false;
+		for (const tile of feedTiles(data)) {
+			const entry = feedTile(tile);
+			if (!entry) continue;
+			tileBuffer[entry[0]] = entry[1];
+			added = true;
+		}
+		if (!added) return;
+		clearTimeout(tileTimer);
+		tileTimer = setTimeout(saveTiles, TILE_SAVE_MS);
+	}
+
 	function startMap() {
+		mapFeedListener = onMapFeed;
+		document.addEventListener(MAP_FEED_EVENT, mapFeedListener);
 		document.querySelectorAll(TILE_SELECTOR).forEach(inspectTile);
 		observer = new MutationObserver((records) => {
 			for (const record of records) {
@@ -453,6 +519,8 @@
 			storageListener = null;
 			clearTimeout(debounceTimer);
 			debounceTimer = null;
+			if (mapFeedListener) document.removeEventListener(MAP_FEED_EVENT, mapFeedListener);
+			mapFeedListener = null;
 			if (tileTimer) saveTiles();
 			clearTimeout(tileTimer);
 			tileTimer = null;

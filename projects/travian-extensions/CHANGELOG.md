@@ -1,5 +1,9 @@
 # Changelog
 
+## Travian QoL 1.7.3 — 2026-11-28
+
+- Build order **Nearby**: with Oasis Finder (OasisCalc) running on the map, every tile in each map view it loads is recorded, not only hovered tiles. QoL listens to the map data OasisCalc already passes along and adds no page script of its own. Without OasisCalc, hovering tiles still works.
+
 ## Travian QoL 1.7.2 — 2026-11-28
 
 - The starting guide card stays above the other Build order cards until every required step is done (optional steps do not count), then moves below them.
