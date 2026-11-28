@@ -37,7 +37,7 @@
 /* One block per farm list, like the game's farm list page. */
 .ft__group + .ft__group .ft__group-head th { padding-top: 14px; }
 .ft__group-head th { padding: 0 0 4px; text-align: left; }
-.ft__group-head button {
+.ft__table .ft__group-head button {
 	all: unset;
 	display: flex;
 	align-items: baseline;
@@ -50,18 +50,18 @@
 	box-shadow: inset 0 0 0 1px var(--border-subtle);
 	cursor: pointer;
 }
-.ft__group-head button::before {
+.ft__table .ft__group-head button::before {
 	content: '▾';
 	font-size: 10px;
 	color: var(--text-tertiary);
 	transition: transform 140ms var(--ease);
 }
-.ft__group-head button[aria-expanded='false']::before { transform: rotate(-90deg); }
-.ft__group-head button:hover { box-shadow: inset 0 0 0 1px var(--amber-line); }
-.ft__group-head button:focus-visible { outline: 2px solid var(--amber-line); outline-offset: 2px; }
+.ft__table .ft__group-head button[aria-expanded='false']::before { transform: rotate(-90deg); }
+.ft__table .ft__group-head button:hover { box-shadow: inset 0 0 0 1px var(--amber-line); }
+.ft__table .ft__group-head button:focus-visible { outline: 2px solid var(--amber-line); outline-offset: 2px; }
 .ft__group-name { font-size: 12.5px; font-weight: 650; color: var(--text-primary); }
 .ft__group-meta { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-tertiary); }
 .ft__group-meta.is-low { color: var(--rose); }
 @media (prefers-reduced-motion: reduce) {
-	.ft__group-head button::before { transition: none; }
+	.ft__table .ft__group-head button::before { transition: none; }
 }

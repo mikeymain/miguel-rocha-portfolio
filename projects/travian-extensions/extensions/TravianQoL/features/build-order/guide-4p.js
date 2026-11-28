@@ -140,11 +140,45 @@
 		return step.need.every((item) => met(item, fields || [], slots));
 	}
 
+	/**
+	 * First required step the game can show, that is not done and not ticked by
+	 * hand. Optional and manual steps are skipped.
+	 * @param {Set<number>} [manual] step ids ticked by hand
+	 */
+	function nextStep(fields, slots, manual) {
+		for (const s of STEPS) {
+			if (s.optional || !s.need || manual?.has(s.id)) continue;
+			// Building levels unknown (village centre not opened yet): skip building steps.
+			if (!slots && s.need.some((item) => item.k === 'b')) continue;
+			if (!isDone(s, fields || [], slots)) return s;
+		}
+		return null;
+	}
+
+	/** First need of the step that is not met yet. */
+	function firstUnmet(step, fields, slots) {
+		return step.need.find((item) => !met(item, fields || [], slots)) || null;
+	}
+
+	// Candidate closest to the target level: it finishes soonest.
+	const closest = (list) => [...list].sort((a, b) => b.level - a.level || (a.slot ?? 0) - (b.slot ?? 0))[0] || null;
+
+	/** Resource field to upgrade for an unmet field need, or null. */
+	function pickField(item, fields) {
+		return closest((fields || []).filter((x) => x.gid === item.g && x.level < item.to));
+	}
+
+	/** Existing building to upgrade for an unmet building need, or null. */
+	function pickBuilding(item, buildings) {
+		const gids = Array.isArray(item.g) ? item.g : [item.g];
+		return closest((buildings || []).filter((x) => gids.includes(x.gid) && x.level < item.to));
+	}
+
 	/** Net resources the step costs once its task reward is cashed. */
 	const netCost = (step) => step.cost - step.reward;
 
 	/** Net resources per culture point per day, or null if the step gives none. */
 	const costPerCp = (step) => (step.cp > 0 ? Math.round(netCost(step) / step.cp) : null);
 
-	root.TravianQoLGuide4P = { STEPS, isDone, netCost, costPerCp, WALLS };
+	root.TravianQoLGuide4P = { STEPS, isDone, nextStep, firstUnmet, pickField, pickBuilding, netCost, costPerCp, WALLS };
 })(typeof window !== 'undefined' ? window : globalThis);

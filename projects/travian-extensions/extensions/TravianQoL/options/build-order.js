@@ -105,7 +105,7 @@
 				const host = key.slice(FIELDS_PREFIX.length);
 				for (const [id, v] of Object.entries(value || {})) {
 					if (!Array.isArray(v?.fields) || !v.fields.length) continue;
-					villages.push({ value: `${host}|${id}`, host, id, name: v.name || id, fields: v.fields, buildings: v.buildings || null, slots: v.slots || null, updatedAt: v.updatedAt || 0, x: v.x, y: v.y });
+					villages.push({ value: `${host}|${id}`, host, id, name: v.name || id, fields: v.fields, buildings: v.buildings || null, slots: v.slots || null, count: v.count || 0, updatedAt: v.updatedAt || 0, x: v.x, y: v.y });
 				}
 			} else if (key.startsWith(BONUS_PREFIX) && key !== PICK_KEY) {
 				bonusStore[key.slice(BONUS_PREFIX.length)] = value || {};
@@ -542,6 +542,12 @@
 	let hideDone = false;
 	let guideScroll = 0;
 
+	// Villages on the host: the sidebar count saved in game, or the villages seen.
+	function settledSecond(v) {
+		const mine = villages.filter((x) => x.host === v.host);
+		return Math.max(mine.length, ...mine.map((x) => x.count || 0)) >= 2;
+	}
+
 	const guideManual = (v) => new Set(guideStore[v.host]?.[v.id] || []);
 
 	function saveGuideManual(v, set) {
@@ -632,7 +638,10 @@
 			saveSetup(v, change(setupFor(v), v));
 			render();
 		};
-		root.append(buildBonusCard(v, setup, update), buildStepsCard(v, setup), buildGuideCard(v));
+		// The guide leads until the second village is settled.
+		const cards = [buildBonusCard(v, setup, update), buildStepsCard(v, setup)];
+		const guideCard = buildGuideCard(v);
+		root.append(...(settledSecond(v) ? [...cards, guideCard] : [guideCard, ...cards]));
 	}
 
 	select.addEventListener('change', () => {

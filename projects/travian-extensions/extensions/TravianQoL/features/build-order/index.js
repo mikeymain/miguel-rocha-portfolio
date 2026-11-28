@@ -1,6 +1,8 @@
 // Build order.
 // On the resources view (dorf1), marks the resource field with the best
-// payback as the next upgrade: only that one field glows. The step list and
+// payback as the next upgrade: only that one field glows. While the account
+// has one village, the starting guide (guide-4p.js) drives the glow instead:
+// the field on the resources view, the building in the village centre. The step list and
 // the per-village production bonus live in the QoL settings "Build order"
 // tab; this script saves each village's field levels there and re-ranks when
 // the bonus changes.
@@ -19,6 +21,8 @@
 	const CAPACITY_PREFIX = 'travianQoL.buildQueueSize.';
 	// Per-host { villageId: true } for villages simulated to level 20.
 	const MAX20_PREFIX = 'travianQoL.buildMax20.';
+	// Per-host { villageId: [starting guide step ids ticked by hand] }.
+	const GUIDE_PREFIX = 'travianQoL.buildGuide.';
 	const STYLE_ID = 'tqol-bo-style';
 	const ORDER_ATTR = 'tqolBo';
 	const CSS = `
@@ -30,8 +34,17 @@
 	from { box-shadow: 0 0 0 2px #ffd75e, 0 0 6px 2px rgba(255, 200, 40, .6); }
 	to   { box-shadow: 0 0 0 2px #ffd75e, 0 0 16px 7px rgba(255, 200, 40, 1); }
 }
+#villageContent .buildingSlot[data-tqol-bo="1"] {
+	filter: drop-shadow(0 0 4px #ffd75e) drop-shadow(0 0 8px rgba(255, 200, 40, .85));
+	animation: tqol-bo-pulse 1.4s ease-in-out infinite alternate;
+}
+@keyframes tqol-bo-pulse {
+	from { filter: drop-shadow(0 0 3px #ffd75e) drop-shadow(0 0 5px rgba(255, 200, 40, .6)); }
+	to   { filter: drop-shadow(0 0 5px #ffd75e) drop-shadow(0 0 12px rgba(255, 200, 40, 1)); }
+}
 @media (prefers-reduced-motion: reduce) {
-	#resourceFieldContainer a.resourceField[data-tqol-bo="1"] .labelLayer { animation: none; }
+	#resourceFieldContainer a.resourceField[data-tqol-bo="1"] .labelLayer,
+	#villageContent .buildingSlot[data-tqol-bo="1"] { animation: none; }
 }
 `;
 
@@ -42,6 +55,13 @@
 	let forceMax = false; // per-village "Simulate to level 20" toggle
 	let lastSnapshot = '';
 	let queueCapacity = 1;
+	// Starting guide: ticks by hand and the part of the village snapshot the
+	// other view saved (field levels for the village centre, building levels
+	// for the resources view).
+	let guideManual = new Set();
+	let storedFields = null;
+	let storedSlots = null;
+	let guideReady = false;
 
 	const isResourcesPage = () => /^\/(dorf1\.php|resources)$/.test(location.pathname);
 	const isVillagePage = () => /^\/(dorf2\.php|village)$/.test(location.pathname);
@@ -57,6 +77,14 @@
 	function villageId() {
 		return activeVillage()?.dataset?.did || 'default';
 	}
+	/** Villages in the sidebar list (0 if it is not shown). */
+	function villageCount() {
+		const ids = new Set();
+		for (const el of document.querySelectorAll('.villageList .listEntry[data-did], #sidebarBoxVillageList .listEntry[data-did]')) ids.add(el.dataset.did);
+		return ids.size;
+	}
+	// The starting guide drives the highlights until the second village is settled.
+	const guideOn = () => !!window.TravianQoLGuide4P && villageCount() === 1;
 	function villageName() {
 		const el = activeVillage();
 		const name = el?.querySelector('.name')?.textContent || el?.textContent || '';
@@ -104,7 +132,8 @@
 	// Written only when it changes.
 	function saveSnapshot(part) {
 		const id = villageId();
-		const entry = { name: villageName(), ...villageCoords(), ...part };
+		const count = villageCount();
+		const entry = { name: villageName(), ...villageCoords(), ...(count ? { count } : {}), ...part };
 		const sig = id + JSON.stringify(entry);
 		if (sig === lastSnapshot) return;
 		lastSnapshot = sig;
@@ -150,6 +179,42 @@
 	function scanVillage() {
 		if (!document.querySelector('#villageContent .buildingSlot[data-gid]')) return;
 		saveSnapshot({ buildings: readBuildings(), slots: readSlots() });
+		renderVillage();
+	}
+
+	/** Guide buildings in the village centre: { gid, level, el }, queued upgrades counted. */
+	function readBuildingEls() {
+		const out = [];
+		for (const el of document.querySelectorAll('#villageContent .buildingSlot[data-gid]')) {
+			const gid = Number(el.dataset.gid);
+			if (!GUIDE_GIDS.has(gid)) continue;
+			const a = el.querySelector('a[data-level]');
+			const level = Number(a?.dataset.level) + (a?.classList.contains('underConstruction') ? 1 : 0);
+			if (Number.isFinite(level)) out.push({ gid, level, el });
+		}
+		return out;
+	}
+
+	/** { step, item } for the next starting guide step the game can show, or null. */
+	function guideTarget(fields, slots) {
+		const guide = window.TravianQoLGuide4P;
+		const step = guide.nextStep(fields, slots, guideManual);
+		const item = step && guide.firstUnmet(step, fields, slots);
+		return item ? { step, item } : null;
+	}
+
+	// Village centre: while the guide drives, the building it wants next glows.
+	function renderVillage() {
+		let mark = null;
+		if (guideOn() && storedFields) {
+			const target = guideTarget(storedFields, readSlots());
+			if (target?.item.k === 'b') mark = window.TravianQoLGuide4P.pickBuilding(target.item, readBuildingEls());
+		}
+		if (mark) injectStyle();
+		for (const el of document.querySelectorAll('#villageContent .buildingSlot[data-tqol-bo]')) {
+			if (!mark || el !== mark.el) delete el.dataset[ORDER_ATTR];
+		}
+		if (mark && mark.el.dataset[ORDER_ATTR] !== '1') mark.el.dataset[ORDER_ATTR] = '1';
 	}
 
 	/** Builds in progress; master builder "waiting" rows do not occupy a slot. */
@@ -174,6 +239,8 @@
 		if (!isResourcesPage()) return;
 		const fields = readFields();
 		if (!fields.length) return;
+		// Wait for the guide ticks so the glow does not flash on the wrong field.
+		if (!guideReady && guideOn()) return;
 		// `building`: an upgrade to `level` is in the queue (shown in the settings tab).
 		saveSnapshot({ fields: fields.map(({ el, slot, gid, level }) => ({ slot, gid, level, ...(el.classList.contains('underConstruction') ? { building: true } : {}) })) });
 		const queued = queuedCount();
@@ -182,8 +249,16 @@
 		// Plan deep enough to skip fields that already have an upgrade queued:
 		// the glow goes to the first step on a field that is not being built.
 		const building = new Set(fields.filter((f) => f.el.classList.contains('underConstruction')).map((f) => f.slot));
-		const steps = window.TravianQoLBuildOrder.plan(fields, bonuses, PLAN_DEPTH, undefined, forceMax);
-		const next = hasFreeSlot ? steps.find((s) => s.kind === 'field' && !building.has(s.slot)) : null;
+		let next = null;
+		if (guideOn()) {
+			// Starting guide: the field it wants next, not the best payback.
+			const target = guideTarget(fields, storedSlots);
+			const free = fields.filter((f) => !building.has(f.slot));
+			next = hasFreeSlot && target?.item.k === 'f' ? window.TravianQoLGuide4P.pickField(target.item, free) : null;
+		} else {
+			const steps = window.TravianQoLBuildOrder.plan(fields, bonuses, PLAN_DEPTH, undefined, forceMax);
+			next = hasFreeSlot ? steps.find((s) => s.kind === 'field' && !building.has(s.slot)) : null;
+		}
 		injectStyle();
 		for (const f of fields) {
 			const mark = next && f.slot === next.slot;
@@ -202,9 +277,40 @@
 		bonuses = Array.isArray(saved) && saved.length === 4 ? saved.map((v) => Number(v) || 0) : [0, 0, 0, 0];
 	}
 
+	/** Loads the guide ticks and the other view's snapshot, then calls `done`. */
+	function loadGuideState(done) {
+		const guideKey = GUIDE_PREFIX + location.host;
+		const snapKey = fieldsKey();
+		chrome.storage.local.get([guideKey, snapKey], (res) => {
+			guideManual = new Set(res?.[guideKey]?.[villageId()] || []);
+			const snap = res?.[snapKey]?.[villageId()];
+			storedFields = snap?.fields || null;
+			storedSlots = snap?.slots || null;
+			guideReady = true;
+			done();
+		});
+	}
+
+	// Guide ticks edited in the settings tab, or the other view saved its part.
+	function watchGuideState(onChange) {
+		const guideKey = GUIDE_PREFIX + location.host;
+		const snapKey = fieldsKey();
+		return (changes, area) => {
+			if (area !== 'local' || !(changes[guideKey] || changes[snapKey])) return;
+			if (changes[guideKey]) guideManual = new Set(changes[guideKey].newValue?.[villageId()] || []);
+			const snap = changes[snapKey]?.newValue?.[villageId()];
+			if (snap) {
+				storedFields = snap.fields || null;
+				storedSlots = snap.slots || null;
+			}
+			onChange();
+		};
+	}
+
 	function start() {
 		const key = bonusKey();
 		const maxKey = MAX20_PREFIX + location.host;
+		loadGuideState(render);
 		chrome.storage.local.get(maxKey, (res) => {
 			forceMax = !!res?.[maxKey]?.[villageId()];
 			render();
@@ -221,8 +327,10 @@
 			observer.observe(container, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
 		});
 		// Bonus edited in the settings tab: re-rank the highlighted fields.
+		const onGuide = watchGuideState(render);
 		storageListener = (changes, area) => {
 			if (area !== 'local') return;
+			onGuide(changes, area);
 			if (changes[maxKey]) forceMax = !!changes[maxKey].newValue?.[villageId()];
 			if (changes[key]) applyBonuses(changes[key].newValue);
 			if (changes[key] || changes[maxKey]) render();
@@ -232,6 +340,9 @@
 
 	function startVillage() {
 		scanVillage();
+		loadGuideState(renderVillage);
+		storageListener = watchGuideState(renderVillage);
+		chrome.storage.onChanged?.addListener(storageListener);
 		const container = document.getElementById('villageContent') || document.body;
 		observer = new MutationObserver(() => {
 			clearTimeout(debounceTimer);
@@ -346,6 +457,7 @@
 			clearTimeout(tileTimer);
 			tileTimer = null;
 			lastSnapshot = '';
+			guideReady = false;
 			document.getElementById(STYLE_ID)?.remove();
 			document.querySelectorAll('[data-tqol-bo]').forEach((el) => delete el.dataset[ORDER_ATTR]);
 		},

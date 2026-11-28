@@ -1,5 +1,11 @@
 # Changelog
 
+## Travian QoL 1.7.1 — 2026-11-28
+
+- Starting guide drives the in-game highlight while the account has one village: the resource field on the resources view and the building on the village centre view. The payback highlight returns once the second village is settled.
+- The guide card leads the Build order tab until the second village is settled, then moves below the other cards.
+- Farm targets tab: space between the farm list name and its target count.
+
 ## World Watch 1.11.0 — 2026-11-27
 
 - Saves public `map.sql` snapshots and game terrain from normal map responses. DevTools is no longer required.
