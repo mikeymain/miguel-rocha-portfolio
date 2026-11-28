@@ -6,6 +6,11 @@ The step list follows the 4 party farming start from the community "Settling" sp
 
 ## How it works
 
+- Timing goals are measured from your start. Aim to reach **All resource fields to 4** in **12–16 hours** and start **Party 1** by **48 hours**.
+
+  ![Starting guide showing the 12–16 hour target beside All resource fields to 4](images/qol-starting-guide-timing.png)
+
+
 - A step is ticked automatically when the game shows it done: resource field levels come from the resources view, building levels from the village centre. Open both once per village.
 - Counts are cumulative. "Cropland 1x to 4" followed by "Cropland 2nd to 4" needs two croplands at level 4.
 - For **All** field steps, upgrade in rounds. The guide highlights the lowest available field among the requested types, so fields at the same level take turns before the next round.

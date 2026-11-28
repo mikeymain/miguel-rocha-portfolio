@@ -644,6 +644,7 @@
 		const label = el('label', 'bo__guide-label');
 		label.append(box, el('span', 'bo__guide-name', step.label));
 		if (step.optional) label.appendChild(el('span', 'bo-tag', 'Optional'));
+		if (step.timing) label.appendChild(el('span', 'bo__guide-hint', step.timing));
 		name.appendChild(label);
 		const perCp = step.cost ? guide.costPerCp(step) : null;
 		tr.append(
