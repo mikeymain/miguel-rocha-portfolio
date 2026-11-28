@@ -412,6 +412,25 @@ function setPanelTab(tab) {
   if (!panel) return;
   panel.classList.toggle("tab-troops", tab === "troops");
   panel.classList.toggle("tab-hero", tab !== "troops");
+  updateRiskLabel();
+}
+
+function updateRiskLabel() {
+  const slider = document.getElementById("_vprisk");
+  const label = document.getElementById("_vprisk-label");
+  if (!slider || !label) return;
+  const forTroops = document.getElementById("_vppanel").classList.contains("tab-troops");
+  const level = parseInt(slider.value);
+  const risk = getRiskThresholds(level, forTroops);
+  const [minHp, maxHp] = risk.hpBand;
+  const hpRange = maxHp === Infinity ? `${minHp}%+` : `${minHp}–${maxHp}%`;
+  label.textContent = risk.label;
+  label.className = "_vprisk-label _vprisk-" + level;
+  slider.setAttribute("aria-valuetext", forTroops ? risk.label : `${risk.label} · ${hpRange} HP loss`);
+  slider.setAttribute("aria-label", forTroops ? "Troop loss tolerance" : "Hero risk tolerance");
+  slider.title = forTroops
+    ? "Maximum estimated share of troops lost. Safe is 2.5%; Max is 7–20% depending on the clear size."
+    : `Best score prioritizes targets with ${hpRange} estimated hero HP loss.`;
 }
 
 // Reflect the hidden #_vpmode select's value in the segmented buttons
@@ -549,7 +568,7 @@ function createUI() {
                         </select>
                     </div>
                     <div class="_vprisk-slider">
-                        <input type="range" id="_vprisk" min="1" max="5" value="3" step="1" class="_vpslider" aria-label="Troop loss tolerance" title="Maximum estimated share of troops lost. Safe is 2.5%; Max is 7–20% depending on the clear size.">
+                        <input type="range" id="_vprisk" min="1" max="5" value="3" step="1" class="_vpslider" aria-label="Hero risk tolerance">
                         <span id="_vprisk-label" class="_vprisk-label _vprisk-3">Balanced</span>
                     </div>
                 </div>
@@ -833,14 +852,7 @@ function createUI() {
 
   // Risk slider label update
   const riskSlider = document.getElementById("_vprisk");
-  const riskLabel = document.getElementById("_vprisk-label");
-  if (riskSlider && riskLabel) {
-    const updateRiskLabel = () => {
-      const lvl = parseInt(riskSlider.value);
-      riskLabel.textContent = getRiskThresholds(lvl).label;
-      riskSlider.setAttribute("aria-valuetext", riskLabel.textContent);
-      riskLabel.className = "_vprisk-label _vprisk-" + lvl;
-    };
+  if (riskSlider) {
     riskSlider.addEventListener("input", updateRiskLabel);
     riskSlider.addEventListener("change", updateRiskLabel);
     updateRiskLabel();

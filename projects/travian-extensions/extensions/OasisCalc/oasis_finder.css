@@ -352,9 +352,6 @@
   gap: 8px;
   flex: 1;
 }
-#_vppanel:not(.tab-troops) ._vprisk-slider {
-  display: none;
-}
 ._vpslider {
   -webkit-appearance: none;
   appearance: none;

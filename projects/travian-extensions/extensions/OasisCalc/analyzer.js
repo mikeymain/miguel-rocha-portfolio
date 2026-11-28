@@ -143,8 +143,9 @@ function calculateMetrics(oasis, s) {
   const resPerHp = hpLoss > 1 ? Math.round(realizedRes / hpLoss) : realizedRes;
 
   // Risk-adjusted RPM scoring
+  const { hp: riskHp } = getRiskThresholds(s.riskLevel);
   const safetyMul =
-    hpLoss > 1 ? 1 / (1 + Math.pow(hpLoss / 35, RISK_STEEPNESS)) : 1.0;
+    hpLoss > 1 ? 1 / (1 + Math.pow(hpLoss / riskHp, RISK_STEEPNESS)) : 1.0;
   const safeRpm = rpm * safetyMul;
   const rawScore = Math.pow(safeRpm, 0.8) * Math.pow(realizedXP + 1, 0.2);
 
@@ -458,6 +459,11 @@ function countResultsInRadius(cx, cy, radius) {
   return count;
 }
 
+function compareHeroScore(a, b, [minHp, maxHp]) {
+  const inBand = ({ hp }) => hp >= minHp && hp <= maxHp;
+  return Number(inBand(b)) - Number(inBand(a)) || b.rawScore - a.rawScore;
+}
+
 function renderHeroTab() {
   const { cx, cy } = getCoords();
   const settings = {
@@ -471,10 +477,12 @@ function renderHeroTab() {
       HERO_HP_BUFFER,
     tsLvl: parseInt(document.getElementById("_vpts-lvl").value) || 0,
     speed: parseInt(document.getElementById("_vpspeed").value) || 7,
+    riskLevel: parseInt(document.getElementById("_vprisk")?.value) || 3,
   };
 
   const sortMode = document.getElementById("_vpsort-order").value || "score";
   const scanMode = document.getElementById("_vpmode")?.value || "GRID";
+  const { hpBand } = getRiskThresholds(settings.riskLevel);
 
   const source = getSourceMap(scanMode);
   const list = [];
@@ -499,7 +507,7 @@ function renderHeroTab() {
         return b.resPerHp - a.resPerHp;
       case "combined":
       default:
-        return b.rawScore - a.rawScore;
+        return compareHeroScore(a, b, hpBand);
     }
   });
 

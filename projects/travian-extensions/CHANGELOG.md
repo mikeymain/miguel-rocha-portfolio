@@ -1,5 +1,9 @@
 # Changelog
 
+## Oasis Finder 70.36 — 2026-11-28
+
+- Restored the Hero risk slider beside Sort. Best score prioritizes the selected hero HP-loss band.
+
 ## Oasis Finder 70.35 — 2026-11-28
 
 - Units needed forecasts the oasis defence at arrival using the selected team's travel time, scan age, and species spawn timers.

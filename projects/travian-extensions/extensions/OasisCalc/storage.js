@@ -441,15 +441,5 @@ function loadSettings() {
     // Prefill troop inputs and smithy levels from stored data for the active village
     const matched = getActiveVillage();
     if (matched) prefillTroopsFromStorage(matched.name);
-
-    // Update risk slider label + color after restoring value
-    const riskLabel = document.getElementById("_vprisk-label");
-    const riskSlider = document.getElementById("_vprisk");
-    if (riskLabel && riskSlider) {
-      const lvl = parseInt(riskSlider.value);
-      riskLabel.textContent = getRiskThresholds(lvl).label;
-      riskSlider.setAttribute("aria-valuetext", riskLabel.textContent);
-      riskLabel.className = "_vprisk-label _vprisk-" + lvl;
-    }
   });
 }

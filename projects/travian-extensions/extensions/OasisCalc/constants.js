@@ -503,10 +503,19 @@ const HERO_HP_BUFFER = 7;
 const ANIMAL_SPAWN_MINUTES = { 31: 5, 32: 6, 33: 7, 34: 8, 35: 9, 36: 10, 37: 11, 38: 12, 39: 13, 40: 14 };
 const MAX_SCAN_FORECAST_MINUTES = 60;
 
-function getRiskThresholds(level) {
-	const labels = ["Safe · ≤2.5%", "Cautious", "Balanced", "Aggressive", "Max · 7–20%"];
+function getRiskThresholds(level, forTroops = true) {
+	const labels = ["Safe", "Cautious", "Balanced", "Aggressive", "Reckless"];
+	if (forTroops) {
+		labels[0] = "Safe · ≤2.5%";
+		labels[4] = "Max · 7–20%";
+	}
 	const step = Number.isInteger(level) && level >= 1 && level <= 5 ? level - 1 : 2;
-	return { label: labels[step], fraction: step / 4 };
+	return {
+		label: labels[step],
+		fraction: step / 4,
+		hp: [15, 25, 35, 50, 70][step],
+		hpBand: [[0, 7], [7, 12], [12, 17], [20, 30], [30, Infinity]][step],
+	};
 }
 
 // Global state

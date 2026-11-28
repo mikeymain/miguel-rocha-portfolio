@@ -45,7 +45,9 @@ Select **Inf def** or **Cav def** in the Target header to see the defence score 
 1. Open the map, select the origin village, and set the radius.
 2. Select **Discovery** and pan the map to collect oasis data. Use **Update** to refresh known targets. The coverage meter shows observed areas.
 3. In **Hero**, click **Fetch** and check health, Tournament Square level, and map bonus under **Adjust**. In **Troops**, fetch or enter counts and smithy levels; set hero inclusion, **Unit**, and troop cap.
-4. Set **Troop loss tolerance** in **Troops** and choose a sort: **Best score**, **Net resources**, **Res / minute**, **Distance**, or **Res / HP**. Net resources includes modeled troop losses.
+4. Use the slider beside **Sort** to set risk tolerance in **Hero** or loss tolerance in **Troops**. Choose **Best score**, **Net resources**, **Res / minute**, **Distance**, or **Res / HP**. Net resources includes modeled troop losses.
+
+**Hero risk tolerance.** With **Best score**, the slider puts the selected estimated HP-loss band first. **Safe** prioritizes 0–7%, **Cautious** 7–12%, **Balanced** 12–17%, **Aggressive** 20–30%, and **Reckless** 30%+. Targets outside the band stay in the results if they meet the hero health limit.
 5. Check observation age and current garrison before raiding. Coordinates open the map; **Send** opens a prefilled rally-point page. Sending the raid requires confirmation in the game.
 
 **Troop sizing.** With no counts entered, **Troops** and the map dialog's **Units needed** recommend a clear with the selected unit. The estimate uses effective infantry and cavalry defence, the existing +10 base-defence model, smithy level, one-way march time and any selected hero. It compares the possible continuation of each observed species using its 5-14 minute x1 guide timer, the time to arrival and up to an hour of scan age. The forecast uses the single continuation adding the most effective defence. The next spawn phase and batch size are unknown. Estimated net resources credit the observed animals and deduct troop replacement costs.
