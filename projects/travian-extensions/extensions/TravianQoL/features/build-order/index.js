@@ -23,6 +23,9 @@
 	const MAX20_PREFIX = 'travianQoL.buildMax20.';
 	// Per-host { villageId: [starting guide step ids ticked by hand] }.
 	const GUIDE_PREFIX = 'travianQoL.buildGuide.';
+	const LAYOUT_KEY = 'travianQoL.buildGuideLayout';
+	const SLOT_SELECTOR = '#villageContent .buildingSlot:not(.top)';
+	const SLOT_HINT_ID = 'tqol-bo-slot-hint';
 	const STYLE_ID = 'tqol-bo-style';
 	const ORDER_ATTR = 'tqolBo';
 	const CSS = `
@@ -38,6 +41,17 @@
 	filter: drop-shadow(0 0 4px #ffd75e) drop-shadow(0 0 8px rgba(255, 200, 40, .85));
 	animation: tqol-bo-pulse 1.4s ease-in-out infinite alternate;
 }
+#villageContent .buildingSlot[data-gid="0"][data-tqol-bo="1"] .buildingShape path {
+	fill: rgba(255, 215, 94, .18);
+	stroke: #ffd75e;
+	stroke-width: 2;
+}
+#content .buildingWrapper[data-tqol-bo="1"],
+#content .titleInHeader[data-tqol-bo="1"] {
+	outline: 2px solid #ffd75e;
+	outline-offset: 2px;
+}
+#tqol-bo-slot-hint { margin-block: 10px; color: #ffd75e; font-weight: bold; }
 @keyframes tqol-bo-pulse {
 	from { filter: drop-shadow(0 0 3px #ffd75e) drop-shadow(0 0 5px rgba(255, 200, 40, .6)); }
 	to   { filter: drop-shadow(0 0 5px #ffd75e) drop-shadow(0 0 12px rgba(255, 200, 40, 1)); }
@@ -61,10 +75,13 @@
 	let guideManual = new Set();
 	let storedFields = null;
 	let storedSlots = null;
+	let storedLayout = {};
+	let referenceLayout = {};
 	let guideReady = false;
 
 	const isResourcesPage = () => /^\/(dorf1\.php|resources)$/.test(location.pathname);
 	const isVillagePage = () => /^\/(dorf2\.php|village)$/.test(location.pathname);
+	const isSlotPage = () => /^\/(build\.php|building|slot)$/.test(location.pathname);
 	// Buildings the planner uses: boosts 5-9, main building 15, Hero's Mansion 37.
 	const TRACKED_GIDS = [5, 6, 7, 8, 9, 15, 37];
 	const bonusKey = () => BONUS_PREFIX + location.host;
@@ -164,33 +181,34 @@
 	const GUIDE_GIDS = new Set([10, 11, 13, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 31, 32, 33, 42, 43]);
 
 	/** Levels of every guide building by gid (one entry per slot), queued upgrades counted. */
-	function readSlots() {
+	function readSlots(buildings) {
 		const out = {};
-		for (const slot of document.querySelectorAll('#villageContent .buildingSlot[data-gid]')) {
-			const gid = Number(slot.dataset.gid);
-			if (!GUIDE_GIDS.has(gid)) continue;
-			const a = slot.querySelector('a[data-level]');
-			const level = Number(a?.dataset.level) + (a?.classList.contains('underConstruction') ? 1 : 0);
-			if (Number.isFinite(level)) (out[gid] ||= []).push(level);
+		for (const { gid, level } of buildings) {
+			if (GUIDE_GIDS.has(gid)) (out[gid] ||= []).push(level);
 		}
 		return out;
 	}
 
 	function scanVillage() {
-		if (!document.querySelector('#villageContent .buildingSlot[data-gid]')) return;
-		saveSnapshot({ buildings: readBuildings(), slots: readSlots() });
-		renderVillage();
+		const buildings = readBuildingEls();
+		const slots = readSlots(buildings);
+		if (buildings.length) {
+			const layout = Object.fromEntries(buildings.filter((b) => b.slot).map(({ slot, gid, level, building }) => [slot, { gid, level, building }]));
+			saveSnapshot({ buildings: readBuildings(), slots, layout });
+		}
+		renderVillage(buildings, slots);
 	}
 
-	/** Guide buildings in the village centre: { gid, level, el }, queued upgrades counted. */
+	/** Village slots with their effective level, including any upgrade in progress. */
 	function readBuildingEls() {
 		const out = [];
-		for (const el of document.querySelectorAll('#villageContent .buildingSlot[data-gid]')) {
-			const gid = Number(el.dataset.gid);
-			if (!GUIDE_GIDS.has(gid)) continue;
+		for (const el of document.querySelectorAll(SLOT_SELECTOR)) {
+			const gid = Number(el.dataset.gid ?? el.className.match(/\bg(\d+)\b/)?.[1]);
+			const slot = Number(el.dataset.aid ?? el.className.match(/\ba(\d+)\b/)?.[1]) || 0;
 			const a = el.querySelector('a[data-level]');
-			const level = Number(a?.dataset.level) + (a?.classList.contains('underConstruction') ? 1 : 0);
-			if (Number.isFinite(level)) out.push({ gid, level, el });
+			const building = !!el.querySelector('.underConstruction') || el.classList.contains('underConstruction');
+			const level = gid === 0 ? 0 : Number(a?.dataset.level) + Number(building);
+			if (Number.isInteger(gid) && Number.isFinite(level)) out.push({ gid, slot, level, building, el });
 		}
 		return out;
 	}
@@ -203,18 +221,60 @@
 		return item ? { step, item } : null;
 	}
 
-	// Village centre: while the guide drives, the building it wants next glows.
-	function renderVillage() {
-		let mark = null;
-		if (guideOn() && storedFields) {
-			const target = guideTarget(storedFields, readSlots());
-			if (target?.item.k === 'b') mark = window.TravianQoLGuide4P.pickBuilding(target.item, readBuildingEls());
+	function pickBuildingSlot(item, buildings) {
+		const gids = [].concat(item.g);
+		const matching = buildings.filter((b) => gids.includes(b.gid));
+		const existing = window.TravianQoLGuide4P.pickBuilding(item, matching.filter((b) => !b.building));
+		if (existing || matching.length >= item.n) return existing;
+		const empty = buildings.filter((b) => b.gid === 0 && !b.building);
+		const fixed = gids.length > 1 ? 40 : { 15: 26, 16: 39 }[item.g];
+		if (fixed) return empty.find((b) => b.slot === fixed);
+		const ordinary = empty.filter((b) => b.slot >= 19 && b.slot <= 38 && b.slot !== 26);
+		return ordinary.find((b) => gids.includes(referenceLayout[b.slot]))
+			|| ordinary.find((b) => !referenceLayout[b.slot])
+			|| ordinary[0];
+	}
+
+	function markBuilding(el) {
+		for (const marked of document.querySelectorAll('[data-tqol-bo]')) {
+			if (marked !== el) delete marked.dataset[ORDER_ATTR];
 		}
-		if (mark) injectStyle();
-		for (const el of document.querySelectorAll('#villageContent .buildingSlot[data-tqol-bo]')) {
-			if (!mark || el !== mark.el) delete el.dataset[ORDER_ATTR];
+		if (el) {
+			injectStyle();
+			if (el.dataset[ORDER_ATTR] !== '1') el.dataset[ORDER_ATTR] = '1';
 		}
-		if (mark && mark.el.dataset[ORDER_ATTR] !== '1') mark.el.dataset[ORDER_ATTR] = '1';
+	}
+
+	function renderVillage(buildings, slots) {
+		const target = guideOn() && storedFields ? guideTarget(storedFields, slots) : null;
+		const next = target?.item.k === 'b' && pickBuildingSlot(target.item, buildings);
+		markBuilding(next?.el);
+	}
+
+	function renderSlot() {
+		const oldHint = document.getElementById(SLOT_HINT_ID);
+		const slot = Number(new URLSearchParams(location.search).get('id'));
+		const target = guideOn() && storedFields && storedSlots ? guideTarget(storedFields, storedSlots) : null;
+		const buildings = Object.entries(storedLayout).map(([slot, b]) => ({ ...b, slot: Number(slot) }));
+		const next = target?.item.k === 'b' && pickBuildingSlot(target.item, buildings);
+		if (!next || next.slot !== slot) {
+			oldHint?.remove();
+			markBuilding(null);
+			return;
+		}
+		const card = [].concat(target.item.g).map((gid) => document.getElementById('contract_building' + gid)).find(Boolean);
+		const firstCard = document.querySelector('#content .buildingWrapper');
+		markBuilding(card || (!firstCard && document.querySelector('#content .titleInHeader')));
+		if (!firstCard) {
+			oldHint?.remove();
+			return;
+		}
+		const hint = oldHint || document.createElement('p');
+		const label = 'Starting guide · ' + target.step.label;
+		hint.id = SLOT_HINT_ID;
+		if (hint.textContent !== label) hint.textContent = label;
+		if (hint.nextElementSibling !== firstCard) firstCard.before(hint);
+		injectStyle();
 	}
 
 	/** Builds in progress; master builder "waiting" rows do not occupy a slot. */
@@ -281,11 +341,13 @@
 	function loadGuideState(done) {
 		const guideKey = GUIDE_PREFIX + location.host;
 		const snapKey = fieldsKey();
-		chrome.storage.local.get([guideKey, snapKey], (res) => {
+		chrome.storage.local.get([guideKey, snapKey, LAYOUT_KEY], (res) => {
 			guideManual = new Set(res?.[guideKey]?.[villageId()] || []);
 			const snap = res?.[snapKey]?.[villageId()];
 			storedFields = snap?.fields || null;
 			storedSlots = snap?.slots || null;
+			storedLayout = snap?.layout || {};
+			referenceLayout = res?.[LAYOUT_KEY] || {};
 			guideReady = true;
 			done();
 		});
@@ -296,12 +358,14 @@
 		const guideKey = GUIDE_PREFIX + location.host;
 		const snapKey = fieldsKey();
 		return (changes, area) => {
-			if (area !== 'local' || !(changes[guideKey] || changes[snapKey])) return;
+			if (area !== 'local' || !(changes[guideKey] || changes[snapKey] || changes[LAYOUT_KEY])) return;
 			if (changes[guideKey]) guideManual = new Set(changes[guideKey].newValue?.[villageId()] || []);
-			const snap = changes[snapKey]?.newValue?.[villageId()];
-			if (snap) {
-				storedFields = snap.fields || null;
-				storedSlots = snap.slots || null;
+			if (changes[LAYOUT_KEY]) referenceLayout = changes[LAYOUT_KEY].newValue || {};
+			if (changes[snapKey]) {
+				const snap = changes[snapKey].newValue?.[villageId()];
+				storedFields = snap?.fields || null;
+				storedSlots = snap?.slots || null;
+				storedLayout = snap?.layout || {};
 			}
 			onChange();
 		};
@@ -339,14 +403,19 @@
 	}
 
 	function startVillage() {
-		scanVillage();
-		loadGuideState(renderVillage);
-		storageListener = watchGuideState(renderVillage);
+		const update = () => {
+			if (isVillagePage()) {
+				document.getElementById(SLOT_HINT_ID)?.remove();
+				scanVillage();
+			} else if (isSlotPage()) renderSlot();
+		};
+		loadGuideState(update);
+		storageListener = watchGuideState(update);
 		chrome.storage.onChanged?.addListener(storageListener);
-		const container = document.getElementById('villageContent') || document.body;
+		const container = document.getElementById('content') || document.body;
 		observer = new MutationObserver(() => {
 			clearTimeout(debounceTimer);
-			debounceTimer = setTimeout(scanVillage, DEBOUNCE_MS);
+			debounceTimer = setTimeout(update, DEBOUNCE_MS);
 		});
 		observer.observe(container, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'data-level'] });
 	}
@@ -505,7 +574,7 @@
 				return false;
 			};
 			chrome.runtime?.onMessage?.addListener(messageListener);
-			const run = isResourcesPage() ? start : isVillagePage() ? startVillage : isMapPage() ? startMap : null;
+			const run = isResourcesPage() ? start : isVillagePage() || isSlotPage() ? startVillage : isMapPage() ? startMap : null;
 			if (!run) return;
 			if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run, { once: true });
 			else run();
@@ -527,6 +596,7 @@
 			lastSnapshot = '';
 			guideReady = false;
 			document.getElementById(STYLE_ID)?.remove();
+			document.getElementById(SLOT_HINT_ID)?.remove();
 			document.querySelectorAll('[data-tqol-bo]').forEach((el) => delete el.dataset[ORDER_ATTR]);
 		},
 	});

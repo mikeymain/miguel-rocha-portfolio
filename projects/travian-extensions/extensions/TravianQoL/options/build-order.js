@@ -15,6 +15,7 @@
 	// Per-host { villageId: [guide step ids ticked by hand] }.
 	const GUIDE_PREFIX = 'travianQoL.buildGuide.';
 	const HIDE_DONE_KEY = 'travianQoL.buildGuideHideDone';
+	const LAYOUT_KEY = 'travianQoL.buildGuideLayout';
 	const STEPS = 12;
 	// Plan depth for the boost-building timing (covers every field to 20).
 	const BOOST_DEPTH = 450;
@@ -112,7 +113,7 @@
 				const host = key.slice(FIELDS_PREFIX.length);
 				for (const [id, v] of Object.entries(value || {})) {
 					if (!Array.isArray(v?.fields) || !v.fields.length) continue;
-					villages.push({ value: `${host}|${id}`, host, id, name: v.name || id, fields: v.fields, buildings: v.buildings || null, slots: v.slots || null, count: v.count, updatedAt: v.updatedAt || 0, buildingsAt: v.buildingsAt || 0, x: v.x, y: v.y });
+					villages.push({ value: `${host}|${id}`, host, id, name: v.name || id, fields: v.fields, buildings: v.buildings || null, slots: v.slots || null, layout: v.layout, count: v.count, updatedAt: v.updatedAt || 0, buildingsAt: v.buildingsAt || 0, x: v.x, y: v.y });
 				}
 			} else if (key.startsWith(BONUS_PREFIX) && key !== PICK_KEY) {
 				bonusStore[key.slice(BONUS_PREFIX.length)] = value || {};
@@ -679,6 +680,18 @@
 			if (focused) root.querySelector('.bo__guide button').focus({ preventScroll: true });
 		});
 		actions.appendChild(toggle);
+		const layout = Object.fromEntries(Object.entries(v.layout || {}).filter(([, b]) => b.gid > 0).map(([slot, b]) => [slot, b.gid]));
+		if (Object.keys(layout).length) {
+			const useLayout = el('button', 'bo-link', 'Use this village layout');
+			useLayout.type = 'button';
+			useLayout.title = 'Use these building positions as the starting guide layout across worlds';
+			useLayout.addEventListener('click', () => {
+				chrome.storage.local.set({ [LAYOUT_KEY]: layout }, () => {
+					useLayout.textContent = chrome.runtime?.lastError ? 'Could not save layout' : 'Layout saved';
+				});
+			});
+			actions.appendChild(useLayout);
+		}
 		card.appendChild(actions);
 		const table = el('table', 'bo__table');
 		const thead = el('thead');
