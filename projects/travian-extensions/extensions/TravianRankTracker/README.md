@@ -2,7 +2,7 @@
 
 Records player statistics and displays rankings, historical changes and comparison graphs.
 
-**Version 5.1.19 · JavaScript · Manifest V3**
+**Version 5.1.23 · JavaScript · Manifest V3**
 
 [Usage guide](../../docs/USAGE.md#rank-tracker) · [Installation](../../README.md#install-in-brave-chrome-or-edge) · [All extensions](../../README.md) · [Privacy policy](../../docs/rank-tracker-privacy.md)
 
@@ -16,6 +16,7 @@ Graph controls wrap within the popup so the full chart and right-hand axis stay 
 
 ## Data behaviour
 
+- Open Rank Tracker from a game tab to check Playtime against the avatar’s visible Beginner’s Protection countdown. The check supports x1, x2, x3, x5 and x10 worlds. Rank Tracker keeps the existing start when the countdown is missing or an optional extension could explain it.
 - Weekly tables refresh when the popup opens; the Weekly header shows when they were observed. Background collection handles JSON-backed general statistics.
 - Changes and rates account for observed weekly resets; daily bounty resets are handled in History. Absolute charts retain the original period totals.
 - Average rank uses the seven General ranks (Population, Prod / Hour, Prod So Far, CP / Day, CP So Far, Offensive and Defensive Strength) plus weekly PvE and Robbers. Weekly Attack and Defense are excluded.

@@ -62,13 +62,10 @@ async function startPopup() {
 	}
 
 	// A refresh under OPEN_REFRESH_SKIP_MS ago is fresh enough: keep the stored snapshot.
-	if (lastRefreshAt != null && Date.now() - lastRefreshAt < OPEN_REFRESH_SKIP_MS) {
-		await updatePlaytime(serverOrigin);
-		return;
+	if (lastRefreshAt == null || Date.now() - lastRefreshAt >= OPEN_REFRESH_SKIP_MS) {
+		await refreshNow(tabOrigin ? tab : null, serverOrigin, storageKey);
 	}
-
-	await refreshNow(tabOrigin ? tab : null, serverOrigin, storageKey);
-	await updatePlaytime(serverOrigin);
+	await updatePlaytime(serverOrigin, true, tabOrigin ? tab.id : null);
 }
 
 /**
@@ -181,14 +178,29 @@ async function loadFromStorage(storageKey, serverOrigin) {
 
 /**
  * Show time since the server started (statistics timeline) and time since
- * you joined. Join anchors, in order: first system message in the inbox,
- * first-seen time, oldest history entry.
- * `allowFetch` false draws from storage only, so the chip shows at open
- * instead of waiting for the network refresh and inbox fetch.
+ * you joined. The open game tab can supply a newer start after a respawn.
+ * Fall back to the saved start, inbox, first-seen time, then oldest history.
  */
-async function updatePlaytime(serverOrigin, allowFetch = true) {
+async function updatePlaytime(serverOrigin, allowFetch = true, tabId = null) {
 	const el = document.getElementById("playtime");
 	if (!el || !serverOrigin) return;
+
+	let protection;
+	if (tabId != null) {
+		try {
+			const [page] = await api.scripting.executeScript({
+				target: { tabId },
+				func: () => ({
+					origin: location.origin,
+					now: Date.now(),
+					countdown: document.querySelector('li.infoType_23 .timer[counting="down"]')?.textContent.trim(),
+				}),
+			});
+			protection = page?.result;
+		} catch (_) {
+			// Tabs can navigate or close before the protection countdown is read.
+		}
+	}
 
 	const gameStartKey = `gameStart_${serverOrigin}`;
 	const firstSeenKey = `firstSeen_${serverOrigin}`;
@@ -212,6 +224,11 @@ async function updatePlaytime(serverOrigin, allowFetch = true) {
 	showServer(NaN);
 
 	let anchor = res[gameStartKey];
+	const protectionStart = inferProtectionStart(serverOrigin, protection, anchor, serverStart);
+	if (protectionStart != null) {
+		await api.storage.local.set({ [gameStartKey]: protectionStart });
+		anchor = protectionStart;
+	}
 	if (anchor == null && allowFetch) anchor = await fetchGameStart(serverOrigin, api);
 	if (anchor == null) anchor = res[firstSeenKey];
 	if (anchor == null) {

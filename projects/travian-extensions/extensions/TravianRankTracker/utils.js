@@ -480,11 +480,33 @@ function parseTravianDate(text) {
 		? date.getTime() : null;
 }
 
+const PROTECTION_DAYS = { 1: [5, 3], 2: [3, 3], 3: [3, 3], 5: [2, 2], 10: [1, 1] };
+
+/** Infer a new start only when the optional extension cannot explain the timer. */
+function inferProtectionStart(serverOrigin, observed, cachedStart, serverStart) {
+	const speed = new URL(serverOrigin).hostname.match(/\.x(\d+)\./)?.[1];
+	const durations = PROTECTION_DAYS[speed];
+	const countdown = observed?.countdown?.match(/^(\d+):([0-5]\d):([0-5]\d)$/);
+	if (!durations || !countdown || observed.origin !== serverOrigin) return null;
+
+	const [, hours, minutes, seconds] = countdown.map(Number);
+	const remaining = ((hours * 60 + minutes) * 60 + seconds) * 1000;
+	const day = 86400000;
+	const [baseDays, extensionDays] = durations;
+	const base = baseDays * day;
+	if (remaining <= 0 || remaining > base) return null;
+
+	const start = observed.now + remaining - base;
+	const extendedStart = start - extensionDays * day;
+	const tolerance = 120000; // Inbox timestamps are rounded to the minute.
+	if (start < (serverStart ?? 0) - tolerance || start <= (cachedStart ?? 0) + tolerance) return null;
+	const earliestStart = Math.max(serverStart ?? 0, cachedStart ?? 0);
+	return extendedStart < earliestStart - tolerance ? start : null;
+}
+
 /**
- * Playtime anchor: the received-time of the first system message in the inbox
- * ("TG Support" / "Travian") — i.e. when the account started on this server.
- * Fetched at most once per server; the result is stored in `gameStart_{origin}`
- * and returned from storage on subsequent calls. Returns null when the inbox
+ * Fallback playtime anchor: the received-time of the first system message in
+ * the inbox ("TG Support" / "Travian"). Returns null when the inbox
  * can't be fetched/parsed (logged out, no DOMParser, message deleted).
  *
  * @param {string} serverOrigin - e.g. "https://ts1.travian.com"

@@ -1,5 +1,9 @@
 # Changelog
 
+## Rank Tracker 5.1.23 — 2026-11-28
+
+- Playtime checks the visible Beginner’s Protection countdown when the popup opens and corrects a stale start after a respawn when the timing is unambiguous.
+
 ## Oasis Finder 70.36 — 2026-11-28
 
 - Restored the Hero risk slider beside Sort. Best score prioritizes the selected hero HP-loss band.

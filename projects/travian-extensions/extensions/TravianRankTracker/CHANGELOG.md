@@ -1,5 +1,9 @@
 # Rank Tracker changelog
 
+## Rank Tracker 5.1.23 — 2026-11-28
+
+- Playtime checks your active Travian tab’s Beginner’s Protection countdown on popup open and corrects a stale start after a respawn when the timing is unambiguous.
+
 ## Rank Tracker 5.1.22 — 2026-11-25
 
 - Graph toolbar restyled: all controls are 28px tall, Filters is an outline button, and Time Interval and Average Over are labelled pills that fill the row.
